@@ -38,7 +38,7 @@ const nav = [
   <meta property="og:title" content={fullTitle}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
-  <meta name="theme-color" content="#141619">
+  <meta name="theme-color" content="#faf8f4">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   <script is:inline>
@@ -71,7 +71,7 @@ const nav = [
     <slot />
   </main>
 
-  <footer class="footer">
+  <footer class="footer dark">
     <div class="wrap footer-in">
       <span>© {new Date().getFullYear()} {SITE.name}. Chiffrages indicatifs en euros hors taxes.</span>
       <nav aria-label="Liens légaux">
@@ -84,7 +84,7 @@ const nav = [
   </footer>
 
   {dock && (
-    <div class="dock" id="dock" role="complementary" aria-label="Accès rapide au simulateur">
+    <div class="dock dark" id="dock" role="complementary" aria-label="Accès rapide au simulateur">
       <span class="dock-text">Votre budget WMS en 3 minutes</span>
       <a class="btn btn-gold btn-sm" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
     </div>

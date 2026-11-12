@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE, GUIDES } from '../config';
-const check = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#c9a24b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="7.5 12.5 10.5 15.5 16.5 9"></polyline></svg>';
+const check = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="7.5 12.5 10.5 15.5 16.5 9"></polyline></svg>';
+const cross = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
 const kitPoints = [
   '50 exigences numérotées sur 8 processus, avec leur priorité',
   'Tableaux de volumétrie à remplir : entrepôt, articles, flux, utilisateurs',
@@ -9,19 +10,35 @@ const kitPoints = [
   'Grille de notation pondérée et calendrier de consultation',
   'Livré en Word et en PDF, entièrement modifiable',
 ];
+const pains = [
+  { n: "1/3", t: "La licence ne pèse qu'un tiers du budget", d: "Intégration, interfaces, matériel et formation font le reste. Les comparer sur le seul prix du logiciel mène à de mauvaises surprises." },
+  { n: '4 sur 8', t: 'Les erreurs coûteuses arrivent tôt', d: "La moitié des erreurs qui font déraper un projet se commettent avant la signature : besoin flou, connecteur surestimé, données négligées." },
+  { n: '3 à 5', t: 'offres reçues, autant de formats différents', d: "Chaque éditeur répond à sa façon, avec ses forfaits. Sans format de réponse imposé, les offres ne se comparent pas ligne à ligne." },
+];
+const compare = [
+  ['Base de comparaison', 'Chaque éditeur répond dans son format', 'Tous cotent les mêmes 50 exigences'],
+  ['Prix', 'Forfaits globaux, postes cachés', 'Offre décomposée poste par poste'],
+  ['Spécifique', 'Découvert en atelier, après la signature', 'Identifié et chiffré dès la réponse'],
+  ['Choix final', 'Sur la démonstration la plus convaincante', 'Sur une grille de notation pondérée'],
+  ['Préparation', 'Plusieurs semaines de rédaction', 'Deux à quatre jours pour remplir le modèle'],
+];
+const faq = [
+  { q: 'Le simulateur est-il vraiment gratuit ?', a: "Oui, sans inscription. Le calcul se fait dans votre navigateur. Votre adresse e-mail n'est demandée que si vous voulez recevoir le rapport détaillé." },
+  { q: 'Mes réponses sont-elles transmises à des éditeurs ?', a: "Non. Aucune donnée n'est vendue ni transmise à des éditeurs ou des intégrateurs. Le site est indépendant." },
+  { q: "À qui s'adresse le site ?", a: "Aux directions logistiques, supply chain, financières et informatiques de PME et d'ETI qui préparent un projet WMS, quel que soit le secteur." },
+  { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur, calés sur des fourchettes publiées dont les sources sont listées sous le simulateur. Ils servent à cadrer un budget, pas à remplacer un devis." },
+  { q: 'Et si le kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
+];
 const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4', 'lag5'];
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE.name,
-  url: 'https://www.decision-entrepot.fr/',
-  inLanguage: 'fr-FR',
-  publisher: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+  '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
 ---
-<Base title="Accueil" description="Combien va coûter votre WMS ? Budget, délai et retour sur investissement en 8 questions, guides chiffrés et kit cahier des charges, par un consultant WMS indépendant." jsonLd={jsonLd}>
+<Base title="Accueil" description="Combien va coûter votre WMS ? Estimation gratuite du budget, du délai et du retour sur investissement, guides chiffrés et kit cahier des charges, par un consultant WMS indépendant." jsonLd={jsonLd}>
 
-  <section class="hero" aria-labelledby="titre-accueil">
+  <section class="hero dark" aria-labelledby="titre-accueil">
     <div class="halo" aria-hidden="true"></div>
     <div class="wrap hero-in">
       <div class="stack hero-text">
@@ -30,59 +47,79 @@ const jsonLd = {
           <span class="rise d1 line">Combien va vraiment</span>
           <span class="rise d2 line">coûter <span class="gold">votre WMS</span> ?</span>
         </h1>
-        <p class="lead rise d3">Budget, délai et retour sur investissement de votre projet en 8 questions. Le calcul s'appuie sur des fourchettes publiées et sur des projets menés en entrepôt.</p>
-        <div class="row rise d4" style="gap: 14px">
-          <a class="btn btn-gold" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="btn btn-line" href="#parcours">Voir le parcours</a>
-        </div>
-        <p class="dim rise d5" style="margin: 0; font-size: 14px">Gratuit, sans inscription, résultat en 3 minutes.</p>
+        <p class="lead rise d3">Obtenez en 30 secondes une fourchette de budget, un délai et un retour sur investissement, calés sur des fourchettes publiées et sur des projets menés en entrepôt.</p>
+        <ul class="hero-proof rise d4">
+          <li><Fragment set:html={check} />Gratuit, sans inscription</li>
+          <li><Fragment set:html={check} />Sources affichées</li>
+          <li><Fragment set:html={check} />Indépendant des éditeurs</li>
+        </ul>
       </div>
 
-      <div class="card slide-in result">
-        <div class="row" style="justify-content: space-between; gap: 12px">
-          <span class="dim micro">Exemple de résultat</span>
-          <span class="dim" style="font-size: 13px">25 opérateurs, 3 000 lignes par jour</span>
+      <form class="card estimator slide-in" id="quick" action="/simulateur/" method="get" aria-labelledby="titre-estim">
+        <div class="row" style="justify-content: space-between; align-items: baseline; gap: 12px">
+          <h2 id="titre-estim" class="estim-title">Estimation express</h2>
+          <span class="dim" style="font-size: 13px">2 questions</span>
         </div>
-        <div class="row" style="align-items: center; gap: 12px">
-          <span class="pulse" aria-hidden="true"></span>
-          <span style="font-family: var(--display); font-size: 22px">WMS milieu de gamme</span>
+        <div class="q">
+          <div class="q-head"><label for="q-ops">Opérateurs équipés</label><output id="o-ops" for="q-ops">25</output></div>
+          <input id="q-ops" name="ops" type="range" min="3" max="200" step="1" value="25">
         </div>
-        <div class="stack" style="gap: 4px">
-          <span class="dim micro">Budget initial du projet</span>
-          <span class="count big" role="img" aria-label="171 à 278 k€"></span>
+        <div class="q">
+          <div class="q-head"><label for="q-lines">Lignes préparées par jour</label><output id="o-lines" for="q-lines">3 000</output></div>
+          <input id="q-lines" name="lines" type="range" min="200" max="30000" step="100" value="3000">
         </div>
-        <div class="bar" role="img" aria-label="Répartition du budget : intégration 43 %, matériel 22 %, interfaces 19 %, pilotage 9 %, formation 8 %">
-          <span class="seg s1" style="width: 42.5%; background: var(--gold)"></span>
-          <span class="seg s2" style="width: 21.7%; background: var(--good)"></span>
-          <span class="seg s3" style="width: 18.7%; background: var(--steel)"></span>
-          <span class="seg s4" style="width: 9.2%; background: var(--gold-soft)"></span>
-          <span class="seg s5" style="width: 8%; background: var(--warn)"></span>
+        <div class="estim-out" aria-live="polite">
+          <div class="row" style="align-items: center; gap: 10px">
+            <span class="pulse" aria-hidden="true"></span>
+            <span id="e-tier" class="estim-tier">WMS milieu de gamme</span>
+          </div>
+          <span class="micro dim">Budget initial du projet</span>
+          <span id="e-budget" class="big num">171 à 278 k€</span>
+          <div class="row" style="gap: 10px">
+            <div class="tile" style="flex: 1 1 110px"><div class="tile-k">Délai</div><div class="tile-v" id="e-delay">10 à 13 mois</div></div>
+            <div class="tile" style="flex: 1 1 110px"><div class="tile-k">Amorti en</div><div class="tile-v" id="e-pay">19 mois</div></div>
+          </div>
         </div>
-        <div class="row" style="gap: 12px">
-          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Délai</div><div class="tile-v">10 à 13 mois</div></div>
-          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Amorti en</div><div class="tile-v">19 mois</div></div>
-          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Récurrent</div><div class="tile-v">36 k€ par an</div></div>
-        </div>
-        <a href="/simulateur/" style="text-decoration: none; font-weight: 500">Faire le calcul pour mon entrepôt <span class="arrow" aria-hidden="true">→</span></a>
+        <button class="btn btn-gold btn-lg" type="submit" style="width: 100%">Affiner en 6 questions <span class="arrow" aria-hidden="true">→</span></button>
+        <p class="dim" style="margin: 0; font-size: 12px; text-align: center">Hypothèses : ERP standard, processus courants, sans mécanisation, en SaaS.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="proofbar" aria-label="Pourquoi ce site">
+    <div class="wrap row proofbar-in">
+      <span class="sr-up">Expérience acquise chez <strong>GEODIS</strong> et <strong>KPMG</strong></span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="sr-up lag1">Projets <strong>WMS et WCS</strong>, de la sélection au démarrage</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="sr-up lag2"><strong>0 €</strong> versé par les éditeurs pour être cités</span>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-pains">
+    <div class="wrap stack" style="gap: 56px">
+      <div class="stack center" style="gap: 16px">
+        <p class="eyebrow sr-down">Le problème</p>
+        <h2 id="titre-pains" class="h2 sr-up" style="max-width: 15em">Pourquoi tant de budgets WMS dérapent</h2>
+      </div>
+      <div class="row" style="gap: 22px">
+        {pains.map((p, i) => (
+          <div class={`card pain sr-up ${lags[i]}`}>
+            <span class="pain-n">{p.n}</span>
+            <h3 class="pain-t">{p.t}</h3>
+            <p>{p.d}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>
 
-  <section class="facts" aria-label="En bref">
-    <div class="wrap row facts-in">
-      <div class="stack fact sr-up"><span class="fact-n">8</span><span>questions pour chiffrer votre projet</span></div>
-      <div class="stack fact sr-up lag1"><span class="fact-n">3</span><span>gammes de WMS comparées sur les mêmes critères</span></div>
-      <div class="stack fact sr-up lag2"><span class="fact-n">50</span><span>exigences prêtes à coter dans le kit</span></div>
-      <div class="stack fact sr-up lag3"><span class="fact-n">0 €</span><span>versé par les éditeurs pour être cités</span></div>
-    </div>
-  </section>
-
-  <section id="parcours" class="section" aria-labelledby="titre-parcours">
+  <section id="parcours" class="section section-alt" aria-labelledby="titre-parcours">
     <div class="wrap stack" style="gap: 64px">
       <div class="stack center" style="gap: 16px">
-        <p class="eyebrow sr-down">Le parcours</p>
+        <p class="eyebrow sr-down">La solution</p>
         <h2 id="titre-parcours" class="h2 sr-up" style="max-width: 16em">Du premier chiffrage au choix de l'éditeur, en trois étapes</h2>
-        <p class="lead sr-up lag1">Avancez seul avec les outils, ou faites-vous accompagner là où une erreur coûte cher.</p>
+        <p class="lead sr-up lag1" style="text-align: center">Avancez seul avec les outils, ou faites-vous accompagner là où une erreur coûte cher.</p>
       </div>
       <div style="position: relative">
         <div class="track" aria-hidden="true"><div class="track-fill"></div></div>
@@ -96,8 +133,9 @@ const jsonLd = {
             <a class="btn btn-line" href="/simulateur/">Lancer le simulateur</a>
           </div>
           <div class="card card-hi card-lift step sr-up lag1">
+            <span class="ribbon">Le plus utile pour démarrer</span>
             <div class="step-n step-n-on">2</div>
-            <span class="step-k step-k-on">Cadrer, recommandé</span>
+            <span class="step-k step-k-on">Cadrer</span>
             <h3 class="h3">Le kit cahier des charges</h3>
             <span class="price">{SITE.kitPrice}</span>
             <p>Le document qui fait chiffrer tous les éditeurs sur la même base, prêt à remplir.</p>
@@ -116,7 +154,7 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="section section-alt" aria-labelledby="titre-kit">
+  <section class="section dark" aria-labelledby="titre-kit">
     <div class="wrap row kit-in">
       <div class="doc-stack sr-left" aria-hidden="true">
         <div class="sheet sheet-3"></div>
@@ -137,26 +175,60 @@ const jsonLd = {
         <h2 id="titre-kit" class="h2 sr-right lag1">Des offres d'éditeurs enfin comparables, ligne à ligne</h2>
         <ul class="checks">
           {kitPoints.map((p, i) => (
-            <li class={`sr-right ${lags[i + 1]}`}><Fragment set:html={check} /><span>{p}</span></li>
+            <li class={`sr-right ${lags[i + 1]}`}><span class="gold"><Fragment set:html={check} /></span><span>{p}</span></li>
           ))}
         </ul>
-        <div class="row sr-zoom lag3" style="align-items: center; gap: 22px">
-          <span style="font-family: var(--display); font-size: 44px" class="gold">{SITE.kitPrice}</span>
-          <a class="btn btn-gold" href="/kit-cahier-des-charges/">Voir le kit <span class="arrow" aria-hidden="true">→</span></a>
+        <div class="buybox sr-zoom lag3">
+          <div class="stack" style="gap: 2px">
+            <span class="buy-price">{SITE.kitPrice}</span>
+            <span class="dim" style="font-size: 14px">Moins cher qu'une demi-journée de consultant</span>
+          </div>
+          <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Obtenir le kit <span class="arrow" aria-hidden="true">→</span></a>
         </div>
-        <p class="dim sr-up lag4" style="margin: 0; font-size: 14px">Paiement sécurisé, téléchargement immédiat, facture à votre société.</p>
+        <ul class="assure sr-up lag4">
+          <li>Satisfait ou remboursé 14 jours</li>
+          <li>Paiement sécurisé</li>
+          <li>Téléchargement immédiat</li>
+          <li>Facture à votre société</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-guides">
+  <section class="section" aria-labelledby="titre-compare">
+    <div class="wrap stack" style="gap: 48px">
+      <div class="stack center" style="gap: 16px">
+        <p class="eyebrow sr-down">Avant, après</p>
+        <h2 id="titre-compare" class="h2 sr-up" style="max-width: 16em">Ce qui change quand tous les éditeurs répondent au même document</h2>
+      </div>
+      <div class="compare card sr-up">
+        <div class="cmp-row cmp-head">
+          <span></span>
+          <span>Consultation sans cadre</span>
+          <span class="gold">Avec le kit</span>
+        </div>
+        {compare.map((r, i) => (
+          <div class={`cmp-row sr-up ${lags[(i % 3) + 1]}`}>
+            <span class="cmp-k">{r[0]}</span>
+            <span class="cmp-bad"><Fragment set:html={cross} />{r[1]}</span>
+            <span class="cmp-good"><Fragment set:html={check} />{r[2]}</span>
+          </div>
+        ))}
+      </div>
+      <div class="row sr-up" style="justify-content: center">
+        <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Voir le contenu du kit <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" aria-labelledby="titre-guides">
     <div class="wrap stack" style="gap: 48px">
       <div class="row" style="gap: 24px; align-items: flex-end; justify-content: space-between">
         <div class="stack" style="gap: 14px; max-width: 640px">
-          <p class="eyebrow sr-left">Les guides</p>
+          <p class="eyebrow sr-left">Les guides gratuits</p>
           <h2 id="titre-guides" class="h2 sr-left lag1">Les cinq questions qui précèdent un projet WMS</h2>
         </div>
-        <p class="lead sr-right" style="max-width: 26em; font-size: 17px">Des réponses courtes et chiffrées, écrites par un consultant qui conduit ces projets.</p>
+        <a class="sr-right" href="/guides/" style="font-weight: 500; text-decoration: none">Tous les guides <span class="arrow" aria-hidden="true">→</span></a>
       </div>
       <div class="row guides">
         {GUIDES.map((g, i) => (
@@ -164,18 +236,18 @@ const jsonLd = {
             <span class="guide-f">{g.figure}</span>
             <span class="guide-t">{g.title}</span>
             <span class="guide-s">{g.summary}</span>
-            <span class="gold" style="font-size: 15px; margin-top: 6px">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
+            <span class="gold" style="font-size: 15px; margin-top: 6px; font-weight: 500">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
           </a>
         ))}
         <a class="card card-gold card-lift guide sr-up lag2" href="/simulateur/" style="justify-content: space-between">
           <span style="font-family: var(--display); font-size: 30px">Votre propre chiffrage</span>
-          <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt en 3 minutes. <span class="arrow" aria-hidden="true">→</span></span>
+          <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt. <span class="arrow" aria-hidden="true">→</span></span>
         </a>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-apropos" style="border-top: 1px solid var(--line-soft)">
+  <section class="section" aria-labelledby="titre-apropos">
     <div class="wrap row about-in">
       <div class="photo sr-left" role="img" aria-label="Emplacement de la photo de Robin Thomas-Le Déoré">[Votre photo]</div>
       <div class="stack about-text">
@@ -193,10 +265,28 @@ const jsonLd = {
     </div>
   </section>
 
+  <section class="section section-alt" aria-labelledby="titre-faq">
+    <div class="wrap row" style="gap: 56px; align-items: flex-start">
+      <div class="stack sr-left" style="flex: 1 1 320px; gap: 16px">
+        <p class="eyebrow">Questions fréquentes</p>
+        <h2 id="titre-faq" class="h2">Vos questions, nos réponses</h2>
+        <p class="lead" style="font-size: 17px">Une autre question ? <a href="/a-propos/#contact">Écrivez-moi</a>, je réponds sous 48 heures.</p>
+      </div>
+      <div class="stack faq sr-right" style="flex: 1 1 520px">
+        {faq.map((f) => (
+          <details class="faq-item">
+            <summary>{f.q}<span class="plus" aria-hidden="true"></span></summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
   <section aria-labelledby="titre-final" class="final">
     <div class="wrap">
       <div class="final-in stack center sr-zoom">
-        <h2 id="titre-final" class="h2" style="color: var(--bg); max-width: 14em">Votre projet démarre dans les 12 prochains mois ?</h2>
+        <h2 id="titre-final" class="h2" style="color: #141619; max-width: 14em">Votre projet démarre dans les 12 prochains mois ?</h2>
         <p style="margin: 0; font-size: 19px; max-width: 30em">Commencez par un chiffrage réaliste. Il prend trois minutes et ne vous engage à rien.</p>
         <a class="btn btn-dark btn-lg" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
       </div>
@@ -204,35 +294,75 @@ const jsonLd = {
   </section>
 </Base>
 
+<script>
+  import { TIERS, compute } from '../lib/model.js';
+  const k = (v: number) => new Intl.NumberFormat('fr-FR').format(Math.round(v / 1000)) + ' k€';
+  const nf = new Intl.NumberFormat('fr-FR');
+  const form = document.getElementById('quick') as HTMLFormElement | null;
+  if (form) {
+    const ops = form.querySelector('#q-ops') as HTMLInputElement;
+    const lines = form.querySelector('#q-lines') as HTMLInputElement;
+    const set = (id: string, t: string) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    const update = () => {
+      const r = compute({ surface: 8000, lines: +lines.value, ops: +ops.value, sites: 1, erp: 1, mech: 0, cx: 1, mode: 0, cost: 24, prod: 12, err: 0.5, errcost: 25 });
+      set('o-ops', nf.format(+ops.value));
+      set('o-lines', nf.format(+lines.value));
+      set('e-tier', TIERS[r.tier].name);
+      set('e-budget', k(r.initial * 0.8).replace(' k€', '') + ' à ' + k(r.initial * 1.3));
+      const m = Math.round(r.months);
+      set('e-delay', m + ' à ' + (m + Math.max(2, Math.round(m * 0.3))) + ' mois');
+      set('e-pay', r.payback === null ? 'au-delà de 5 ans' : Math.round(r.payback) + ' mois');
+    };
+    form.addEventListener('input', update);
+    update();
+  }
+</script>
+
 <style>
   .hero { position: relative; }
-  .hero-in { position: relative; display: flex; flex-wrap: wrap; gap: 64px; align-items: center; padding-block: 112px 120px; }
+  .hero-in { position: relative; display: flex; flex-wrap: wrap; gap: 64px; align-items: center; padding-block: 104px 112px; }
   .hero-text { flex: 1 1 500px; min-width: 0; gap: 28px; }
   .line { display: block; }
-  .result { flex: 1 1 420px; min-width: 0; padding: 30px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 40px 90px rgba(0,0,0,.5); }
+  .hero-proof { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 24px; color: var(--muted); font-size: 15px; }
+  .hero-proof li { display: flex; align-items: center; gap: 8px; }
+  .hero-proof :global(svg) { color: var(--gold); width: 18px; height: 18px; }
+  .estimator { flex: 1 1 400px; min-width: 0; padding: 28px; display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow); }
+  .estim-title { font-size: 24px; }
+  .q { display: flex; flex-direction: column; gap: 8px; }
+  .q-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 500; }
+  .q output { color: var(--gold-soft); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .q input { width: 100%; accent-color: var(--gold); min-height: 28px; margin: 0; }
+  .estim-out { display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 16px; background: var(--card-2); }
+  .estim-tier { font-family: var(--display); font-size: 20px; color: var(--text-strong); }
   .micro { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
   .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 6px rgba(201,162,75,.15); }
-  .big { font-family: var(--display); font-size: 48px; line-height: 1.1; color: var(--gold-soft); font-variant-numeric: tabular-nums; }
-  .bar { display: flex; gap: 3px; height: 10px; }
-  .bar span { border-radius: 5px; }
+  .big { font-family: var(--display); font-size: 44px; line-height: 1.1; color: var(--gold-soft); }
+  .estimator .tile { background: var(--card); }
 
-  .facts { border-block: 1px solid var(--line-soft); }
-  .facts-in { gap: 40px; justify-content: space-between; padding-block: 56px; }
-  .fact { flex: 1 1 200px; gap: 6px; color: var(--muted); font-size: 15px; }
-  .fact-n { font-family: var(--display); font-size: 44px; line-height: 1; color: var(--gold-soft); }
+  .proofbar { border-bottom: 1px solid var(--line-soft); background: var(--card); }
+  .proofbar-in { gap: 18px 32px; justify-content: center; align-items: center; padding-block: 22px; color: var(--muted); font-size: 15px; text-align: center; }
+  .proofbar strong { color: var(--text-strong); font-weight: 600; }
+  .sep { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
+  @media (max-width: 760px) { .sep { display: none; } }
+
+  .pain { flex: 1 1 300px; padding: 30px; display: flex; flex-direction: column; gap: 12px; }
+  .pain-n { font-family: var(--display); font-size: 48px; line-height: 1; color: var(--gold-soft); }
+  .pain-t { font-family: var(--body); font-size: 20px; font-weight: 600; color: var(--text-strong); }
+  .pain p { margin: 0; color: var(--muted); }
 
   .track { position: absolute; left: 16%; right: 16%; top: 31px; height: 2px; background: var(--line); }
-  .track-fill { position: absolute; inset: 0; transform-origin: left center; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); }
+  .track-fill { position: absolute; inset: 0; transform-origin: left center; background: linear-gradient(90deg, var(--gold), #e3c886); }
   @media (max-width: 1080px) { .track { display: none; } }
   .steps { position: relative; gap: 24px; align-items: stretch; }
-  .step { flex: 1 1 320px; padding: 0 30px 30px; display: flex; flex-direction: column; gap: 14px; text-align: center; align-items: center; }
+  .step { position: relative; flex: 1 1 320px; padding: 0 30px 30px; display: flex; flex-direction: column; gap: 14px; text-align: center; align-items: center; }
   .step p { margin: 0; color: var(--muted); font-size: 15px; }
   .step .btn { margin-top: auto; }
-  .step-n { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 24px; color: var(--gold-soft); }
-  .step-n-on { background: var(--gold); color: var(--bg); }
+  .step-n { width: 64px; height: 64px; border-radius: 50%; background: var(--card); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 24px; color: var(--gold-soft); }
+  .step-n-on { background: var(--gold); color: #141619; }
   .step-k { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
-  .step-k-on { color: var(--gold); font-weight: 600; }
+  .step-k-on { color: var(--gold-soft); font-weight: 600; }
   .price { font-size: 34px; font-weight: 600; color: var(--gold-soft); }
+  .ribbon { position: absolute; top: -14px; right: 20px; background: #141619; color: #e3c886; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
 
   .kit-in { gap: 72px; align-items: center; }
   .doc-stack { flex: 1 1 460px; min-width: 0; position: relative; height: 470px; }
@@ -252,17 +382,42 @@ const jsonLd = {
   .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
   .checks li { display: flex; gap: 14px; align-items: flex-start; font-size: 17px; }
   .checks :global(svg) { flex: none; margin-top: 2px; }
+  .buybox { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 22px; border: 1px solid rgba(201,162,75,.5); border-radius: 18px; background: var(--card); }
+  .buy-price { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--gold-soft); }
+  .assure { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--dim); font-size: 14px; }
+  .assure li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin-right: 8px; vertical-align: middle; }
+
+  .compare { padding: 8px 0; overflow-x: auto; }
+  .cmp-row { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(200px, 1.2fr) minmax(200px, 1.2fr); gap: 20px; padding: 18px 28px; border-bottom: 1px solid var(--line-soft); min-width: 640px; }
+  .cmp-row:last-child { border-bottom: 0; }
+  .cmp-head { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); font-weight: 600; }
+  .cmp-k { font-weight: 600; color: var(--text-strong); }
+  .cmp-bad, .cmp-good { display: flex; gap: 10px; align-items: flex-start; }
+  .cmp-bad { color: var(--dim); }
+  .cmp-bad :global(svg) { color: #b0612f; flex: none; margin-top: 3px; }
+  .cmp-good { color: var(--text); font-weight: 500; }
+  .cmp-good :global(svg) { color: var(--good); flex: none; margin-top: 2px; }
 
   .guides { gap: 20px; }
   .guide { flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
   .guide-f { font-family: var(--display); font-size: 30px; color: var(--gold-soft); }
-  .guide-t { font-size: 19px; font-weight: 600; }
-  .guide-s { color: #9e998f; font-size: 15px; }
+  .guide-t { font-size: 19px; font-weight: 600; color: var(--text-strong); }
+  .guide-s { color: var(--dim); font-size: 15px; }
 
   .about-in { gap: 64px; align-items: center; }
-  .photo { flex: 0 1 340px; aspect-ratio: 4 / 5; background: var(--card); border: 1px dashed #4a4f56; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+  .photo { flex: 0 1 340px; aspect-ratio: 4 / 5; background: var(--card-2); border: 1px dashed #b9b0a0; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: var(--dim); }
   .about-text { flex: 1 1 480px; min-width: 0; gap: 20px; }
 
-  .final { padding-bottom: 140px; }
-  .final-in { background: var(--gold); color: var(--bg); border-radius: 32px; padding: 72px 40px; gap: 22px; }
+  .faq { gap: 0; }
+  .faq-item { border-bottom: 1px solid var(--line); }
+  .faq-item summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 0; font-weight: 600; font-size: 17px; color: var(--text-strong); min-height: 44px; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item p { margin: 0 0 20px; color: var(--muted); max-width: 60ch; }
+  .plus { position: relative; width: 16px; height: 16px; flex: none; }
+  .plus::before, .plus::after { content: ''; position: absolute; left: 0; top: 7px; width: 16px; height: 2px; background: var(--gold); transition: transform .3s var(--ease); }
+  .plus::after { transform: rotate(90deg); }
+  .faq-item[open] .plus::after { transform: rotate(0deg); }
+
+  .final { padding-block: 112px 140px; }
+  .final-in { background: var(--gold); color: #141619; border-radius: 32px; padding: 72px 40px; gap: 22px; }
 </style>

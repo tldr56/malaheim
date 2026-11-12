@@ -15,7 +15,7 @@ const lags = ['', 'lag1', 'lag2'];
         <a class={`card card-lift sr-up ${lags[i % 3]}`} href={`/guides/${g.slug}/`} style="flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
           <span style="font-family: var(--display); font-size: 30px" class="gold">{g.figure}</span>
           <h2 style="font-family: var(--body); font-size: 19px; font-weight: 600; color: var(--text)">{g.title}</h2>
-          <span style="color: #9e998f; font-size: 15px">{g.summary}</span>
+          <span style="color: var(--dim); font-size: 15px">{g.summary}</span>
           <span class="gold" style="font-size: 15px; margin-top: 6px">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
         </a>
       ))}

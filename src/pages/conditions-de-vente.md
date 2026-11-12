@@ -31,6 +31,10 @@ Le kit est mis à disposition en téléchargement immédiatement après le paiem
 
 Pour les clients consommateurs, le droit de rétractation ne s'applique pas au contenu numérique fourni immédiatement après le paiement, dès lors que le client a donné son accord exprès à cette exécution et renoncé à ce droit, conformément à l'article L221-28 du Code de la consommation. Les clients professionnels ne bénéficient pas d'un droit de rétractation.
 
+## 6 bis. Garantie satisfait ou remboursé
+
+Indépendamment du droit de rétractation, le kit bénéficie d'une garantie commerciale : tout client, professionnel ou consommateur, peut en demander le remboursement intégral dans les 14 jours suivant l'achat, sans justification, par simple message à [adresse e-mail de contact].
+
 ## 7. Licence d'utilisation
 
 Le kit est concédé pour un usage interne à l'entreprise acheteuse, y compris son envoi aux éditeurs consultés. Sa revente ou sa diffusion publique est interdite.

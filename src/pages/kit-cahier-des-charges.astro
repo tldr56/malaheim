@@ -18,6 +18,7 @@ const faq = [
   { q: 'Sous quel format est-il livré ?', a: "En Word, entièrement modifiable, et en PDF. Vous le remplissez, puis vous l'envoyez tel quel aux éditeurs consultés." },
   { q: 'Combien de temps faut-il pour le remplir ?', a: "Comptez deux à quatre jours de travail, surtout pour réunir la volumétrie. Les exigences sont déjà rédigées et priorisées : il reste à ajuster les priorités." },
   { q: 'Puis-je me faire aider ?', a: "Oui. La relecture annotée de votre cahier des charges, avec une heure de visio, est proposée à 690 € HT. Le prix du kit est alors déduit." },
+  { q: 'Et si le kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
   { q: 'Puis-je obtenir une facture au nom de ma société ?', a: 'Oui, la facture est émise au nom de votre société lors du paiement, avec votre numéro de TVA intracommunautaire.' },
 ];
 const lags = ['', 'lag1', 'lag2', 'lag3'];
@@ -31,7 +32,7 @@ const jsonLd = {
 };
 ---
 <Base title="Kit cahier des charges WMS" description="Le modèle de cahier des charges WMS prêt à remplir : 50 exigences priorisées, volumétrie, offre financière imposée, grille de notation et calendrier. 99 € HT." jsonLd={jsonLd}>
-  <section class="kit-hero">
+  <section class="kit-hero dark">
     <div class="wrap row" style="gap: 64px; align-items: center; padding-block: 88px 104px">
       <div class="stack" style="flex: 1 1 480px; min-width: 0; gap: 24px">
         <p class="eyebrow rise">Le kit cahier des charges WMS</p>
@@ -41,7 +42,7 @@ const jsonLd = {
           <span class="gold" style="font-family: var(--display); font-size: 48px">{SITE.kitPrice}</span>
           <a class="btn btn-gold btn-lg" href={buyHref}>Acheter le kit <span class="arrow" aria-hidden="true">→</span></a>
         </div>
-        <p class="dim rise d4" style="margin: 0; font-size: 14px">Paiement sécurisé, téléchargement immédiat, facture à votre société.</p>
+        <p class="dim rise d4" style="margin: 0; font-size: 14px">Satisfait ou remboursé 14 jours. Paiement sécurisé, téléchargement immédiat, facture à votre société.</p>
       </div>
       <div class="card slide-in" style="flex: 1 1 400px; min-width: 0; padding: 28px; display: flex; flex-direction: column; gap: 6px; background: #f4efe4; color: #1f2124; border: 0; box-shadow: 0 40px 80px rgba(0,0,0,.5)">
         <span style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a6d2c; font-weight: 600">Extrait, section 3.5</span>
@@ -100,8 +101,8 @@ const jsonLd = {
 
   <section id="achat" aria-labelledby="titre-achat" style="padding: 0 0 140px">
     <div class="wrap">
-      <div class="stack center sr-zoom" style="background: var(--gold); color: var(--bg); border-radius: 32px; padding: 64px 40px; gap: 20px">
-        <h2 id="titre-achat" class="h2" style="color: var(--bg)">Le kit cahier des charges WMS</h2>
+      <div class="stack center sr-zoom" style="background: var(--gold); color: #141619; border-radius: 32px; padding: 64px 40px; gap: 20px">
+        <h2 id="titre-achat" class="h2" style="color: #141619">Le kit cahier des charges WMS</h2>
         <span style="font-family: var(--display); font-size: 52px; line-height: 1">{SITE.kitPrice}</span>
         {ready ? (
           <a class="btn btn-dark btn-lg" href={buyHref}>Acheter et télécharger <span class="arrow" aria-hidden="true">→</span></a>
