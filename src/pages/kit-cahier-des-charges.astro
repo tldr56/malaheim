@@ -1,0 +1,128 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+const buyHref = SITE.kitCheckoutUrl || '#achat';
+const ready = Boolean(SITE.kitCheckoutUrl);
+const parts = [
+  { n: '1', t: 'Contexte et objectifs', d: "Présentation de l'entreprise, raisons du projet, objectifs chiffrés à 12 mois, contraintes de calendrier et de budget." },
+  { n: '2', t: 'Périmètre et volumétrie', d: 'Entrepôt, articles, flux moyens et de pointe, utilisateurs, hors périmètre. La section qui détermine la gamme et le prix.' },
+  { n: '3', t: '50 exigences fonctionnelles', d: 'Réception, rangement, stock, réapprovisionnement, préparation, expédition, retours, pilotage. Chaque exigence est numérotée et priorisée.' },
+  { n: '4', t: 'Interfaces et technique', d: "ERP, transport, e-commerce, équipements. Disponibilité, hébergement, réversibilité, montées de version." },
+  { n: '5', t: 'Projet et services', d: "Méthode, équipe, charge côté client, reprise de données, recette, formation, présence au démarrage, support." },
+  { n: '6', t: 'Format de réponse imposé', d: "Offre financière poste par poste, sans forfait global. Les réponses deviennent comparables ligne à ligne." },
+  { n: '7', t: 'Grille de notation', d: "Six critères pondérés, une règle d'élimination sur les exigences indispensables, trois colonnes éditeurs." },
+  { n: '8', t: 'Calendrier de consultation', d: "De l'envoi au choix en 8 à 10 semaines : questions, remise des offres, démonstrations, appels aux références." },
+];
+const faq = [
+  { q: 'Le kit convient-il à mon entreprise ?', a: "Il est conçu pour les entrepôts de 5 à 150 opérateurs, en distribution, industrie, e-commerce ou prestation logistique. Les exigences hors de votre périmètre se suppriment en une minute." },
+  { q: 'Sous quel format est-il livré ?', a: "En Word, entièrement modifiable, et en PDF. Vous le remplissez, puis vous l'envoyez tel quel aux éditeurs consultés." },
+  { q: 'Combien de temps faut-il pour le remplir ?', a: "Comptez deux à quatre jours de travail, surtout pour réunir la volumétrie. Les exigences sont déjà rédigées et priorisées : il reste à ajuster les priorités." },
+  { q: 'Puis-je me faire aider ?', a: "Oui. La relecture annotée de votre cahier des charges, avec une heure de visio, est proposée à 690 € HT. Le prix du kit est alors déduit." },
+  { q: 'Puis-je obtenir une facture au nom de ma société ?', a: 'Oui, la facture est émise au nom de votre société lors du paiement, avec votre numéro de TVA intracommunautaire.' },
+];
+const lags = ['', 'lag1', 'lag2', 'lag3'];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Kit cahier des charges WMS',
+  description: "Modèle de cahier des charges WMS prêt à remplir : 50 exigences priorisées, volumétrie, format d'offre financière, grille de notation et calendrier de consultation.",
+  brand: { '@type': 'Brand', name: SITE.name },
+  offers: { '@type': 'Offer', price: '99', priceCurrency: 'EUR', availability: 'https://schema.org/PreOrder' },
+};
+---
+<Base title="Kit cahier des charges WMS" description="Le modèle de cahier des charges WMS prêt à remplir : 50 exigences priorisées, volumétrie, offre financière imposée, grille de notation et calendrier. 99 € HT." jsonLd={jsonLd}>
+  <section class="kit-hero">
+    <div class="wrap row" style="gap: 64px; align-items: center; padding-block: 88px 104px">
+      <div class="stack" style="flex: 1 1 480px; min-width: 0; gap: 24px">
+        <p class="eyebrow rise">Le kit cahier des charges WMS</p>
+        <h1 class="h1 rise d1" style="font-size: clamp(40px, 5vw, 66px)">Des offres d'éditeurs enfin comparables, ligne à ligne</h1>
+        <p class="lead rise d2">Le document qui fait chiffrer tous les éditeurs sur la même base. Exigences déjà rédigées et priorisées, il vous reste à décrire votre entrepôt.</p>
+        <div class="row rise d3" style="align-items: center; gap: 22px">
+          <span class="gold" style="font-family: var(--display); font-size: 48px">{SITE.kitPrice}</span>
+          <a class="btn btn-gold btn-lg" href={buyHref}>Acheter le kit <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <p class="dim rise d4" style="margin: 0; font-size: 14px">Paiement sécurisé, téléchargement immédiat, facture à votre société.</p>
+      </div>
+      <div class="card slide-in" style="flex: 1 1 400px; min-width: 0; padding: 28px; display: flex; flex-direction: column; gap: 6px; background: #f4efe4; color: #1f2124; border: 0; box-shadow: 0 40px 80px rgba(0,0,0,.5)">
+        <span style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a6d2c; font-weight: 600">Extrait, section 3.5</span>
+        <span style="font-family: var(--display); font-size: 22px; margin-bottom: 8px">Préparation de commandes</span>
+        <table class="extract">
+          <thead><tr><th>N°</th><th>Exigence</th><th>Prio.</th><th>Réponse éditeur</th></tr></thead>
+          <tbody>
+            <tr><td>PRE-01</td><td>Lancer les commandes par vagues selon transporteur, heure limite, priorité</td><td>I</td><td>ST</td></tr>
+            <tr><td>PRE-04</td><td>Optimiser le chemin de préparation</td><td>I</td><td>PA</td></tr>
+            <tr><td>PRE-06</td><td>Calculer à l'avance le nombre et la taille des colis</td><td>S</td><td>SP</td></tr>
+            <tr><td>PRE-07</td><td>Gérer la rupture en cours de préparation</td><td>I</td><td>ST</td></tr>
+            <tr><td>PRE-08</td><td>Préparer en vocal ou avec assistance lumineuse</td><td>O</td><td>NC</td></tr>
+          </tbody>
+        </table>
+        <span style="font-size: 12px; color: #6b665c; margin-top: 8px">ST standard, PA paramétrage, SP spécifique à chiffrer, NC non couvert</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" aria-labelledby="titre-contenu">
+    <div class="wrap stack" style="gap: 48px">
+      <div class="stack center" style="gap: 14px">
+        <p class="eyebrow sr-down">Ce que contient le kit</p>
+        <h2 id="titre-contenu" class="h2 sr-up" style="max-width: 16em">Huit sections, de la volumétrie à la grille de notation</h2>
+      </div>
+      <div class="row" style="gap: 18px">
+        {parts.map((p, i) => (
+          <div class={`card sr-up ${lags[i % 4]}`} style="flex: 1 1 260px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+            <span class="gold" style="font-family: var(--display); font-size: 30px; line-height: 1">{p.n}</span>
+            <h3 style="font-family: var(--body); font-size: 18px; font-weight: 600; color: var(--text)">{p.t}</h3>
+            <p style="margin: 0; color: var(--muted); font-size: 15px">{p.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-pourquoi">
+    <div class="wrap row" style="gap: 64px; align-items: flex-start">
+      <div class="stack sr-left" style="flex: 1 1 380px; gap: 18px">
+        <p class="eyebrow">Pourquoi un modèle</p>
+        <h2 id="titre-pourquoi" class="h2">Quatre erreurs sur huit se commettent avant la signature</h2>
+        <p class="lead" style="font-size: 17px">Un cahier des charges flou produit des offres impossibles à comparer, puis du spécifique à chaque atelier. Le kit verrouille la base de comparaison avant même la première démonstration.</p>
+        <a href="/guides/erreurs-projet-wms/" style="font-weight: 500; text-decoration: none">Lire le guide des 8 erreurs <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <dl class="stack faq sr-right" style="flex: 1 1 480px; gap: 0; margin: 0">
+        {faq.map((f) => (
+          <div class="faq-item">
+            <dt>{f.q}</dt>
+            <dd>{f.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section id="achat" aria-labelledby="titre-achat" style="padding: 0 0 140px">
+    <div class="wrap">
+      <div class="stack center sr-zoom" style="background: var(--gold); color: var(--bg); border-radius: 32px; padding: 64px 40px; gap: 20px">
+        <h2 id="titre-achat" class="h2" style="color: var(--bg)">Le kit cahier des charges WMS</h2>
+        <span style="font-family: var(--display); font-size: 52px; line-height: 1">{SITE.kitPrice}</span>
+        {ready ? (
+          <a class="btn btn-dark btn-lg" href={buyHref}>Acheter et télécharger <span class="arrow" aria-hidden="true">→</span></a>
+        ) : (
+          <p style="margin: 0; font-size: 17px; max-width: 30em">La vente en ligne ouvre très prochainement. En attendant, le simulateur vous donne déjà votre budget.</p>
+        )}
+        <a class="btn btn-dark" href="/simulateur/" style={ready ? 'display:none' : ''}>Estimer mon budget</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .extract { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .extract th { text-align: left; color: #6b665c; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 8px 6px; border-bottom: 1px solid #ddd5c4; }
+  .extract td { padding: 9px 6px; border-bottom: 1px solid #e7e0d1; vertical-align: top; }
+  .extract td:first-child { color: #8a6d2c; font-weight: 600; white-space: nowrap; }
+  .extract td:nth-child(3), .extract td:nth-child(4) { font-weight: 600; text-align: center; }
+  @media (max-width: 520px) { .extract th:nth-child(4), .extract td:nth-child(4) { display: none; } }
+  .faq-item { padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .faq-item:first-child { padding-top: 0; }
+  dt { font-weight: 600; font-size: 17px; color: var(--text-strong); }
+  dd { margin: 8px 0 0; color: var(--muted); }
+</style>

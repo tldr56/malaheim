@@ -1,0 +1,268 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, GUIDES } from '../config';
+const check = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#c9a24b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="7.5 12.5 10.5 15.5 16.5 9"></polyline></svg>';
+const kitPoints = [
+  '50 exigences numérotées sur 8 processus, avec leur priorité',
+  'Tableaux de volumétrie à remplir : entrepôt, articles, flux, utilisateurs',
+  'Offre financière imposée poste par poste aux éditeurs',
+  'Grille de notation pondérée et calendrier de consultation',
+  'Livré en Word et en PDF, entièrement modifiable',
+];
+const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4', 'lag5'];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: 'https://www.decision-entrepot.fr/',
+  inLanguage: 'fr-FR',
+  publisher: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+};
+---
+<Base title="Accueil" description="Combien va coûter votre WMS ? Budget, délai et retour sur investissement en 8 questions, guides chiffrés et kit cahier des charges, par un consultant WMS indépendant." jsonLd={jsonLd}>
+
+  <section class="hero" aria-labelledby="titre-accueil">
+    <div class="halo" aria-hidden="true"></div>
+    <div class="wrap hero-in">
+      <div class="stack hero-text">
+        <p class="eyebrow rise">Pour les directions logistiques de PME et d'ETI</p>
+        <h1 id="titre-accueil" class="h1">
+          <span class="rise d1 line">Combien va vraiment</span>
+          <span class="rise d2 line">coûter <span class="gold">votre WMS</span> ?</span>
+        </h1>
+        <p class="lead rise d3">Budget, délai et retour sur investissement de votre projet en 8 questions. Le calcul s'appuie sur des fourchettes publiées et sur des projets menés en entrepôt.</p>
+        <div class="row rise d4" style="gap: 14px">
+          <a class="btn btn-gold" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-line" href="#parcours">Voir le parcours</a>
+        </div>
+        <p class="dim rise d5" style="margin: 0; font-size: 14px">Gratuit, sans inscription, résultat en 3 minutes.</p>
+      </div>
+
+      <div class="card slide-in result">
+        <div class="row" style="justify-content: space-between; gap: 12px">
+          <span class="dim micro">Exemple de résultat</span>
+          <span class="dim" style="font-size: 13px">25 opérateurs, 3 000 lignes par jour</span>
+        </div>
+        <div class="row" style="align-items: center; gap: 12px">
+          <span class="pulse" aria-hidden="true"></span>
+          <span style="font-family: var(--display); font-size: 22px">WMS milieu de gamme</span>
+        </div>
+        <div class="stack" style="gap: 4px">
+          <span class="dim micro">Budget initial du projet</span>
+          <span class="count big" role="img" aria-label="171 à 278 k€"></span>
+        </div>
+        <div class="bar" role="img" aria-label="Répartition du budget : intégration 43 %, matériel 22 %, interfaces 19 %, pilotage 9 %, formation 8 %">
+          <span class="seg s1" style="width: 42.5%; background: var(--gold)"></span>
+          <span class="seg s2" style="width: 21.7%; background: var(--good)"></span>
+          <span class="seg s3" style="width: 18.7%; background: var(--steel)"></span>
+          <span class="seg s4" style="width: 9.2%; background: var(--gold-soft)"></span>
+          <span class="seg s5" style="width: 8%; background: var(--warn)"></span>
+        </div>
+        <div class="row" style="gap: 12px">
+          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Délai</div><div class="tile-v">10 à 13 mois</div></div>
+          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Amorti en</div><div class="tile-v">19 mois</div></div>
+          <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Récurrent</div><div class="tile-v">36 k€ par an</div></div>
+        </div>
+        <a href="/simulateur/" style="text-decoration: none; font-weight: 500">Faire le calcul pour mon entrepôt <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="facts" aria-label="En bref">
+    <div class="wrap row facts-in">
+      <div class="stack fact sr-up"><span class="fact-n">8</span><span>questions pour chiffrer votre projet</span></div>
+      <div class="stack fact sr-up lag1"><span class="fact-n">3</span><span>gammes de WMS comparées sur les mêmes critères</span></div>
+      <div class="stack fact sr-up lag2"><span class="fact-n">50</span><span>exigences prêtes à coter dans le kit</span></div>
+      <div class="stack fact sr-up lag3"><span class="fact-n">0 €</span><span>versé par les éditeurs pour être cités</span></div>
+    </div>
+  </section>
+
+  <section id="parcours" class="section" aria-labelledby="titre-parcours">
+    <div class="wrap stack" style="gap: 64px">
+      <div class="stack center" style="gap: 16px">
+        <p class="eyebrow sr-down">Le parcours</p>
+        <h2 id="titre-parcours" class="h2 sr-up" style="max-width: 16em">Du premier chiffrage au choix de l'éditeur, en trois étapes</h2>
+        <p class="lead sr-up lag1">Avancez seul avec les outils, ou faites-vous accompagner là où une erreur coûte cher.</p>
+      </div>
+      <div style="position: relative">
+        <div class="track" aria-hidden="true"><div class="track-fill"></div></div>
+        <div class="row steps">
+          <div class="card card-lift step sr-up">
+            <div class="step-n">1</div>
+            <span class="step-k">Estimer</span>
+            <h3 class="h3">Le simulateur</h3>
+            <span class="price">Gratuit</span>
+            <p>Gamme, budget, délai et retour sur investissement. Le rapport détaillé arrive par e-mail.</p>
+            <a class="btn btn-line" href="/simulateur/">Lancer le simulateur</a>
+          </div>
+          <div class="card card-hi card-lift step sr-up lag1">
+            <div class="step-n step-n-on">2</div>
+            <span class="step-k step-k-on">Cadrer, recommandé</span>
+            <h3 class="h3">Le kit cahier des charges</h3>
+            <span class="price">{SITE.kitPrice}</span>
+            <p>Le document qui fait chiffrer tous les éditeurs sur la même base, prêt à remplir.</p>
+            <a class="btn btn-gold" href="/kit-cahier-des-charges/">Découvrir le kit <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+          <div class="card card-lift step sr-up lag2">
+            <div class="step-n">3</div>
+            <span class="step-k">Consulter</span>
+            <h3 class="h3">L'accompagnement</h3>
+            <span class="price">Dès {SITE.reviewPrice}</span>
+            <p>Relecture annotée de votre cahier des charges et une heure de visio. Accompagnement complet sur devis.</p>
+            <a class="btn btn-line" href="/accompagnement/">Voir l'accompagnement</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" aria-labelledby="titre-kit">
+    <div class="wrap row kit-in">
+      <div class="doc-stack sr-left" aria-hidden="true">
+        <div class="sheet sheet-3"></div>
+        <div class="sheet sheet-2"></div>
+        <div class="sheet sheet-1">
+          <span class="sheet-k">Cahier des charges WMS</span>
+          <span class="sheet-t">3.1 Réception</span>
+          <div class="sheet-row sheet-head"><span>N°</span><span>Exigence</span><span>Prio.</span></div>
+          <div class="sheet-row"><span>REC-01</span><span>Réceptionner sur commande d'achat transmise par l'ERP</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-03</span><span>Identifier les supports par lecture du code SSCC</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-05</span><span>Gérer les écarts de quantité, de référence et les avaries</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-06</span><span>Bloquer un stock en contrôle qualité puis le libérer</span><span>S</span></div>
+          <div class="sheet-row"><span>REC-08</span><span>Traiter le passage à quai sans stockage</span><span>O</span></div>
+        </div>
+      </div>
+      <div class="stack kit-text">
+        <p class="eyebrow sr-right">Le kit cahier des charges WMS</p>
+        <h2 id="titre-kit" class="h2 sr-right lag1">Des offres d'éditeurs enfin comparables, ligne à ligne</h2>
+        <ul class="checks">
+          {kitPoints.map((p, i) => (
+            <li class={`sr-right ${lags[i + 1]}`}><Fragment set:html={check} /><span>{p}</span></li>
+          ))}
+        </ul>
+        <div class="row sr-zoom lag3" style="align-items: center; gap: 22px">
+          <span style="font-family: var(--display); font-size: 44px" class="gold">{SITE.kitPrice}</span>
+          <a class="btn btn-gold" href="/kit-cahier-des-charges/">Voir le kit <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <p class="dim sr-up lag4" style="margin: 0; font-size: 14px">Paiement sécurisé, téléchargement immédiat, facture à votre société.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-guides">
+    <div class="wrap stack" style="gap: 48px">
+      <div class="row" style="gap: 24px; align-items: flex-end; justify-content: space-between">
+        <div class="stack" style="gap: 14px; max-width: 640px">
+          <p class="eyebrow sr-left">Les guides</p>
+          <h2 id="titre-guides" class="h2 sr-left lag1">Les cinq questions qui précèdent un projet WMS</h2>
+        </div>
+        <p class="lead sr-right" style="max-width: 26em; font-size: 17px">Des réponses courtes et chiffrées, écrites par un consultant qui conduit ces projets.</p>
+      </div>
+      <div class="row guides">
+        {GUIDES.map((g, i) => (
+          <a class={`card card-lift guide sr-up ${lags[i % 3]}`} href={`/guides/${g.slug}/`}>
+            <span class="guide-f">{g.figure}</span>
+            <span class="guide-t">{g.title}</span>
+            <span class="guide-s">{g.summary}</span>
+            <span class="gold" style="font-size: 15px; margin-top: 6px">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
+          </a>
+        ))}
+        <a class="card card-gold card-lift guide sr-up lag2" href="/simulateur/" style="justify-content: space-between">
+          <span style="font-family: var(--display); font-size: 30px">Votre propre chiffrage</span>
+          <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt en 3 minutes. <span class="arrow" aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-apropos" style="border-top: 1px solid var(--line-soft)">
+    <div class="wrap row about-in">
+      <div class="photo sr-left" role="img" aria-label="Emplacement de la photo de Robin Thomas-Le Déoré">[Votre photo]</div>
+      <div class="stack about-text">
+        <p class="eyebrow sr-right">Qui est derrière ce site</p>
+        <h2 id="titre-apropos" class="h2 sr-right lag1">{SITE.author}</h2>
+        <p class="lead sr-right lag2">Consultant supply chain indépendant à Rennes. Je conduis des projets WMS et WCS, de la sélection de l'éditeur jusqu'au démarrage : analyse d'écarts, données de référence, campagnes de recette et conduite du changement.</p>
+        <p class="lead sr-right lag3">Passé par GEODIS et KPMG, j'enseigne aussi la logistique en master. Ce site rassemble ce que j'aurais aimé trouver au début de chaque projet.</p>
+        <div class="row sr-up lag3" style="gap: 10px">
+          <span class="chip">Sélection d'éditeur WMS</span>
+          <span class="chip">Automatisation et WCS</span>
+          <span class="chip">Recette et démarrage</span>
+          <span class="chip">Données de référence</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="titre-final" class="final">
+    <div class="wrap">
+      <div class="final-in stack center sr-zoom">
+        <h2 id="titre-final" class="h2" style="color: var(--bg); max-width: 14em">Votre projet démarre dans les 12 prochains mois ?</h2>
+        <p style="margin: 0; font-size: 19px; max-width: 30em">Commencez par un chiffrage réaliste. Il prend trois minutes et ne vous engage à rien.</p>
+        <a class="btn btn-dark btn-lg" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { position: relative; }
+  .hero-in { position: relative; display: flex; flex-wrap: wrap; gap: 64px; align-items: center; padding-block: 112px 120px; }
+  .hero-text { flex: 1 1 500px; min-width: 0; gap: 28px; }
+  .line { display: block; }
+  .result { flex: 1 1 420px; min-width: 0; padding: 30px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 40px 90px rgba(0,0,0,.5); }
+  .micro { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 6px rgba(201,162,75,.15); }
+  .big { font-family: var(--display); font-size: 48px; line-height: 1.1; color: var(--gold-soft); font-variant-numeric: tabular-nums; }
+  .bar { display: flex; gap: 3px; height: 10px; }
+  .bar span { border-radius: 5px; }
+
+  .facts { border-block: 1px solid var(--line-soft); }
+  .facts-in { gap: 40px; justify-content: space-between; padding-block: 56px; }
+  .fact { flex: 1 1 200px; gap: 6px; color: var(--muted); font-size: 15px; }
+  .fact-n { font-family: var(--display); font-size: 44px; line-height: 1; color: var(--gold-soft); }
+
+  .track { position: absolute; left: 16%; right: 16%; top: 31px; height: 2px; background: var(--line); }
+  .track-fill { position: absolute; inset: 0; transform-origin: left center; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); }
+  @media (max-width: 1080px) { .track { display: none; } }
+  .steps { position: relative; gap: 24px; align-items: stretch; }
+  .step { flex: 1 1 320px; padding: 0 30px 30px; display: flex; flex-direction: column; gap: 14px; text-align: center; align-items: center; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .step .btn { margin-top: auto; }
+  .step-n { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 24px; color: var(--gold-soft); }
+  .step-n-on { background: var(--gold); color: var(--bg); }
+  .step-k { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+  .step-k-on { color: var(--gold); font-weight: 600; }
+  .price { font-size: 34px; font-weight: 600; color: var(--gold-soft); }
+
+  .kit-in { gap: 72px; align-items: center; }
+  .doc-stack { flex: 1 1 460px; min-width: 0; position: relative; height: 470px; }
+  .sheet { position: absolute; border-radius: 16px; }
+  .sheet-3 { left: 12%; top: 34px; width: 74%; height: 380px; background: #2a2e33; transform: rotate(-6deg); }
+  .sheet-2 { left: 8%; top: 18px; width: 76%; height: 392px; background: #33373c; transform: rotate(-2.5deg); }
+  .sheet-1 { left: 4%; top: 0; width: 80%; min-height: 420px; background: #f4efe4; color: #1f2124; padding: 28px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 40px 80px rgba(0,0,0,.5); font-size: 13px; }
+  .sheet-k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a6d2c; font-weight: 600; }
+  .sheet-t { font-family: var(--display); font-size: 22px; margin-bottom: 10px; }
+  .sheet-row { display: grid; grid-template-columns: 58px 1fr 34px; gap: 10px; padding: 9px 0; border-bottom: 1px solid #e7e0d1; }
+  .sheet-row span:first-child { color: #8a6d2c; font-weight: 600; }
+  .sheet-row span:last-child { font-weight: 600; text-align: center; }
+  .sheet-head { color: #6b665c; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom-color: #ddd5c4; }
+  .sheet-head span:first-child, .sheet-head span:last-child { color: #6b665c; font-weight: 500; }
+  @media (max-width: 520px) { .doc-stack { height: 520px; } .sheet-1 { width: 92%; } }
+  .kit-text { flex: 1 1 440px; min-width: 0; gap: 24px; }
+  .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .checks li { display: flex; gap: 14px; align-items: flex-start; font-size: 17px; }
+  .checks :global(svg) { flex: none; margin-top: 2px; }
+
+  .guides { gap: 20px; }
+  .guide { flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .guide-f { font-family: var(--display); font-size: 30px; color: var(--gold-soft); }
+  .guide-t { font-size: 19px; font-weight: 600; }
+  .guide-s { color: #9e998f; font-size: 15px; }
+
+  .about-in { gap: 64px; align-items: center; }
+  .photo { flex: 0 1 340px; aspect-ratio: 4 / 5; background: var(--card); border: 1px dashed #4a4f56; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+  .about-text { flex: 1 1 480px; min-width: 0; gap: 20px; }
+
+  .final { padding-bottom: 140px; }
+  .final-in { background: var(--gold); color: var(--bg); border-radius: 32px; padding: 72px 40px; gap: 22px; }
+</style>

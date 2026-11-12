@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import { GUIDES } from '../../config';
+const lags = ['', 'lag1', 'lag2'];
+---
+<Base title="Guides WMS" description="Cinq guides courts et chiffrés pour préparer un projet WMS : prix, étapes, erreurs à éviter, choix de gamme, SaaS ou licence.">
+  <section class="wrap stack" style="padding-block: 72px 120px; gap: 48px">
+    <header class="stack" style="gap: 16px; max-width: 760px">
+      <p class="eyebrow rise">Les guides</p>
+      <h1 class="h2 rise d1">Les cinq questions qui précèdent un projet WMS</h1>
+      <p class="lead rise d2">Des réponses courtes et chiffrées, écrites par un consultant qui conduit ces projets. Chaque guide renvoie au simulateur pour passer de la moyenne à votre cas.</p>
+    </header>
+    <div class="row" style="gap: 20px">
+      {GUIDES.map((g, i) => (
+        <a class={`card card-lift sr-up ${lags[i % 3]}`} href={`/guides/${g.slug}/`} style="flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+          <span style="font-family: var(--display); font-size: 30px" class="gold">{g.figure}</span>
+          <h2 style="font-family: var(--body); font-size: 19px; font-weight: 600; color: var(--text)">{g.title}</h2>
+          <span style="color: #9e998f; font-size: 15px">{g.summary}</span>
+          <span class="gold" style="font-size: 15px; margin-top: 6px">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
+        </a>
+      ))}
+      <a class="card card-gold card-lift sr-up lag2" href="/simulateur/" style="flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px; justify-content: space-between">
+        <span style="font-family: var(--display); font-size: 30px">Votre propre chiffrage</span>
+        <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt en 3 minutes. <span class="arrow" aria-hidden="true">→</span></span>
+      </a>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,309 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+const kitHref = SITE.kitCheckoutUrl || '/kit-cahier-des-charges/';
+const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
+const brevo = SITE.brevoFormAction;
+---
+<Base title="Simulateur de budget WMS" description="Estimez gratuitement le budget, le délai et le retour sur investissement de votre projet WMS en 8 questions. Résultat immédiat, sans inscription." dock={false}>
+  <div class="sim wrap">
+    <header class="sim-head stack">
+      <p class="eyebrow rise">Simulateur gratuit</p>
+      <h1 class="h2 rise d1">Combien coûte votre projet WMS ?</h1>
+      <p class="lead rise d2">Décrivez votre entrepôt en 8 questions. Vous obtenez une gamme de solution, une fourchette de budget, un délai et un retour sur investissement.</p>
+    </header>
+
+    <div class="sim-grid">
+      <section class="sim-panel rise d3" aria-label="Votre entrepôt">
+        <h2 class="sim-h">Votre entrepôt</h2>
+        <div id="fields"></div>
+        <details class="sim-adv">
+          <summary>Hypothèses de calcul du ROI</summary>
+          <div class="sim-adv-grid">
+            <div class="field"><label for="a-cost">Coût horaire chargé opérateur (€)</label><input id="a-cost" type="number" min="10" max="80" step="1" value="24"></div>
+            <div class="field"><label for="a-prod">Gain de productivité attendu (%)</label><input id="a-prod" type="number" min="0" max="40" step="1" value="12"></div>
+            <div class="field"><label for="a-err">Taux d'erreur de préparation actuel (%)</label><input id="a-err" type="number" min="0" max="5" step="0.1" value="0.5"></div>
+            <div class="field"><label for="a-errcost">Coût moyen d'une erreur (€)</label><input id="a-errcost" type="number" min="0" max="500" step="5" value="25"></div>
+          </div>
+        </details>
+      </section>
+
+      <section class="sim-panel sim-results slide-in" aria-label="Estimation" aria-live="polite">
+        <h2 class="sim-h">Votre estimation</h2>
+        <div class="sim-tier"><div class="sim-tier-name" id="r-tier"></div><div class="sim-tier-desc" id="r-tierdesc"></div></div>
+        <div class="stack" style="gap: 2px"><span class="sim-k">Budget initial du projet</span><span class="sim-big num" id="r-budget"></span></div>
+        <div class="sim-bar" id="r-bar" role="img" aria-label="Répartition du budget initial"></div>
+        <dl class="sim-legend" id="r-legend"></dl>
+        <div class="sim-kpis">
+          <div class="sim-kpi"><span class="sim-k">Coût récurrent</span><span class="sim-v num" id="r-rec"></span><span class="sim-s" id="r-recs"></span></div>
+          <div class="sim-kpi"><span class="sim-k">Coût total sur 5 ans</span><span class="sim-v num" id="r-tco"></span><span class="sim-s">Projet et récurrent cumulés</span></div>
+          <div class="sim-kpi"><span class="sim-k">Délai de mise en service</span><span class="sim-v num" id="r-delay"></span><span class="sim-s">Du cadrage au démarrage</span></div>
+          <div class="sim-kpi"><span class="sim-k">Gains annuels estimés</span><span class="sim-v num" id="r-gain"></span><span class="sim-s" id="r-gains"></span></div>
+        </div>
+        <div class="sim-kpi"><span class="sim-k">Retour sur investissement</span><span class="sim-v num" id="r-pay"></span><span class="pill" id="r-pill"></span></div>
+        <button type="button" class="btn btn-line btn-sm" id="copy" style="align-self: flex-start">Copier le résumé</button>
+        <p class="sim-note" id="copied" role="status"></p>
+      </section>
+    </div>
+
+    <section class="sim-next" aria-labelledby="titre-next">
+      <h2 id="titre-next" class="h2 sr-up" style="font-size: clamp(28px, 3.4vw, 42px)">Et maintenant ?</h2>
+      <div class="row sim-offers">
+        <div class="card sim-offer sr-up">
+          <span class="sim-tag">Gratuit</span>
+          <h3 class="h3">Recevez le rapport détaillé</h3>
+          <p>Votre budget poste par poste, le planning type et les points de vigilance pour votre profil, en PDF.</p>
+          <form id="lead" method="post" action={brevo || undefined} novalidate>
+            <label for="lead-email">Adresse e-mail professionnelle</label>
+            <input id="lead-email" name="EMAIL" type="email" autocomplete="email" placeholder="prenom.nom@entreprise.fr">
+            <input id="lead-summary" name="RESUME" type="hidden" value="">
+            <label class="sim-consent" for="lead-ok"><input id="lead-ok" name="OPT_IN" value="1" type="checkbox"><span>J'accepte de recevoir ce rapport et les conseils du site. Désinscription en un clic. <a href="/confidentialite/">Confidentialité</a></span></label>
+            <button type="submit" class="btn btn-gold btn-sm">Recevoir le rapport</button>
+            <p class="sim-note" id="lead-msg" role="status"></p>
+          </form>
+        </div>
+        <div class="card card-hi sim-offer sr-up lag1">
+          <span class="sim-tag">{SITE.kitPrice}</span>
+          <h3 class="h3">Le kit cahier des charges WMS</h3>
+          <p>50 exigences prêtes à coter, tableaux de volumétrie, format d'offre financière, grille de notation et calendrier de consultation.</p>
+          <a class="btn btn-gold btn-sm" href={kitHref}>Obtenir le kit <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="card sim-offer sr-up lag2">
+          <span class="sim-tag">{SITE.reviewPrice}</span>
+          <h3 class="h3">Faites relire votre cahier des charges</h3>
+          <p>Relecture annotée par un consultant spécialiste des projets WMS, puis une heure de visio pour corriger le tir avant la consultation.</p>
+          <a class="btn btn-line btn-sm" href={bookHref}>Réserver un appel gratuit de 30 min</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sim-panel sim-method" aria-label="Méthode et sources">
+    <h2>Méthode et sources de calibrage</h2>
+    <p class="sim-note">Chaque paramètre du modèle est calé sur une fourchette publiée. Quand les sources divergent, la valeur retenue est prudente.</p>
+    <div class="sim-scroll">
+    <table>
+      <thead><tr><th>Paramètre</th><th>Valeur retenue</th><th>Repère publié</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Abonnement SaaS par opérateur et par mois</td><td class="num">70, 120 ou 170 € selon la gamme</td><td>50 à 180 € en Europe, 130 à 180 $ sur le premier rang</td><td><a href="https://weaverwms.com/en/blog/how-much-does-wms-implementation-cost">Weaver WMS</a>, <a href="https://www.thelogisticsoflogistics.com/cost-of-warehouse-management-system-software/">The Logistics of Logistics</a></td></tr>
+        <tr><td>Intégration et paramétrage, base</td><td class="num">25, 70 ou 300 k€ selon la gamme</td><td>PME : 50 à 100 k€ licence et intégration. ETI : au-delà de 300 à 500 k€. Premier rang : 200 à 750 k$</td><td><a href="https://www.sitaci.fr/blog/comment-bien-choisir-son-logiciel-wms/">Sitaci</a>, <a href="https://www.thelogisticsoflogistics.com/cost-of-warehouse-management-system-software/">The Logistics of Logistics</a></td></tr>
+        <tr><td>Budget de première année, milieu de gamme en SaaS</td><td class="num">Résultat du modèle : 160 à 450 k€</td><td>150 à 400 k$ tout compris</td><td><a href="https://orderpilots.com/wms-implementation-cost-guide/">OrderPilots</a></td></tr>
+        <tr><td>Maintenance annuelle en licence</td><td class="num">20 % des licences</td><td>15 à 22 %</td><td><a href="https://cpcongroup.com/insights/article/warehouse-management-system-cost-guide/">CPCON</a></td></tr>
+        <tr><td>Matériel par opérateur</td><td class="num">1 500 €</td><td>1 000 à 3 000 $ par utilisateur</td><td><a href="https://www.finaleinventory.com/guides/warehouse-management-system-cost/">Finale Inventory</a></td></tr>
+        <tr><td>Délai de base</td><td class="num">4, 8 ou 14 mois selon la gamme</td><td>PME : 4 à 6 mois. ETI : 9 à 18 mois. Grand groupe mécanisé : 18 à 36 mois</td><td><a href="https://www.amalo-recrutement.fr/blog/classement-meilleurs-wms/">Amalo</a></td></tr>
+        <tr><td>Coût d'une erreur de préparation</td><td class="num">25 €</td><td>22 $ en moyenne, jusqu'à 100 $</td><td><a href="https://dmsiworks.com/blog/the-cost-of-a-mispick-improve-the-bottom-line-by-reducing-errors">DMSi, étude Intermec</a></td></tr>
+        <tr><td>Taux d'erreur de départ</td><td class="num">0,5 %</td><td>Un tiers des sites dépasse 1 %</td><td><a href="https://dmsiworks.com/blog/the-cost-of-a-mispick-improve-the-bottom-line-by-reducing-errors">DMSi, étude Intermec</a></td></tr>
+        <tr><td>Gain de productivité</td><td class="num">12 %</td><td>Les éditeurs annoncent 20 à 40 %. Valeur volontairement basse</td><td><a href="https://www.mecalux.com/logistics-articles/improve-productivity">Mecalux</a></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+    <p class="sim-foot">Ordres de grandeur indicatifs en euros hors taxes, version 1 du modèle. La fourchette couvre de 20 % sous à 30 % au-dessus du scénario central. Les gains ne comptent que la productivité et la baisse des erreurs de préparation. Un chiffrage ferme demande un cadrage de vos flux.</p>
+  </div>
+</Base>
+
+<script is:inline define:vars={{ brevo }}>
+
+/*MODEL*/
+const TIERS = [
+  {name:'WMS SaaS standard', desc:'Solution légère, paramétrage rapide, très peu de spécifique.', sub:70, lic:1500, integ:25000, months:4, server:15000, amoa:0.10, itf:1.0},
+  {name:'WMS milieu de gamme', desc:'Progiciel paramétrable, intégrateur dédié, quelques adaptations.', sub:120, lic:3000, integ:70000, months:8, server:30000, amoa:0.15, itf:1.6},
+  {name:'WMS avancé', desc:'Solution de premier rang, pilotage fin des ressources et de la mécanisation.', sub:170, lic:4500, integ:300000, months:14, server:60000, amoa:0.15, itf:3.0}
+];
+const ERP_COST = [10000, 25000, 45000];
+const MECH_COST = [0, 20000, 80000];
+const CX_FACTOR = [1, 1.3, 1.7];
+
+function compute(i){
+  const s = (i.ops<=15?0:i.ops<=60?1:2) + (i.lines<=2000?0:i.lines<=10000?1:2) + i.cx + i.mech;
+  const t = s<=1?0:s<=4?1:2;
+  const T = TIERS[t];
+  const integ = T.integ * CX_FACTOR[i.cx] * (1 + 0.5*(i.sites-1));
+  const itf = ERP_COST[i.erp]*T.itf + MECH_COST[i.mech];
+  const hw = i.ops*1500 + i.surface*0.8 + i.sites*2500;
+  const chg = integ*0.12 + i.ops*250;
+  const amoa = (integ+itf)*T.amoa;
+  const lic = i.mode===1 ? i.ops*T.lic + T.server : 0;
+  const parts = [
+    ['Intégration et paramétrage', integ],
+    ['Interfaces ERP et équipements', itf],
+    ['Terminaux, réseau, impression', hw],
+    ['Formation et conduite du changement', chg],
+    ['Pilotage et assistance projet', amoa]
+  ];
+  if(lic>0) parts.unshift(['Licences et serveurs', lic]);
+  const initial = parts.reduce((a,p)=>a+p[1],0);
+  const recurring = i.mode===1 ? i.ops*T.lic*0.20 : i.ops*T.sub*12;
+  const months = T.months + i.cx + i.erp + [0,1,3][i.mech] + (i.sites-1)*1.5;
+  const gProd = i.ops*1607*i.cost*(i.prod/100);
+  const gErr = i.lines*250*(i.err/100)*0.6*i.errcost;
+  const gains = gProd+gErr;
+  const net = gains-recurring;
+  const payback = net>0 ? initial/net*12 : null;
+  const tco5 = initial + 5*recurring;
+  const roi5 = (5*gains - tco5)/tco5;
+  return {tier:t, parts, initial, recurring, months, gProd, gErr, gains, payback, tco5, roi5};
+}
+/*END*/
+
+const FIELDS = [
+  {id:'surface', label:"Surface de l'entrepôt", type:'range', min:1000, max:50000, step:500, value:8000, unit:'m²'},
+  {id:'lines', label:'Lignes de commande préparées par jour', type:'range', min:200, max:30000, step:100, value:3000, unit:'lignes'},
+  {id:'ops', label:'Opérateurs équipés', type:'range', min:3, max:200, step:1, value:25, unit:'opérateurs'},
+  {id:'sites', label:'Nombre de sites à équiper', type:'range', min:1, max:5, step:1, value:1, unit:'site(s)'},
+  {id:'erp', label:'ERP en place', type:'seg', value:1, options:['Standard avec connecteur WMS','Standard sans connecteur','ERP maison ou spécifique']},
+  {id:'mech', label:'Mécanisation', type:'seg', value:0, options:['Aucune','Convoyeurs ou tri simple','Automatisation (navettes, robots, transstockeur)']},
+  {id:'cx', label:'Complexité des processus', type:'seg', value:1, options:['Standard','Lots, dates, multi-déposants','Kitting, cross-dock, services à valeur ajoutée']},
+  {id:'mode', label:'Mode de déploiement', type:'seg', value:0, options:['SaaS (abonnement)','Licence hébergée chez vous']}
+];
+const COLORS = ['#c9a24b','#8fa3b8','#7fb88a','#d98c5f','#b59ad0','#e3c886'];
+const nf = new Intl.NumberFormat('fr-FR');
+const k = v => nf.format(Math.round(v/1000)) + ' k€';
+const $ = id => document.getElementById(id);
+
+const host = $('fields');
+host.style.cssText = 'display:flex;flex-direction:column;gap:18px';
+FIELDS.forEach(f=>{
+  const d = document.createElement('div'); d.className='field';
+  if(f.type==='range'){
+    d.innerHTML = '<div class="field-head"><label for="f-'+f.id+'">'+f.label+'</label><output id="o-'+f.id+'" for="f-'+f.id+'"></output></div>'+
+      '<input type="range" id="f-'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.value+'">';
+  } else {
+    d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',f.label);
+    d.innerHTML = '<span class="lab">'+f.label+'</span><div class="opts">'+f.options.map((o,n)=>
+      '<label><input type="radio" id="f-'+f.id+'-'+n+'" name="f-'+f.id+'" value="'+n+'"'+(n===f.value?' checked':'')+'><span>'+o+'</span></label>').join('')+'</div>';
+  }
+  host.appendChild(d);
+});
+
+function read(){
+  const i = {};
+  FIELDS.forEach(f=>{
+    if(f.type==='range'){ i[f.id] = +$('f-'+f.id).value; $('o-'+f.id).textContent = nf.format(i[f.id])+' '+f.unit; }
+    else i[f.id] = +document.querySelector('input[name="f-'+f.id+'"]:checked').value;
+  });
+  i.cost = +$('a-cost').value||0; i.prod = +$('a-prod').value||0; i.err = +$('a-err').value||0; i.errcost = +$('a-errcost').value||0;
+  return i;
+}
+
+let summary = '';
+function render(){
+  const i = read(), r = compute(i), T = TIERS[r.tier];
+  $('r-tier').textContent = T.name;
+  $('r-tierdesc').textContent = T.desc;
+  const range = k(r.initial*0.8)+' à '+k(r.initial*1.3);
+  $('r-budget').textContent = range;
+  $('r-bar').innerHTML = r.parts.map((p,n)=>'<span style="width:'+(p[1]/r.initial*100).toFixed(2)+'%;background:'+COLORS[n]+'"></span>').join('');
+  $('r-legend').innerHTML = r.parts.map((p,n)=>'<dt><span class="dot" style="background:'+COLORS[n]+'"></span>'+p[0]+'</dt><dd class="num">'+k(p[1])+'</dd>').join('');
+  $('r-rec').textContent = k(r.recurring)+' par an';
+  $('r-recs').textContent = i.mode===1 ? 'Maintenance annuelle, 20 % des licences' : 'Abonnement, '+T.sub+' € par opérateur et par mois';
+  $('r-tco').textContent = k(r.tco5);
+  const m = Math.round(r.months);
+  const delay = m+' à '+(m+Math.max(2,Math.round(m*0.3)))+' mois';
+  $('r-delay').textContent = delay;
+  $('r-gain').textContent = k(r.gains)+' par an';
+  $('r-gains').textContent = 'Productivité '+k(r.gProd)+', erreurs '+k(r.gErr);
+  const pill = $('r-pill');
+  let payTxt;
+  if(r.payback===null){ payTxt = 'Non rentable avec ces hypothèses'; pill.textContent='Gains inférieurs au coût récurrent'; pill.className='pill warn'; }
+  else {
+    payTxt = 'Amorti en '+Math.round(r.payback)+' mois';
+    const ok = r.payback<=36;
+    pill.textContent = 'ROI à 5 ans : '+(r.roi5>=0?'+':'')+Math.round(r.roi5*100)+' %';
+    pill.className = 'pill '+(ok?'good':'warn');
+  }
+  $('r-pay').textContent = payTxt;
+  summary = 'Estimation projet WMS\n'+
+    'Gamme : '+T.name+'\n'+
+    'Budget initial : '+range+'\n'+
+    'Coût récurrent : '+k(r.recurring)+' par an\n'+
+    'Coût total sur 5 ans : '+k(r.tco5)+'\n'+
+    'Délai : '+delay+'\n'+
+    'Gains annuels estimés : '+k(r.gains)+'\n'+
+    'Retour sur investissement : '+payTxt;
+}
+document.addEventListener('input', render);
+$('copy').addEventListener('click', ()=>{
+  const done = ok => { $('copied').textContent = ok ? 'Résumé copié dans le presse-papiers.' : 'Copie impossible ici. Sélectionnez les chiffres à la main.'; };
+  try{ navigator.clipboard.writeText(summary).then(()=>done(true), ()=>done(false)); }catch(e){ done(false); }
+});
+
+
+(function(){
+  var form = document.getElementById('lead'), msg = document.getElementById('lead-msg');
+  form.addEventListener('submit', function(e){
+    var mail = document.getElementById('lead-email').value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ e.preventDefault(); msg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
+    if(!document.getElementById('lead-ok').checked){ e.preventDefault(); msg.textContent = 'Cochez la case pour recevoir le rapport.'; return; }
+    document.getElementById('lead-summary').value = summary;
+    if(!brevo){ e.preventDefault(); msg.textContent = "Merci. L'envoi du rapport sera actif dès la mise en service de l'outil d'emailing."; }
+  });
+})();
+render();
+
+</script>
+
+<style is:global>
+  .sim { padding-block: 64px 96px; display: flex; flex-direction: column; gap: 32px; }
+  .sim-head { gap: 16px; max-width: 760px; }
+  .sim-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .sim-grid { grid-template-columns: 1fr; } }
+  .sim-panel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 18px; }
+  .sim-results { position: sticky; top: 88px; box-shadow: 0 30px 70px rgba(0,0,0,.4); }
+  @media (max-width: 900px) { .sim-results { position: static; } }
+  .sim-h { font-size: 22px; color: var(--gold-soft); }
+  .sim .field { display: flex; flex-direction: column; gap: 8px; }
+  .sim .field-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .sim label, .sim .lab { font-weight: 500; }
+  .sim output { color: var(--gold-soft); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sim input[type=range] { width: 100%; accent-color: var(--gold); margin: 0; min-height: 28px; }
+  .sim .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sim .opts label { flex: 1 1 auto; text-align: center; padding: 10px 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 12px; background: var(--card-2); cursor: pointer; font-weight: 400; font-size: 14px; transition: background-color .25s, border-color .25s, color .25s; }
+  .sim .opts label:hover { border-color: rgba(201,162,75,.6); }
+  .sim .opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .sim .opts label:has(input:checked) { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
+  .sim .opts label:has(input:focus-visible) { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
+  .sim-adv { border-top: 1px solid var(--line); padding-top: 14px; }
+  .sim-adv summary { cursor: pointer; color: var(--gold-soft); font-weight: 500; min-height: 32px; }
+  .sim-adv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+  @media (max-width: 480px) { .sim-adv-grid { grid-template-columns: 1fr; } }
+  .sim-adv input { width: 100%; background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font: inherit; font-variant-numeric: tabular-nums; }
+  .sim-adv label { font-size: 13px; color: var(--dim); font-weight: 400; }
+  .sim-tier { border-left: 3px solid var(--gold); padding: 4px 0 4px 14px; }
+  .sim-tier-name { font-family: var(--display); font-size: 24px; color: var(--text-strong); }
+  .sim-tier-desc { color: var(--dim); font-size: 14px; }
+  .sim-k { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .sim-big { font-family: var(--display); font-size: 42px; color: var(--gold-soft); line-height: 1.1; }
+  .sim-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--card-2); }
+  .sim-bar span { display: block; height: 100%; transition: width .5s var(--ease); }
+  .sim-legend { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; font-size: 14px; margin: 0; }
+  .sim-legend dt { display: flex; align-items: center; gap: 8px; }
+  .sim-legend dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .sim .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .sim-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .sim-kpi { background: var(--card-2); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .sim-v { font-size: 19px; font-weight: 600; }
+  .sim-s { color: var(--dim); font-size: 12px; }
+  .sim .pill { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; align-self: flex-start; margin-top: 4px; }
+  .sim .pill.good { background: rgba(127,184,138,.18); color: var(--good); }
+  .sim .pill.warn { background: rgba(217,140,95,.18); color: var(--warn); }
+  .sim-note { color: var(--dim); font-size: 13px; margin: 0; min-height: 1em; }
+  .sim-next { display: flex; flex-direction: column; gap: 24px; padding-top: 32px; }
+  .sim-offers { gap: 20px; align-items: stretch; }
+  .sim-offer { flex: 1 1 300px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .sim-offer p { margin: 0; color: var(--muted); font-size: 15px; }
+  .sim-offer > .btn { margin-top: auto; align-self: flex-start; }
+  .sim-offer .h3 { font-size: 22px; }
+  .sim-tag { align-self: flex-start; font-size: 12px; font-weight: 600; color: var(--gold-soft); border: 1px solid var(--gold); border-radius: 999px; padding: 3px 12px; }
+  .sim-offer form { display: flex; flex-direction: column; gap: 10px; }
+  .sim-offer input[type=email] { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 12px 14px; font: inherit; }
+  .sim-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: var(--dim); font-weight: 400 !important; }
+  .sim-consent input { margin-top: 3px; accent-color: var(--gold); }
+  .sim-offer form .btn { align-self: flex-start; }
+  .sim-method table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+  .sim-method th, .sim-method td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .sim-method th { color: var(--dim); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .sim-scroll { overflow-x: auto; }
+  .sim-method h2 { font-size: 22px; color: var(--gold-soft); }
+  .sim-foot { color: var(--dim); font-size: 13px; max-width: 75ch; margin: 0; }
+</style>

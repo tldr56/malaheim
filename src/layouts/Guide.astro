@@ -1,0 +1,77 @@
+---
+import Base from './Base.astro';
+import { SITE, GUIDES } from '../config';
+
+const { frontmatter } = Astro.props;
+const { title, description, slug, updated, readingTime, cta = 'simulateur' } = frontmatter;
+const others = GUIDES.filter((g) => g.slug !== slug);
+const ctas = {
+  simulateur: { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur/', label: 'Estimer mon budget' },
+  kit: { title: 'Évitez ces erreurs dès le cahier des charges', text: 'Le kit contient 50 exigences prêtes à coter, la grille de notation et le calendrier de consultation.', href: '/kit-cahier-des-charges/', label: `Voir le kit, ${SITE.kitPrice}` },
+};
+const c = ctas[cta as keyof typeof ctas] ?? ctas.simulateur;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  inLanguage: 'fr-FR',
+  dateModified: updated,
+  author: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+  publisher: { '@type': 'Organization', name: SITE.name },
+};
+const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <article class="wrap guide-page">
+    <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/guides/">Guides</a></nav>
+    <header class="stack guide-head">
+      <p class="eyebrow rise d1">Guide</p>
+      <h1 class="h2 rise d2">{title}</h1>
+      <p class="lead rise d3">{description}</p>
+      <p class="byline rise d4">Par {SITE.author}, consultant WMS. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
+    </header>
+    <div class="guide-body">
+      <div class="prose rise d4"><slot /></div>
+      <aside class="guide-side">
+        <div class="card card-hi side-cta">
+          <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
+          <h2 class="h3">{c.title}</h2>
+          <p>{c.text}</p>
+          <a class="btn btn-gold btn-sm" href={c.href}>{c.label} <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </aside>
+    </div>
+    <section class="more" aria-labelledby="titre-autres">
+      <h2 id="titre-autres" class="h3 sr-up">Les autres guides</h2>
+      <div class="row more-list">
+        {others.map((g, i) => (
+          <a class={`card card-lift more-item sr-up ${['', 'lag1', 'lag2', 'lag3'][i]}`} href={`/guides/${g.slug}/`}>
+            <span class="gold" style="font-family: var(--display); font-size: 22px">{g.figure}</span>
+            <span style="font-weight: 600">{g.title}</span>
+            <span class="gold" style="font-size: 14px">Lire <span class="arrow" aria-hidden="true">→</span></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .guide-page { padding-block: 48px 120px; display: flex; flex-direction: column; gap: 40px; }
+  .crumbs { display: flex; gap: 10px; font-size: 14px; color: var(--dim); }
+  .crumbs a { color: var(--dim); text-decoration: none; }
+  .crumbs a:hover { color: var(--text); }
+  .guide-head { gap: 18px; max-width: 820px; }
+  .byline { margin: 0; color: var(--dim); font-size: 14px; }
+  .guide-body { display: flex; flex-wrap: wrap; gap: 56px; align-items: flex-start; }
+  .guide-body .prose { flex: 1 1 560px; min-width: 0; }
+  .guide-side { flex: 0 1 320px; position: sticky; top: 96px; }
+  @media (max-width: 960px) { .guide-side { position: static; flex-basis: 100%; } }
+  .side-cta { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .side-cta p { margin: 0; color: var(--muted); font-size: 15px; }
+  .side-cta .btn { align-self: flex-start; }
+  .more { display: flex; flex-direction: column; gap: 20px; padding-top: 40px; border-top: 1px solid var(--line-soft); }
+  .more-list { gap: 16px; }
+  .more-item { flex: 1 1 240px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+</style>

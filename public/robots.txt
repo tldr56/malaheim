@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.decision-entrepot.fr/sitemap-index.xml

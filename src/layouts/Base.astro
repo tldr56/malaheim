@@ -1,0 +1,114 @@
+---
+import '@fontsource/marcellus/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '../styles/global.css';
+import { SITE } from '../config';
+
+interface Props {
+  title: string;
+  description: string;
+  dock?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+const { title, description, dock = true, jsonLd } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname;
+const fullTitle = path === '/' ? `${SITE.name} | Budget et choix de WMS pour PME et ETI` : `${title} | ${SITE.name}`;
+const nav = [
+  { href: '/simulateur/', label: 'Simulateur' },
+  { href: '/kit-cahier-des-charges/', label: 'Le kit' },
+  { href: '/guides/', label: 'Guides' },
+  { href: '/accompagnement/', label: 'Accompagnement' },
+  { href: '/a-propos/', label: 'À propos' },
+];
+---
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content={SITE.name}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta name="theme-color" content="#141619">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var native = window.CSS && CSS.supports && CSS.supports('animation-timeline: view()');
+      if (!reduce && !native && 'IntersectionObserver' in window) document.documentElement.classList.add('io');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <header class="topbar">
+    <div class="wrap topbar-in">
+      <a class="brand" href="/">
+        <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#c9a24b" stroke-width="2"><rect x="3" y="5" width="28" height="24" rx="3"></rect><line x1="3" y1="13" x2="31" y2="13"></line><line x1="3" y1="21" x2="31" y2="21"></line><line x1="17" y1="5" x2="17" y2="29"></line></svg>
+        <span>{SITE.name}</span>
+      </a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Navigation principale">
+        {nav.map((n) => (
+          <a class="navlink" href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
+        ))}
+        <a class="btn btn-gold btn-sm" href="/simulateur/">Estimer mon budget</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <slot />
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-in">
+      <span>© {new Date().getFullYear()} {SITE.name}. Chiffrages indicatifs en euros hors taxes.</span>
+      <nav aria-label="Liens légaux">
+        <a href="/mentions-legales/">Mentions légales</a>
+        <a href="/confidentialite/">Confidentialité</a>
+        <a href="/conditions-de-vente/">Conditions de vente</a>
+        <a href="/a-propos/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  {dock && (
+    <div class="dock" id="dock" role="complementary" aria-label="Accès rapide au simulateur">
+      <span class="dock-text">Votre budget WMS en 3 minutes</span>
+      <a class="btn btn-gold btn-sm" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
+    </div>
+  )}
+
+  <script is:inline>
+    (function () {
+      var btn = document.querySelector('.menu-btn'), nav = document.getElementById('nav');
+      if (btn && nav) btn.addEventListener('click', function () {
+        var open = nav.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      var dock = document.getElementById('dock');
+      if (dock) {
+        var onScroll = function () { dock.classList.toggle('on', window.scrollY > 600); };
+        window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+      }
+      if (document.documentElement.classList.contains('io')) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { rootMargin: '0px 0px -12% 0px' });
+        document.querySelectorAll('.sr-up,.sr-down,.sr-left,.sr-right,.sr-zoom,.track-fill').forEach(function (el) { io.observe(el); });
+      }
+    })();
+  </script>
+</body>
+</html>
