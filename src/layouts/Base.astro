@@ -17,7 +17,7 @@ interface Props {
 const { title, description, dock = true, jsonLd } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const path = Astro.url.pathname;
-const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
+const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain en PME : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
 const nav = [
   { href: '/logiciels/', label: 'Logiciels' },
   { href: '/conseil/', label: 'Conseil' },
@@ -78,7 +78,7 @@ const nav = [
     <div class="wrap footer-in">
       <span>© {new Date().getFullYear()} {SITE.company}. Chiffrages indicatifs en euros hors taxes.</span>
       <nav aria-label="Liens légaux">
-        <a href="/accompagnement/">Formules</a>
+        <a href="/accompagnement/">Tarifs</a>
         <a href="/mentions-legales/">Mentions légales</a>
         <a href="/confidentialite/">Confidentialité</a>
         <a href="/conditions-de-vente/">Conditions de vente</a>

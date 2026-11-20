@@ -22,6 +22,8 @@ const faq = [
   { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateurs, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
   { q: 'Quels kits de consultation proposez-vous ?', a: "Sept kits, un par famille de logiciels : WMS, TMS, ERP, S&OP et planification, automatisation et WCS, OMS, données et pilotage. Chacun contient un cahier des charges de 130 à 268 exigences, des scénarios de démonstration, une grille de dépouillement, une check-list contractuelle en 30 points et un plan de recette." },
   { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Par l'orientation de cette page : choisissez la situation qui vous ressemble le plus. Si plusieurs vous ressemblent, réservez un appel gratuit de 30 minutes." },
+  { q: "Le site s'adresse-t-il aux grandes entreprises ?", a: "Il est pensé pour les PME. Les grands groupes ont des services achats et des cabinets pour leurs appels d'offres ; une PME doit souvent choisir avec un dirigeant et un responsable logistique. Les kits font ce travail d'équipe, à un prix de PME." },
+  { q: "Combien coûte l'accompagnement ?", a: `Le kit coûte ${SITE.kitPrice}. La relecture de votre cahier des charges coûte ${SITE.reviewPrice}, prix du kit déduit. Au-delà, l'accompagnement est facturé ${SITE.hourlyRate} de l'heure, au temps réellement passé, avec une estimation écrite avant de commencer.` },
   { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
   { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur issus de sources publiées, citées sur chaque page. Ils servent à cadrer un budget, pas à remplacer un devis." },
   { q: 'Et si un kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
@@ -36,11 +38,11 @@ const jsonLd = {
   founder: { '@type': 'Person', name: SITE.author },
 };
 ---
-<Base title="Accueil" description="Malaheim vous aide à choisir le bon logiciel supply chain (WMS, TMS, S&OP, ERP, OMS, données) et à réussir votre transformation digitale : budgets réels, méthode, conseil indépendant." jsonLd={jsonLd}>
+<Base title="Accueil" description="Malaheim aide les PME à choisir le bon logiciel supply chain (WMS, TMS, S&OP, ERP, OMS, données) sans service achats : budgets réels, kits de consultation à 149 € HT, expert à l'heure." jsonLd={jsonLd}>
 
   <section class="wrap hero" aria-labelledby="titre-accueil">
     <div class="stack hero-text">
-      <p class="eyebrow rise">Logiciels et transformation digitale de la supply chain</p>
+      <p class="eyebrow rise">Pour les PME : logiciels et transformation digitale de la supply chain</p>
       <h1 id="titre-accueil" class="h1 hero-title">
         <span class="sr-only">Votre projet de logiciel supply chain commence ici.</span>
         <span class="line rise d1" aria-hidden="true">Votre projet</span>
@@ -51,14 +53,14 @@ const jsonLd = {
         </span>
         <span class="line rise d3" aria-hidden="true">commence ici.</span>
       </h1>
-      <p class="lead rise d4">Malaheim vous aide à choisir le bon logiciel supply chain et à réussir votre transformation digitale : budgets réels, méthode éprouvée, conseil indépendant des éditeurs.</p>
+      <p class="lead rise d4">Pas de service achats, pas d'équipe projet ? Malaheim donne aux PME les budgets réels, la méthode et les documents pour choisir seules le bon logiciel supply chain, et un expert à l'heure quand il le faut.</p>
       <div class="doors-cta rise d5">
         <a class="btn btn-gold btn-lg" href="#orientation">Je cherche un logiciel <span class="arrow" aria-hidden="true">→</span></a>
         <a class="btn btn-line btn-lg" href="/conseil/">Je veux être conseillé</a>
       </div>
       <ul class="trust rise d5">
         <li><Fragment set:html={check} />Orientation gratuite</li>
-        <li><Fragment set:html={check} />Chiffres sourcés</li>
+        <li><Fragment set:html={check} />Pensé pour les PME</li>
         <li><Fragment set:html={check} />Indépendant des éditeurs</li>
       </ul>
     </div>
@@ -122,7 +124,7 @@ const jsonLd = {
         <div class="card door door-2 sr-right">
           <span class="door-k">Porte 2</span>
           <h3 class="door-t">Je veux être conseillé</h3>
-          <p class="door-d">Un regard indépendant pour construire la feuille de route, choisir les outils et les déployer jusqu'à leur adoption.</p>
+          <p class="door-d">Un expert indépendant, à l'heure et au temps réellement passé, pour construire la feuille de route, choisir les outils et les déployer jusqu'à leur adoption.</p>
           <ul class="svc-list">
             {services.map((s, i) => (
               <li><span class="svc-i">{String(i + 1).padStart(2, '0')}</span><span><strong>{s.t}</strong><br /><span class="dim">{s.d}</span></span></li>
@@ -130,6 +132,36 @@ const jsonLd = {
           </ul>
           <a class="btn btn-amber" href="/conseil/" style="align-self: flex-start">Découvrir le conseil <span class="arrow" aria-hidden="true">→</span></a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pme" aria-labelledby="titre-pme" style="padding-top: 0">
+    <div class="wrap stack" style="gap: 32px">
+      <div class="stack" style="gap: 12px; max-width: 760px">
+        <p class="eyebrow sr-left">Pensé pour les PME</p>
+        <h2 id="titre-pme" class="h2 sr-left lag1">Choisir comme un grand groupe, sans son service achats</h2>
+        <p class="lead sr-left lag2" style="font-size: 17px">Les grandes entreprises confient leurs appels d'offres à des équipes achats et à des cabinets. Une PME choisit souvent avec un dirigeant et un responsable logistique. Malaheim leur donne les mêmes armes, à leur échelle.</p>
+      </div>
+      <div class="row" style="gap: 18px">
+        <a class="card card-lift pme-c sr-up" href="/kits/">
+          <span class="pme-n">1</span>
+          <span class="pme-p">{SITE.kitPrice}</span>
+          <h3 class="pme-t">Le kit fait le travail d'une équipe</h3>
+          <p>Cahier des charges rédigé, priorités pré-remplies, scénarios, grille de notation, contrat, recette.</p>
+        </a>
+        <a class="card card-lift pme-c sr-up lag1" href="/accompagnement/">
+          <span class="pme-n">2</span>
+          <span class="pme-p">{SITE.reviewPrice}</span>
+          <h3 class="pme-t">Une relecture experte</h3>
+          <p>Votre cahier des charges annoté et une heure de visio avant l'envoi aux éditeurs.</p>
+        </a>
+        <a class="card card-lift pme-c sr-up lag2" href="/accompagnement/">
+          <span class="pme-n">3</span>
+          <span class="pme-p">{SITE.hourlyRate} / h</span>
+          <h3 class="pme-t">Un expert à l'heure, au réel</h3>
+          <p>Démonstrations, analyse des offres, négociation, démarrage : seul le temps passé est facturé.</p>
+        </a>
       </div>
     </div>
   </section>
@@ -451,4 +483,9 @@ const jsonLd = {
   .final { padding-block: 80px 140px; }
   .final-in { padding: 72px 40px; gap: 22px; border-radius: 32px; background: linear-gradient(135deg, rgba(243,213,140,.7), rgba(246,185,141,.6), rgba(169,214,236,.55)); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid rgba(255,255,255,.85); box-shadow: var(--shadow); color: var(--text-strong); }
   @media (prefers-reduced-motion: reduce) { .fl, .ticker-track { animation: none !important; } }
+  .pme-c { flex: 1 1 260px; padding: 26px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
+  .pme-n { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; font-size: 14px; }
+  .pme-p { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--gold-soft); line-height: 1.1; margin-top: 6px; }
+  .pme-t { font-family: var(--body); font-size: 18px; font-weight: 600; color: var(--text-strong); }
+  .pme-c p { margin: 0; color: var(--muted); font-size: 15px; }
 </style>

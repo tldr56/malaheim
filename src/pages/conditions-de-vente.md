@@ -1,7 +1,7 @@
 ---
 layout: ../layouts/Legal.astro
 title: Conditions générales de vente
-description: Conditions de vente du kit cahier des charges WMS et des prestations d'accompagnement.
+description: Conditions de vente des kits de consultation, de la relecture et de l'accompagnement à l'heure.
 updated: 12 novembre 2026
 ---
 
@@ -9,7 +9,7 @@ updated: 12 novembre 2026
 
 ## 1. Objet
 
-Les présentes conditions régissent la vente, par [raison sociale], des produits numériques (kit cahier des charges WMS) et des prestations de conseil (relecture, accompagnement, pilotage) proposés sur le site.
+Les présentes conditions régissent la vente, par [raison sociale], des produits numériques (kits de consultation) et des prestations de conseil (relecture de cahier des charges, accompagnement et conseil facturés à l'heure) proposés sur le site.
 
 ## 2. Clients
 
@@ -17,7 +17,7 @@ Les offres s'adressent principalement aux professionnels. Lorsqu'un client agit 
 
 ## 3. Prix
 
-Les prix sont indiqués en euros hors taxes. La TVA applicable est ajoutée au moment du paiement. Les prestations sur devis font l'objet d'une proposition écrite préalable.
+Les prix sont indiqués en euros hors taxes. La TVA applicable est ajoutée au moment du paiement. Le prix d'un kit et celui de la relecture sont forfaitaires. Lorsque la relecture suit l'achat d'un kit, le prix du kit est déduit de celui de la relecture.
 
 ## 4. Commande et paiement
 
@@ -41,7 +41,11 @@ Le kit est concédé pour un usage interne à l'entreprise acheteuse, y compris 
 
 ## 8. Prestations de conseil
 
-La relecture est livrée sous 5 jours ouvrés après réception du document. Les prestations relèvent d'une obligation de moyens. Les documents confiés restent confidentiels.
+La relecture est livrée sous 5 jours ouvrés après réception du document et comprend une heure de visioconférence.
+
+L'accompagnement et le conseil sont facturés au temps réellement passé, au taux horaire affiché sur le site au jour de la commande, décompté par quart d'heure. Une estimation écrite du nombre d'heures est remise avant le démarrage ; tout dépassement de cette estimation est soumis à l'accord préalable du client. Un relevé détaillé des heures accompagne chaque facture mensuelle, payable à 30 jours. Aucun forfait minimum ni engagement de durée n'est exigé.
+
+Les prestations relèvent d'une obligation de moyens. Les documents confiés restent confidentiels.
 
 ## 9. Responsabilité
 

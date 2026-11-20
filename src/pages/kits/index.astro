@@ -12,12 +12,12 @@ const method = [
   { t: 'Une recette qui teste les exceptions', d: 'Environ 40 % de cas d’exception dans chaque plan de recette, là où naissent les incidents de démarrage.' },
 ];
 ---
-<Base title="Kits de consultation" description="Sept kits prêts à l'emploi pour choisir un logiciel supply chain : WMS, TMS, ERP, S&OP, automatisation et WCS, OMS, données et pilotage. Cahier des charges expert, scénarios de démonstration, dépouillement, check-list contractuelle, plan de recette.">
+<Base title="Kits de consultation" description="Pour les PME : sept kits prêts à l'emploi pour choisir un logiciel supply chain : WMS, TMS, ERP, S&OP, automatisation et WCS, OMS, données et pilotage. Cahier des charges expert, scénarios de démonstration, dépouillement, check-list contractuelle, plan de recette.">
   <section class="dark">
     <div class="wrap stack" style="padding-block: 72px 80px; gap: 18px; max-width: 900px">
       <p class="eyebrow rise">Les kits de consultation</p>
-      <h1 class="h1 rise d1" style="font-size: clamp(38px, 4.6vw, 60px)">Un kit expert pour chaque logiciel supply chain</h1>
-      <p class="lead rise d2">Sept kits, {total.toLocaleString('fr-FR')} exigences commentées au total. Chacun contient le cahier des charges à envoyer et les outils pour juger les réponses, négocier le contrat et recetter la solution. Satisfait ou remboursé 14 jours.</p>
+      <h1 class="h1 rise d1" style="font-size: clamp(38px, 4.6vw, 60px)">Un kit expert pour chaque logiciel, au prix d'une PME</h1>
+      <p class="lead rise d2">Pensés pour les PME qui choisissent un logiciel sans service achats : chaque kit fait le travail d'une équipe, du cahier des charges à la recette. Sept kits, {total.toLocaleString('fr-FR')} exigences commentées au total, {SITE.kitPrice} le kit. Satisfait ou remboursé 14 jours.</p>
     </div>
   </section>
 
@@ -32,7 +32,7 @@ const method = [
         </div>
         <div class="stack kit-buy">
           <span class="kit-price">{SITE.kitFrom}</span>
-          <span class="dim" style="font-size: 14px">Trois formules, jusqu'à l'accompagnement</span>
+          <span class="dim" style="font-size: 14px">Puis relecture ou accompagnement à l'heure, si besoin</span>
           <span class="btn btn-gold">Voir le kit <span class="arrow" aria-hidden="true">→</span></span>
         </div>
       </a>
@@ -60,7 +60,7 @@ const method = [
       <div class="stack" style="gap: 12px; max-width: 760px">
         <p class="eyebrow sr-down">La même méthode dans chaque kit</p>
         <h2 id="titre-methode" class="h2 sr-up">Cinq parties à envoyer, six annexes à garder pour vous</h2>
-        <p class="lead sr-up lag1" style="font-size: 17px">Les parties 1 à 5 partent chez les candidats. Les annexes servent votre comité de sélection.</p>
+        <p class="lead sr-up lag1" style="font-size: 17px">Les parties 1 à 5 partent chez les candidats. Les annexes restent chez vous.</p>
       </div>
       <div class="row" style="gap: 16px">
         {method.map((m, i) => (
@@ -81,7 +81,7 @@ const method = [
           </tbody>
         </table>
       </div>
-      <p class="dim sr-up" style="margin: 0; font-size: 15px">Un projet qui touche plusieurs logiciels ? <a href="/conseil/">Parlons-en</a> : un accompagnement à la sélection peut combiner plusieurs kits.</p>
+      <p class="dim sr-up" style="margin: 0; font-size: 15px">Besoin d'un second avis ? La <a href="/accompagnement/">relecture</a> coûte {SITE.reviewPrice}, prix du kit déduit, et l'accompagnement {SITE.hourlyRate} de l'heure, au temps réellement passé.</p>
     </div>
   </section>
 </Base>

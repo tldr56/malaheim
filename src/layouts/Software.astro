@@ -48,15 +48,15 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
           <h2 class="h3">Chiffrez votre projet WMS</h2>
           <p>Le simulateur donne votre gamme, votre budget, votre délai et votre retour sur investissement en 8 questions.</p>
           <a class="btn btn-gold btn-sm" href="/simulateur-wms/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
-          <a href="/kits/consultation-wms/" style="font-size: 15px; font-weight: 500; text-decoration: none">Voir le kit de consultation, {SITE.kitFrom.toLowerCase().replace('ht', 'HT')} <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/kits/consultation-wms/" style="font-size: 15px; font-weight: 500; text-decoration: none">Voir le kit de consultation, {SITE.kitPrice} <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       ) : (
         <div class="card card-hi side-cta">
           <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
           <h2 class="h3">Le Kit Consultation {kit.code}</h2>
           <p>{kit.reqs} exigences commentées, {kit.demos} {kit.code === 'WCS' ? 'points de soutenance et de visite' : 'scénarios de démonstration'}, check-list contractuelle et {kit.code === 'WCS' ? `${kit.tests} essais de réception` : `plan de recette en ${kit.tests} cas`}.</p>
-          <a class="btn btn-gold btn-sm" href={`/kits/${kit.page}/`}>Voir le kit, {SITE.kitFrom.toLowerCase().replace('ht', 'HT')} <span class="arrow" aria-hidden="true">→</span></a>
-          <a href="/conseil/" style="font-size: 15px; font-weight: 500; text-decoration: none">Ou réserver un appel gratuit de 30 minutes <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-gold btn-sm" href={`/kits/${kit.page}/`}>Voir le kit, {SITE.kitPrice} <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/accompagnement/" style="font-size: 15px; font-weight: 500; text-decoration: none">Besoin d'aide ? Relecture ou accompagnement à l'heure <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       )}
     </aside>
