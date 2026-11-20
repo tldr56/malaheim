@@ -1,27 +1,34 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { SITE, SOFTWARE } from '../../config';
-const brevo = SITE.brevoFormAction;
-const upcoming = SOFTWARE.filter((s) => s.status !== 'complet');
-const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4'];
+import { SITE, KITS, SOFTWARE } from '../../config';
+const lags = ['', 'lag1', 'lag2', 'lag3'];
+const kits = KITS.map((k) => ({ ...k, sw: SOFTWARE.find((s) => s.slug === k.sw)! }));
+const [first, ...rest] = kits;
+const total = KITS.reduce((n, k) => n + k.reqs, 0);
+const method = [
+  { t: 'Un cahier des charges qui fait chiffrer tout le monde sur la même base', d: 'Contexte, volumétrie, exigences priorisées et cotation imposée : les offres deviennent comparables ligne à ligne.' },
+  { t: 'Des démonstrations sur vos données, pas sur celles de l’éditeur', d: 'Scénarios imposés, tests à l’aveugle, simulations rejouées : vous jugez sur pièces.' },
+  { t: 'Un dépouillement et un contrat qui protègent', d: 'Notation pondérée, règles d’élimination, coût total sur 5 ou 10 ans, check-list contractuelle en 30 points.' },
+  { t: 'Une recette qui teste les exceptions', d: 'Environ 40 % de cas d’exception dans chaque plan de recette, là où naissent les incidents de démarrage.' },
+];
 ---
-<Base title="Kits de consultation" description="Des kits prêts à l'emploi pour choisir un logiciel supply chain : cahier des charges expert, scénarios de démonstration, grille de dépouillement, check-list contractuelle, plan de recette.">
+<Base title="Kits de consultation" description="Sept kits prêts à l'emploi pour choisir un logiciel supply chain : WMS, TMS, ERP, S&OP, automatisation et WCS, OMS, données et pilotage. Cahier des charges expert, scénarios de démonstration, dépouillement, check-list contractuelle, plan de recette.">
   <section class="dark">
     <div class="wrap stack" style="padding-block: 72px 80px; gap: 18px; max-width: 900px">
       <p class="eyebrow rise">Les kits de consultation</p>
-      <h1 class="h1 rise d1" style="font-size: clamp(38px, 4.6vw, 60px)">Tout pour mener votre consultation, prêt à l'emploi</h1>
-      <p class="lead rise d2">Chaque kit contient le cahier des charges à envoyer aux éditeurs et les outils pour juger leurs réponses, négocier le contrat et recetter la solution. Satisfait ou remboursé 14 jours.</p>
+      <h1 class="h1 rise d1" style="font-size: clamp(38px, 4.6vw, 60px)">Un kit expert pour chaque logiciel supply chain</h1>
+      <p class="lead rise d2">Sept kits, {total.toLocaleString('fr-FR')} exigences commentées au total. Chacun contient le cahier des charges à envoyer et les outils pour juger les réponses, négocier le contrat et recetter la solution. Satisfait ou remboursé 14 jours.</p>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-dispo">
-    <div class="wrap stack" style="gap: 32px">
-      <h2 id="titre-dispo" class="h2 sr-up">Disponible</h2>
-      <a class="card card-hi card-lift kit-main sr-up" href="/kits/consultation-wms/">
+  <section class="section" aria-labelledby="titre-kits">
+    <div class="wrap stack" style="gap: 24px">
+      <h2 id="titre-kits" class="sr-only">Les sept kits</h2>
+      <a class="card card-hi card-lift kit-main sr-up" href={`/kits/${first.page}/`}>
         <div class="stack" style="gap: 14px; flex: 1 1 420px; min-width: 0">
-          <div class="row" style="gap: 10px; align-items: center"><span class="code">WMS</span><span class="pill pill-on">Disponible</span></div>
-          <h3 class="kit-t">{SITE.kitName}, édition Expert</h3>
-          <p class="kit-d">268 exigences commentées, 18 flux d'interface, 12 scénarios de démonstration, grille de dépouillement et coût sur 5 ans, check-list contractuelle en 30 points, plan de recette en 72 cas.</p>
+          <div class="row" style="gap: 10px; align-items: center"><span class="code">{first.code}</span><span class="pill pill-on">Disponible</span><span class="pill">Avec simulateur</span></div>
+          <h3 class="kit-t">Kit Consultation {first.code}, édition Expert</h3>
+          <p class="kit-d">{first.short}</p>
         </div>
         <div class="stack kit-buy">
           <span class="kit-price">{SITE.kitFrom}</span>
@@ -29,70 +36,81 @@ const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4'];
           <span class="btn btn-gold">Voir le kit <span class="arrow" aria-hidden="true">→</span></span>
         </div>
       </a>
+      <div class="grid">
+        {rest.map((k, i) => (
+          <a class={`card card-lift kit sr-up ${lags[i % 3]}`} href={`/kits/${k.page}/`}>
+            <div class="row" style="gap: 10px; align-items: center"><span class="code">{k.code}</span><span class="pill pill-on">Disponible</span></div>
+            <span class="kit-n">Kit Consultation {k.code}</span>
+            <span class="kit-s">{k.sw.name}</span>
+            <ul class="kit-l">
+              {k.highlights.map((h) => <li>{h}</li>)}
+            </ul>
+            <div class="row kit-f">
+              <span class="kit-p">{SITE.kitFrom}</span>
+              <span class="gold" style="font-weight: 600">Voir le kit <span class="arrow" aria-hidden="true">→</span></span>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
   </section>
 
-  <section id="bientot" class="section section-alt" aria-labelledby="titre-bientot">
-    <div class="wrap stack" style="gap: 32px">
+  <section class="section section-alt" aria-labelledby="titre-methode">
+    <div class="wrap stack" style="gap: 40px">
       <div class="stack" style="gap: 12px; max-width: 760px">
-        <h2 id="titre-bientot" class="h2 sr-up">En préparation</h2>
-        <p class="lead sr-up lag1" style="font-size: 17px">Les prochains kits suivent la même méthode. Inscrivez-vous pour être prévenu de leur sortie et bénéficier du tarif de lancement.</p>
+        <p class="eyebrow sr-down">La même méthode dans chaque kit</p>
+        <h2 id="titre-methode" class="h2 sr-up">Cinq parties à envoyer, six annexes à garder pour vous</h2>
+        <p class="lead sr-up lag1" style="font-size: 17px">Les parties 1 à 5 partent chez les candidats. Les annexes servent votre comité de sélection.</p>
       </div>
       <div class="row" style="gap: 16px">
-        {upcoming.map((s, i) => (
-          <div class={`card soon sr-up ${lags[i]}`}>
-            <div class="row" style="gap: 10px; align-items: center"><span class="code">{s.code}</span><span class="pill">En préparation</span></div>
-            <span class="soon-t">Kit Consultation {s.code}</span>
-            <span class="soon-d">{s.name}</span>
+        {method.map((m, i) => (
+          <div class={`card meth sr-up ${lags[i]}`}>
+            <span class="meth-n">0{i + 1}</span>
+            <h3 class="meth-t">{m.t}</h3>
+            <p>{m.d}</p>
           </div>
         ))}
       </div>
-      <form id="waitlist" class="card wait sr-up" method="post" action={brevo || undefined} data-brevo={brevo} novalidate>
-        <div class="stack" style="gap: 6px; flex: 1 1 260px">
-          <label for="w-email">Adresse e-mail professionnelle</label>
-          <input id="w-email" name="EMAIL" type="email" autocomplete="email" placeholder="prenom.nom@entreprise.fr">
-        </div>
-        <div class="stack" style="gap: 6px; flex: 1 1 200px">
-          <label for="w-kit">Kit qui vous intéresse</label>
-          <select id="w-kit" name="KIT">
-            {upcoming.map((s) => <option value={s.code}>Kit {s.code}</option>)}
-          </select>
-        </div>
-        <button class="btn btn-gold" type="submit" style="align-self: flex-end">Être prévenu</button>
-        <label class="consent" for="w-ok"><input id="w-ok" name="OPT_IN" value="1" type="checkbox"><span>J'accepte d'être prévenu de la sortie du kit et de recevoir les conseils du site. Désinscription en un clic. <a href="/confidentialite/">Confidentialité</a></span></label>
-        <p class="dim" id="w-msg" role="status" style="margin: 0; font-size: 13px; flex-basis: 100%"></p>
-      </form>
+      <div class="card compare sr-up">
+        <table>
+          <thead><tr><th>Kit</th><th>Exigences</th><th>Domaines</th><th>Scénarios ou soutenances</th><th>Cas de recette</th><th>Dont exceptions</th></tr></thead>
+          <tbody>
+            {kits.map((k) => (
+              <tr><td><a href={`/kits/${k.page}/`}>{k.code}</a></td><td>{k.reqs}</td><td>{k.domains}</td><td>{k.demos}</td><td>{k.tests}</td><td>{k.exceptions}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="dim sr-up" style="margin: 0; font-size: 15px">Un projet qui touche plusieurs logiciels ? <a href="/conseil/">Parlons-en</a> : un accompagnement à la sélection peut combiner plusieurs kits.</p>
     </div>
   </section>
 </Base>
-
-<script>
-  const form = document.getElementById('waitlist') as HTMLFormElement | null;
-  const msg = document.getElementById('w-msg');
-  form?.addEventListener('submit', (e) => {
-    const mail = (document.getElementById('w-email') as HTMLInputElement).value.trim();
-    const ok = (document.getElementById('w-ok') as HTMLInputElement).checked;
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { e.preventDefault(); if (msg) msg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
-    if (!ok) { e.preventDefault(); if (msg) msg.textContent = 'Cochez la case pour être prévenu.'; return; }
-    if (!form.dataset.brevo) { e.preventDefault(); if (msg) msg.textContent = "Merci. L'inscription sera active dès la mise en service de l'outil d'emailing."; }
-  });
-</script>
 
 <style>
   .code { font-family: var(--display); font-size: 15px; letter-spacing: .06em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 3px 9px; font-weight: 600; }
   .pill { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); color: var(--dim); }
   .pill-on { border-color: rgba(63,125,78,.4); color: var(--good); background: rgba(63,125,78,.08); }
-  .kit-main { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; padding: 32px; }
+  .kit-main { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; padding: 32px; text-decoration: none; }
   .kit-t { font-size: 28px; }
   .kit-d { margin: 0; color: var(--muted); }
   .kit-buy { flex: 0 1 260px; gap: 10px; }
   .kit-price { font-size: 34px; font-weight: 600; color: var(--gold-soft); }
-  .soon { flex: 1 1 200px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
-  .soon-t { font-weight: 600; color: var(--text-strong); font-size: 17px; }
-  .soon-d { color: var(--dim); font-size: 14px; }
-  .wait { display: flex; flex-wrap: wrap; gap: 16px; padding: 24px; align-items: flex-start; }
-  .wait label { font-weight: 500; font-size: 14px; }
-  .wait input[type=email], .wait select { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 12px 14px; font: inherit; min-height: 48px; }
-  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 12px !important; color: var(--dim); font-weight: 400 !important; flex-basis: 100%; }
-  .consent input { margin-top: 3px; accent-color: var(--gold); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+  .kit { padding: 24px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; }
+  .kit-n { font-family: var(--display); font-size: 21px; color: var(--text-strong); font-weight: 600; }
+  .kit-s { color: var(--dim); font-size: 14px; margin-top: -6px; }
+  .kit-l { list-style: none; margin: 6px 0 4px; padding: 0; display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 15px; }
+  .kit-l li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin-right: 9px; vertical-align: middle; }
+  .kit-f { margin-top: auto; justify-content: space-between; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+  .kit-p { font-weight: 600; color: var(--gold-soft); }
+  .meth { flex: 1 1 240px; padding: 22px 24px; display: flex; flex-direction: column; gap: 8px; }
+  .meth-n { font-family: var(--display); font-size: 28px; color: var(--gold-soft); line-height: 1; }
+  .meth-t { font-family: var(--body); font-size: 17px; font-weight: 600; color: var(--text-strong); }
+  .meth p { margin: 0; color: var(--muted); font-size: 15px; }
+  .compare { padding: 8px 20px; overflow-x: auto; }
+  .compare table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 560px; }
+  .compare th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); font-weight: 600; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+  .compare td { padding: 12px 10px; border-bottom: 1px solid var(--line-soft); }
+  .compare td:first-child a { font-weight: 600; text-decoration: none; }
+  .compare tr:last-child td { border-bottom: 0; }
 </style>

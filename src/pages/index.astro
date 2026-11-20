@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE, SOFTWARE, GUIDES } from '../config';
+import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
+const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
 const words = ['WMS', 'TMS', 'S&OP', 'ERP', 'OMS', 'data'];
 const ticker = ["Gestion d'entrepôt", 'Transport', 'S&OP', 'ERP', 'Commandes omnicanal', 'Automatisation', 'Données de référence', 'Tour de contrôle', 'Recette', 'Conduite du changement', 'Schéma directeur', 'Intégration d’usines'];
@@ -19,6 +20,7 @@ const services = [
 ];
 const faq = [
   { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateurs, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
+  { q: 'Quels kits de consultation proposez-vous ?', a: "Sept kits, un par famille de logiciels : WMS, TMS, ERP, S&OP et planification, automatisation et WCS, OMS, données et pilotage. Chacun contient un cahier des charges de 130 à 268 exigences, des scénarios de démonstration, une grille de dépouillement, une check-list contractuelle en 30 points et un plan de recette." },
   { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Par l'orientation de cette page : choisissez la situation qui vous ressemble le plus. Si plusieurs vous ressemblent, réservez un appel gratuit de 30 minutes." },
   { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
   { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur issus de sources publiées, citées sur chaque page. Ils servent à cadrer un budget, pas à remplacer un devis." },
@@ -177,7 +179,7 @@ const jsonLd = {
               <a class="btn btn-gold btn-sm" href={`/logiciels/${s.slug}/`}>Le guide de choix <span class="arrow" aria-hidden="true">→</span></a>
               {s.status === 'complet'
                 ? <a class="btn btn-line btn-sm" href="/simulateur-wms/">Estimer mon budget</a>
-                : <a class="btn btn-line btn-sm" href="/conseil/">Être conseillé</a>}
+                : <a class="btn btn-line btn-sm" href={`/kits/${KITS.find((k) => k.sw === s.slug)!.page}/`}>Voir le kit {s.code}</a>}
             </div>
           </div>
         ))}
@@ -207,17 +209,20 @@ const jsonLd = {
           </div>
           <span class="b-go">Lancer le simulateur <span class="arrow" aria-hidden="true">→</span></span>
         </a>
-        <a class="card card-lift card-hi b-kit sr-up lag1" href="/kits/consultation-wms/">
-          <span class="b-k">Kit Consultation WMS</span>
+        <a class="card card-lift card-hi b-kit sr-up lag1" href="/kits/">
+          <span class="b-k">Kits de consultation</span>
           <h3 class="b-t">Toute la consultation, du cahier des charges au contrat</h3>
+          <div class="row" style="gap: 8px">
+            {KITS.map((k) => <span class="chip">{k.code}</span>)}
+          </div>
           <ul class="b-list">
-            <li>268 exigences commentées</li>
-            <li>12 scénarios de démonstration</li>
+            <li>{kitTotal.toLocaleString('fr-FR')} exigences commentées sur 7 kits</li>
+            <li>Scénarios de démonstration imposés</li>
             <li>Check-list contractuelle en 30 points</li>
-            <li>Plan de recette en 72 cas</li>
+            <li>Plans de recette, 40 % de cas d'exception</li>
           </ul>
-          <span class="b-price">{SITE.kitFrom}</span>
-          <span class="b-go">Voir le kit <span class="arrow" aria-hidden="true">→</span></span>
+          <span class="b-price">{SITE.kitFrom} le kit</span>
+          <span class="b-go">Voir les 7 kits <span class="arrow" aria-hidden="true">→</span></span>
         </a>
         <a class="card card-lift b-guides sr-up lag2" href="/guides/">
           <span class="b-k">Guides gratuits</span>

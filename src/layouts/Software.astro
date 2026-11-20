@@ -1,12 +1,13 @@
 ---
 import Base from './Base.astro';
-import { SITE, SOFTWARE } from '../config';
+import { SITE, SOFTWARE, KITS } from '../config';
 
 const { frontmatter } = Astro.props;
 const { title, description, slug, updated, readingTime } = frontmatter;
 const sw = SOFTWARE.find((s) => s.slug === slug)!;
 const others = SOFTWARE.filter((s) => s.slug !== slug);
 const full = sw.status === 'complet';
+const kit = KITS.find((k) => k.sw === slug)!;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -32,7 +33,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       <div class="row rise d4" style="gap: 12px">
         <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Budget indicatif</div><div class="tile-v">{sw.budget}</div></div>
         <div class="tile" style="flex: 0 1 200px"><div class="tile-k">Délai de mise en œuvre</div><div class="tile-v">{sw.delay}</div></div>
-        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? 'Simulateur, guides et kit' : 'Guide et accompagnement'}</div></div>
+        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? 'Simulateur, guides et kit' : 'Guide et kit de consultation'}</div></div>
       </div>
       <p class="byline rise d5">Par {SITE.author}, consultant supply chain. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
     </div>
@@ -52,10 +53,10 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       ) : (
         <div class="card card-hi side-cta">
           <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
-          <h2 class="h3">Faites le point sur votre besoin</h2>
-          <p>Un appel gratuit de 30 minutes pour vérifier que c'est le bon type de logiciel, cadrer le budget et les étapes.</p>
-          <a class="btn btn-gold btn-sm" href="/accompagnement/#contact">Réserver un appel <span class="arrow" aria-hidden="true">→</span></a>
-          <a href="/kits/#bientot" style="font-size: 15px; font-weight: 500; text-decoration: none">Être prévenu de la sortie du kit {sw.code} <span class="arrow" aria-hidden="true">→</span></a>
+          <h2 class="h3">Le Kit Consultation {kit.code}</h2>
+          <p>{kit.reqs} exigences commentées, {kit.demos} {kit.code === 'WCS' ? 'points de soutenance et de visite' : 'scénarios de démonstration'}, check-list contractuelle et {kit.code === 'WCS' ? `${kit.tests} essais de réception` : `plan de recette en ${kit.tests} cas`}.</p>
+          <a class="btn btn-gold btn-sm" href={`/kits/${kit.page}/`}>Voir le kit, {SITE.kitFrom.toLowerCase().replace('ht', 'HT')} <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/conseil/" style="font-size: 15px; font-weight: 500; text-decoration: none">Ou réserver un appel gratuit de 30 minutes <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       )}
     </aside>

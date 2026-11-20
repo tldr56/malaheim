@@ -21,7 +21,7 @@ Ce domaine couvre trois sujets : les données de référence (articles, emplacem
 
 ## Données de référence : le chantier qui conditionne les autres
 
-La qualité des données ne s'achète pas : elle s'organise. Il faut un responsable par famille de données, des règles de création et de contrôle, et un tableau de bord de complétude. Les outils de gestion des données de référence (MDM) aident à grande échelle, mais une PME commence souvent avec son ERP, des règles claires et un référent nommé. Le [Kit Consultation WMS](/kits/consultation-wms/) contient d'ailleurs le référentiel article et emplacement dont un entrepôt a besoin.
+La qualité des données ne s'achète pas : elle s'organise. Il faut un responsable par famille de données, des règles de création et de contrôle, et un tableau de bord de complétude. Les outils de gestion des données de référence (MDM) aident à grande échelle, mais une PME commence souvent avec son ERP, des règles claires et un référent nommé. Le [Kit Consultation Données et pilotage](/kits/consultation-donnees/) fournit le cadre complet : 130 exigences, un dictionnaire de 30 indicateurs et la méthode pour faire analyser votre fichier articles par chaque éditeur.
 
 ## Indicateurs et tour de contrôle
 

@@ -21,7 +21,7 @@ const lags = ['', 'lag1', 'lag2'];
           <a class={`card card-lift fam sr-up ${lags[i % 3]}`} href={`/logiciels/${s.slug}/`}>
             <div class="row" style="justify-content: space-between; align-items: center; gap: 10px">
               <span class="code">{s.code}</span>
-              <span class={`pill ${s.status === 'complet' ? 'pill-on' : ''}`}>{s.status === 'complet' ? 'Simulateur et kit' : 'Guide de choix'}</span>
+              <span class="pill pill-on">{s.status === 'complet' ? 'Simulateur et kit' : 'Guide et kit'}</span>
             </div>
             <h3 class="fam-t">{s.name}</h3>
             <p class="fam-d">{s.does}.</p>
