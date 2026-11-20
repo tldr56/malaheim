@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../config';
-const kitHref = SITE.kitCheckoutUrl || '/kit-cahier-des-charges/';
+const kitHref = SITE.kitCheckoutUrl || '/kits/consultation-wms/';
 const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
 const brevo = SITE.brevoFormAction;
 ---
@@ -119,7 +119,7 @@ const FIELDS = [
   {id:'mode', label:'Mode de déploiement', type:'seg', value:0, options:['SaaS (abonnement)','Licence hébergée chez vous']}
 ];
 
-// Pre-remplissage depuis l'accueil : /simulateur/?ops=25&lines=3000
+// Pre-remplissage depuis l'accueil : /simulateur-wms/?ops=25&lines=3000
 const params = new URLSearchParams(location.search);
 FIELDS.forEach(f => {
   const v = params.get(f.id);

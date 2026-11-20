@@ -48,4 +48,4 @@ Ces dérives sont détaillées dans [les 8 erreurs qui font déraper un projet W
 
 Un WMS se rembourse en 12 à 24 mois dans la plupart des cas. Les deux gains mesurables sont la productivité de préparation (10 à 15 % en hypothèse prudente) et la baisse des erreurs, dont chacune coûte 20 à 30 € en moyenne entre le retour, la réexpédition et le temps du service client.
 
-Le [simulateur](/simulateur/) applique ces hypothèses à votre entrepôt et vous donne votre propre fourchette.
+Le [simulateur](/simulateur-wms/) applique ces hypothèses à votre entrepôt et vous donne votre propre fourchette.

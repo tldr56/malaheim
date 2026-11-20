@@ -1,7 +1,7 @@
 ---
 layout: ../layouts/Legal.astro
 title: Mentions légales
-description: Mentions légales du site Décision Entrepôt.
+description: Mentions légales du site Malaheim.
 updated: 12 novembre 2026
 ---
 

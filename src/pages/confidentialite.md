@@ -1,7 +1,7 @@
 ---
 layout: ../layouts/Legal.astro
 title: Politique de confidentialité
-description: Comment Décision Entrepôt collecte et utilise vos données personnelles.
+description: Comment Malaheim collecte et utilise vos données personnelles.
 updated: 12 novembre 2026
 ---
 

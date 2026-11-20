@@ -1,35 +1,34 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE, GUIDES } from '../config';
+import { SITE, GUIDES, SOFTWARE } from '../config';
 const check = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="7.5 12.5 10.5 15.5 16.5 9"></polyline></svg>';
 const cross = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
 const kitPoints = [
-  '268 exigences sur 20 domaines, pré-priorisées et commentées par un expert',
-  '18 flux d\'interface ERP, transport, e-commerce et équipements, à faire coter un par un',
-  '12 scénarios de démonstration imposés, avec ce qu\'il faut observer',
-  'Grille de dépouillement pondérée, coût sur 5 ans et questions aux références',
-  'Check-list contractuelle en 30 points et plan de recette en 72 cas',
+  "268 exigences sur 20 domaines, pré-priorisées et commentées par un expert",
+  "18 flux d'interface ERP, transport, e-commerce et équipements, à faire coter un par un",
+  "12 scénarios de démonstration imposés, avec ce qu'il faut observer",
+  "Grille de dépouillement pondérée, coût sur 5 ans et questions aux références",
+  "Check-list contractuelle en 30 points et plan de recette en 72 cas",
 ];
 const pains = [
-  { n: "1/3", t: "La licence ne pèse qu'un tiers du budget", d: "Intégration, interfaces, matériel et formation font le reste. Les comparer sur le seul prix du logiciel mène à de mauvaises surprises." },
-  { n: '4 sur 8', t: 'Les erreurs coûteuses arrivent tôt', d: "La moitié des erreurs qui font déraper un projet se commettent avant la signature : besoin flou, connecteur surestimé, données négligées." },
-  { n: '3 à 5', t: 'offres reçues, autant de formats différents', d: "Chaque éditeur répond à sa façon, avec ses forfaits. Sans format de réponse imposé, les offres ne se comparent pas ligne à ligne." },
+  { n: '1/3', t: "La licence ne pèse souvent qu'un tiers du budget", d: "Intégration, interfaces, données, matériel et formation font le reste. Comparer des logiciels sur leur seul abonnement mène à de mauvaises surprises." },
+  { n: 'Avant', t: 'la signature, les erreurs les plus chères', d: "Besoin mal décrit, mauvais type de logiciel, connecteur surestimé, données négligées : la plupart des dérapages se décident avant le contrat." },
+  { n: '3 à 5', t: 'offres reçues, autant de formats différents', d: "Chaque éditeur répond à sa façon, avec ses forfaits. Sans cadre commun, les offres ne se comparent pas ligne à ligne." },
 ];
 const compare = [
   ['Base de comparaison', 'Chaque éditeur répond dans son format', 'Tous cotent les mêmes 268 exigences'],
   ['Prix', 'Forfaits globaux, postes cachés', 'Offre décomposée poste par poste'],
   ['Spécifique', 'Découvert en atelier, après la signature', 'Identifié et chiffré dès la réponse'],
   ['Choix final', 'Sur la démonstration la plus convaincante', 'Sur une grille de notation pondérée'],
-  ['Préparation', 'Plusieurs semaines de rédaction', 'Deux à quatre jours pour remplir le modèle'],
   ['Démonstrations', 'Chaque éditeur montre ses points forts', 'Tous jouent les mêmes 12 scénarios'],
-  ['Contrat', 'Le modèle de l\'éditeur', 'Vérifié point par point sur 30 critères'],
+  ['Contrat', "Le modèle de l'éditeur", 'Vérifié point par point sur 30 critères'],
 ];
 const faq = [
-  { q: 'Le simulateur est-il vraiment gratuit ?', a: "Oui, sans inscription. Le calcul se fait dans votre navigateur. Votre adresse e-mail n'est demandée que si vous voulez recevoir le rapport détaillé." },
-  { q: 'Mes réponses sont-elles transmises à des éditeurs ?', a: "Non. Aucune donnée n'est vendue ni transmise à des éditeurs ou des intégrateurs. Le site est indépendant." },
-  { q: "À qui s'adresse le site ?", a: "Aux directions logistiques, supply chain, financières et informatiques de PME et d'ETI qui préparent un projet WMS, quel que soit le secteur." },
-  { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur, calés sur des fourchettes publiées dont les sources sont listées sous le simulateur. Ils servent à cadrer un budget, pas à remplacer un devis." },
-  { q: 'Et si le kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
+  { q: 'Quels logiciels couvrez-vous ?', a: "WMS, TMS, ERP, automatisation et WCS, OMS et planification. Le WMS dispose déjà d'un simulateur de budget et d'un kit de consultation complet ; les kits des autres logiciels arrivent progressivement." },
+  { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Par l'orientation en haut de cette page : choisissez la situation qui vous ressemble le plus. Si plusieurs vous ressemblent, réservez un appel gratuit de 30 minutes pour démêler le besoin." },
+  { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
+  { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur issus de sources publiées, citées sur chaque page. Ils servent à cadrer un budget, pas à remplacer un devis." },
+  { q: 'Et si un kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
 ];
 const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4', 'lag5'];
 const jsonLd = {
@@ -38,53 +37,66 @@ const jsonLd = {
   mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
 ---
-<Base title="Accueil" description="Combien va coûter votre WMS ? Estimation gratuite du budget, du délai et du retour sur investissement, guides chiffrés et kit cahier des charges, par un consultant WMS indépendant." jsonLd={jsonLd}>
+<Base title="Accueil" description="WMS, TMS, ERP, automatisation : trouvez le logiciel supply chain qu'il vous faut, son budget réel et la méthode pour le choisir. Guides chiffrés, kits de consultation et accompagnement indépendant." jsonLd={jsonLd}>
 
   <section class="hero dark" aria-labelledby="titre-accueil">
     <div class="halo" aria-hidden="true"></div>
     <div class="wrap hero-in">
       <div class="stack hero-text">
-        <p class="eyebrow rise">Pour les directions logistiques de PME et d'ETI</p>
-        <h1 id="titre-accueil" class="h1">
-          <span class="rise d1 line">Combien va vraiment</span>
-          <span class="rise d2 line">coûter <span class="gold">votre WMS</span> ?</span>
+        <p class="eyebrow rise">Pour les directions supply chain, logistiques et industrielles</p>
+        <h1 id="titre-accueil" class="h1" style="font-size: clamp(40px, 4vw, 56px)">
+          <span class="rise d1 line">Quel logiciel</span>
+          <span class="rise d2 line">supply chain</span>
+          <span class="rise d3 line">vous faut‑il <span class="gold">vraiment</span> ?</span>
         </h1>
-        <p class="lead rise d3">Obtenez en 30 secondes une fourchette de budget, un délai et un retour sur investissement, calés sur des fourchettes publiées et sur des projets menés en entrepôt.</p>
-        <ul class="hero-proof rise d4">
-          <li><Fragment set:html={check} />Gratuit, sans inscription</li>
-          <li><Fragment set:html={check} />Sources affichées</li>
+        <p class="lead rise d4">Dites-nous ce qui coince. Nous vous orientons vers le bon type de logiciel, son budget réel et la méthode pour le choisir, sans parti pris pour un éditeur.</p>
+        <ul class="hero-proof rise d5">
+          <li><Fragment set:html={check} />Orientation gratuite</li>
+          <li><Fragment set:html={check} />Chiffres sourcés</li>
           <li><Fragment set:html={check} />Indépendant des éditeurs</li>
         </ul>
       </div>
 
-      <form class="card estimator slide-in" id="quick" action="/simulateur/" method="get" aria-labelledby="titre-estim">
+      <div class="card orient slide-in" id="orientation" aria-labelledby="titre-orient">
         <div class="row" style="justify-content: space-between; align-items: baseline; gap: 12px">
-          <h2 id="titre-estim" class="estim-title">Estimation express</h2>
-          <span class="dim" style="font-size: 13px">2 questions</span>
+          <h2 id="titre-orient" class="estim-title">Que recherchez-vous ?</h2>
+          <span class="dim" style="font-size: 13px">Choisissez votre situation</span>
         </div>
-        <div class="q">
-          <div class="q-head"><label for="q-ops">Opérateurs équipés</label><output id="o-ops" for="q-ops">25</output></div>
-          <input id="q-ops" name="ops" type="range" min="3" max="200" step="1" value="25">
-        </div>
-        <div class="q">
-          <div class="q-head"><label for="q-lines">Lignes préparées par jour</label><output id="o-lines" for="q-lines">3 000</output></div>
-          <input id="q-lines" name="lines" type="range" min="200" max="30000" step="100" value="3000">
-        </div>
-        <div class="estim-out" aria-live="polite">
-          <div class="row" style="align-items: center; gap: 10px">
-            <span class="pulse" aria-hidden="true"></span>
-            <span id="e-tier" class="estim-tier">WMS milieu de gamme</span>
+        <fieldset class="opts-list">
+          <legend class="sr-only">Votre situation</legend>
+          {SOFTWARE.map((s, i) => (
+            <label class="opt">
+              <input type="radio" name="besoin" value={s.slug} checked={i === 0} />
+              <span>{s.problem}</span>
+            </label>
+          ))}
+        </fieldset>
+        {SOFTWARE.map((s, i) => (
+          <div class="answer" data-for={s.slug} hidden={i !== 0} aria-live="polite">
+            <div class="row" style="align-items: center; gap: 10px">
+              <span class="code">{s.code}</span>
+              <span class="estim-tier">{s.long}</span>
+            </div>
+            <p class="answer-does">{s.does}.</p>
+            <div class="row" style="gap: 10px">
+              <div class="tile" style="flex: 1 1 140px"><div class="tile-k">Budget indicatif</div><div class="tile-v small">{s.budget}</div></div>
+              <div class="tile" style="flex: 1 1 110px"><div class="tile-k">Délai</div><div class="tile-v small">{s.delay}</div></div>
+            </div>
+            <div class="row" style="gap: 10px">
+              <a class="btn btn-gold btn-sm" href={`/logiciels/${s.slug}/`}>Le guide de choix <span class="arrow" aria-hidden="true">→</span></a>
+              {s.status === 'complet'
+                ? <a class="btn btn-line btn-sm" href="/simulateur-wms/">Estimer mon budget</a>
+                : <a class="btn btn-line btn-sm" href="/accompagnement/#contact">En parler 30 min</a>}
+            </div>
           </div>
-          <span class="micro dim">Budget initial du projet</span>
-          <span id="e-budget" class="big num">171 à 278 k€</span>
-          <div class="row" style="gap: 10px">
-            <div class="tile" style="flex: 1 1 110px"><div class="tile-k">Délai</div><div class="tile-v" id="e-delay">10 à 13 mois</div></div>
-            <div class="tile" style="flex: 1 1 110px"><div class="tile-k">Amorti en</div><div class="tile-v" id="e-pay">19 mois</div></div>
+        ))}
+        <div class="known">
+          <span class="dim" style="font-size: 13px">Vous savez déjà ce que vous cherchez ?</span>
+          <div class="row" style="gap: 8px">
+            {SOFTWARE.map((s) => <a class="chip chip-link" href={`/logiciels/${s.slug}/`}>{s.code}</a>)}
           </div>
         </div>
-        <button class="btn btn-gold btn-lg" type="submit" style="width: 100%">Affiner en 6 questions <span class="arrow" aria-hidden="true">→</span></button>
-        <p class="dim" style="margin: 0; font-size: 12px; text-align: center">Hypothèses : ERP standard, processus courants, sans mécanisation, en SaaS.</p>
-      </form>
+      </div>
     </div>
   </section>
 
@@ -92,17 +104,42 @@ const jsonLd = {
     <div class="wrap row proofbar-in">
       <span class="sr-up">Expérience acquise chez <strong>GEODIS</strong> et <strong>KPMG</strong></span>
       <span class="sep" aria-hidden="true"></span>
-      <span class="sr-up lag1">Projets <strong>WMS et WCS</strong>, de la sélection au démarrage</span>
+      <span class="sr-up lag1">Projets <strong>WMS, WCS et SI industriels</strong>, du choix au démarrage</span>
       <span class="sep" aria-hidden="true"></span>
       <span class="sr-up lag2"><strong>0 €</strong> versé par les éditeurs pour être cités</span>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-pains">
+  <section class="section" aria-labelledby="titre-logiciels">
+    <div class="wrap stack" style="gap: 48px">
+      <div class="row" style="gap: 24px; align-items: flex-end; justify-content: space-between">
+        <div class="stack" style="gap: 14px; max-width: 680px">
+          <p class="eyebrow sr-left">Les logiciels</p>
+          <h2 id="titre-logiciels" class="h2 sr-left lag1">Six familles de logiciels, un même réflexe : chiffrer avant de choisir</h2>
+        </div>
+        <a class="sr-right" href="/logiciels/" style="font-weight: 500; text-decoration: none">Comparer les six <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="row soft">
+        {SOFTWARE.map((s, i) => (
+          <a class={`card card-lift soft-card sr-up ${lags[i % 3]}`} href={`/logiciels/${s.slug}/`}>
+            <div class="row" style="justify-content: space-between; align-items: center; gap: 10px">
+              <span class="code">{s.code}</span>
+              <span class={`pill ${s.status === 'complet' ? 'pill-on' : ''}`}>{s.status === 'complet' ? 'Simulateur et kit' : 'Guide de choix'}</span>
+            </div>
+            <span class="soft-t">{s.name}</span>
+            <span class="soft-d">{s.does}.</span>
+            <span class="soft-b"><span class="dim">Budget indicatif</span> {s.budget}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" aria-labelledby="titre-pains">
     <div class="wrap stack" style="gap: 56px">
       <div class="stack center" style="gap: 16px">
         <p class="eyebrow sr-down">Le problème</p>
-        <h2 id="titre-pains" class="h2 sr-up" style="max-width: 15em">Pourquoi tant de budgets WMS dérapent</h2>
+        <h2 id="titre-pains" class="h2 sr-up" style="max-width: 16em">Pourquoi tant de projets logiciels dérapent</h2>
       </div>
       <div class="row" style="gap: 22px">
         {pains.map((p, i) => (
@@ -116,11 +153,11 @@ const jsonLd = {
     </div>
   </section>
 
-  <section id="parcours" class="section section-alt" aria-labelledby="titre-parcours">
+  <section id="parcours" class="section" aria-labelledby="titre-parcours">
     <div class="wrap stack" style="gap: 64px">
       <div class="stack center" style="gap: 16px">
-        <p class="eyebrow sr-down">La solution</p>
-        <h2 id="titre-parcours" class="h2 sr-up" style="max-width: 16em">Du premier chiffrage au choix de l'éditeur, en trois étapes</h2>
+        <p class="eyebrow sr-down">La méthode</p>
+        <h2 id="titre-parcours" class="h2 sr-up" style="max-width: 16em">De la bonne question au bon logiciel, en trois étapes</h2>
         <p class="lead sr-up lag1" style="text-align: center">Avancez seul avec les outils, ou faites-vous accompagner là où une erreur coûte cher.</p>
       </div>
       <div style="position: relative">
@@ -128,27 +165,27 @@ const jsonLd = {
         <div class="row steps">
           <div class="card card-lift step sr-up">
             <div class="step-n">1</div>
-            <span class="step-k">Estimer</span>
-            <h3 class="h3">Le simulateur</h3>
+            <span class="step-k">S'orienter</span>
+            <h3 class="h3">Guides et simulateurs</h3>
             <span class="price">Gratuit</span>
-            <p>Gamme, budget, délai et retour sur investissement. Le rapport détaillé arrive par e-mail.</p>
-            <a class="btn btn-line" href="/simulateur/">Lancer le simulateur</a>
+            <p>Le bon type de logiciel, son budget et son délai, avant de parler à un commercial.</p>
+            <a class="btn btn-line" href="/logiciels/">Voir les logiciels</a>
           </div>
           <div class="card card-hi card-lift step sr-up lag1">
             <span class="ribbon">Le plus utile pour démarrer</span>
             <div class="step-n step-n-on">2</div>
             <span class="step-k step-k-on">Cadrer</span>
-            <h3 class="h3">Le Kit Consultation WMS</h3>
+            <h3 class="h3">Les kits de consultation</h3>
             <span class="price">{SITE.kitFrom}</span>
-            <p>Tout pour mener la consultation : cahier des charges expert, scénarios de démonstration, grille de dépouillement, contrat et recette.</p>
-            <a class="btn btn-gold" href="/kit-cahier-des-charges/">Découvrir le kit <span class="arrow" aria-hidden="true">→</span></a>
+            <p>Cahier des charges expert, scénarios de démonstration, grille de dépouillement, contrat et recette.</p>
+            <a class="btn btn-gold" href="/kits/">Voir les kits <span class="arrow" aria-hidden="true">→</span></a>
           </div>
           <div class="card card-lift step sr-up lag2">
             <div class="step-n">3</div>
-            <span class="step-k">Consulter</span>
+            <span class="step-k">Choisir et déployer</span>
             <h3 class="h3">L'accompagnement</h3>
             <span class="price">Dès {SITE.reviewPrice}</span>
-            <p>Relecture annotée de votre cahier des charges et une heure de visio. Accompagnement complet sur devis.</p>
+            <p>Relecture de cahier des charges, conduite de la sélection, pilotage du déploiement.</p>
             <a class="btn btn-line" href="/accompagnement/">Voir l'accompagnement</a>
           </div>
         </div>
@@ -174,7 +211,7 @@ const jsonLd = {
         </div>
       </div>
       <div class="stack kit-text">
-        <p class="eyebrow sr-right">Kit Consultation WMS, édition Expert</p>
+        <p class="eyebrow sr-right">Disponible maintenant : Kit Consultation WMS</p>
         <h2 id="titre-kit" class="h2 sr-right lag1">Toute la consultation, du cahier des charges au contrat</h2>
         <ul class="checks">
           {kitPoints.map((p, i) => (
@@ -186,7 +223,7 @@ const jsonLd = {
             <span class="buy-price">{SITE.kitPrice}</span>
             <span class="dim" style="font-size: 14px">Moins de 0,2 % d'un projet à 200 k€</span>
           </div>
-          <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Obtenir le kit <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-gold btn-lg" href="/kits/consultation-wms/">Obtenir le kit <span class="arrow" aria-hidden="true">→</span></a>
         </div>
         <ul class="assure sr-up lag4">
           <li>Satisfait ou remboursé 14 jours</li>
@@ -219,7 +256,7 @@ const jsonLd = {
         ))}
       </div>
       <div class="row sr-up" style="justify-content: center">
-        <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Voir le contenu et les formules <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-gold btn-lg" href="/kits/consultation-wms/">Voir le contenu et les formules <span class="arrow" aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
@@ -228,7 +265,7 @@ const jsonLd = {
     <div class="wrap stack" style="gap: 48px">
       <div class="row" style="gap: 24px; align-items: flex-end; justify-content: space-between">
         <div class="stack" style="gap: 14px; max-width: 640px">
-          <p class="eyebrow sr-left">Les guides gratuits</p>
+          <p class="eyebrow sr-left">Les guides WMS</p>
           <h2 id="titre-guides" class="h2 sr-left lag1">Les cinq questions qui précèdent un projet WMS</h2>
         </div>
         <a class="sr-right" href="/guides/" style="font-weight: 500; text-decoration: none">Tous les guides <span class="arrow" aria-hidden="true">→</span></a>
@@ -242,9 +279,9 @@ const jsonLd = {
             <span class="gold" style="font-size: 15px; margin-top: 6px; font-weight: 500">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
           </a>
         ))}
-        <a class="card card-gold card-lift guide sr-up lag2" href="/simulateur/" style="justify-content: space-between">
-          <span style="font-family: var(--display); font-size: 30px">Votre propre chiffrage</span>
-          <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt. <span class="arrow" aria-hidden="true">→</span></span>
+        <a class="card card-gold card-lift guide sr-up lag2" href="/simulateur-wms/" style="justify-content: space-between">
+          <span style="font-family: var(--display); font-size: 30px">Votre budget WMS</span>
+          <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt en 3 minutes. <span class="arrow" aria-hidden="true">→</span></span>
         </a>
       </div>
     </div>
@@ -254,15 +291,15 @@ const jsonLd = {
     <div class="wrap row about-in">
       <div class="photo sr-left" role="img" aria-label="Emplacement de la photo de Robin Thomas-Le Déoré">[Votre photo]</div>
       <div class="stack about-text">
-        <p class="eyebrow sr-right">Qui est derrière ce site</p>
+        <p class="eyebrow sr-right">Qui est derrière Malaheim</p>
         <h2 id="titre-apropos" class="h2 sr-right lag1">{SITE.author}</h2>
-        <p class="lead sr-right lag2">Consultant supply chain indépendant à Rennes. Je conduis des projets WMS et WCS, de la sélection de l'éditeur jusqu'au démarrage : analyse d'écarts, données de référence, campagnes de recette et conduite du changement.</p>
-        <p class="lead sr-right lag3">Passé par GEODIS et KPMG, j'enseigne aussi la logistique en master. Ce site rassemble ce que j'aurais aimé trouver au début de chaque projet.</p>
+        <p class="lead sr-right lag2">Consultant supply chain indépendant à Rennes, fondateur de {SITE.company}. Je dirige des projets de systèmes d'information logistiques et industriels : sélection et déploiement de WMS et de WCS, intégration d'usines, montées de version, pilotage d'équipes.</p>
+        <p class="lead sr-right lag3">Passé par GEODIS et KPMG, j'enseigne aussi la logistique en master. Malaheim rassemble ce que j'aurais aimé trouver au début de chaque projet : des ordres de grandeur honnêtes et une méthode.</p>
         <div class="row sr-up lag3" style="gap: 10px">
-          <span class="chip">Sélection d'éditeur WMS</span>
-          <span class="chip">Automatisation et WCS</span>
-          <span class="chip">Recette et démarrage</span>
-          <span class="chip">Données de référence</span>
+          <span class="chip">Sélection de logiciels</span>
+          <span class="chip">WMS, WCS et automatisation</span>
+          <span class="chip">Intégration d'usines</span>
+          <span class="chip">Pilotage de projets SI</span>
         </div>
       </div>
     </div>
@@ -289,39 +326,48 @@ const jsonLd = {
   <section aria-labelledby="titre-final" class="final">
     <div class="wrap">
       <div class="final-in stack center sr-zoom">
-        <h2 id="titre-final" class="h2" style="color: #141619; max-width: 14em">Votre projet démarre dans les 12 prochains mois ?</h2>
-        <p style="margin: 0; font-size: 19px; max-width: 30em">Commencez par un chiffrage réaliste. Il prend trois minutes et ne vous engage à rien.</p>
-        <a class="btn btn-dark btn-lg" href="/simulateur/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
+        <h2 id="titre-final" class="h2" style="color: #141619; max-width: 15em">Votre projet logiciel démarre dans les 12 prochains mois ?</h2>
+        <p style="margin: 0; font-size: 19px; max-width: 30em">Commencez par la bonne question. L'orientation prend une minute et ne vous engage à rien.</p>
+        <a class="btn btn-dark btn-lg" href="#orientation">Trouver mon logiciel <span class="arrow" aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
 </Base>
 
 <script>
-  import { TIERS, compute } from '../lib/model.js';
-  const k = (v: number) => new Intl.NumberFormat('fr-FR').format(Math.round(v / 1000)) + ' k€';
-  const nf = new Intl.NumberFormat('fr-FR');
-  const form = document.getElementById('quick') as HTMLFormElement | null;
-  if (form) {
-    const ops = form.querySelector('#q-ops') as HTMLInputElement;
-    const lines = form.querySelector('#q-lines') as HTMLInputElement;
-    const set = (id: string, t: string) => { const el = document.getElementById(id); if (el) el.textContent = t; };
-    const update = () => {
-      const r = compute({ surface: 8000, lines: +lines.value, ops: +ops.value, sites: 1, erp: 1, mech: 0, cx: 1, mode: 0, cost: 24, prod: 12, err: 0.5, errcost: 25 });
-      set('o-ops', nf.format(+ops.value));
-      set('o-lines', nf.format(+lines.value));
-      set('e-tier', TIERS[r.tier].name);
-      set('e-budget', k(r.initial * 0.8).replace(' k€', '') + ' à ' + k(r.initial * 1.3));
-      const m = Math.round(r.months);
-      set('e-delay', m + ' à ' + (m + Math.max(2, Math.round(m * 0.3))) + ' mois');
-      set('e-pay', r.payback === null ? 'au-delà de 5 ans' : Math.round(r.payback) + ' mois');
-    };
-    form.addEventListener('input', update);
-    update();
-  }
+  const radios = document.querySelectorAll<HTMLInputElement>('input[name="besoin"]');
+  const answers = document.querySelectorAll<HTMLElement>('.answer');
+  const show = (v: string) => answers.forEach((a) => { a.hidden = a.dataset.for !== v; });
+  radios.forEach((r) => r.addEventListener('change', () => show(r.value)));
 </script>
 
 <style>
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .orient { flex: 1 1 440px; min-width: 0; padding: 26px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow); }
+  .opts-list { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .opt { display: flex; gap: 12px; align-items: flex-start; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-2); cursor: pointer; font-size: 14.5px; line-height: 1.4; transition: border-color .25s, background-color .25s; }
+  .opt:hover { border-color: rgba(201,162,75,.6); }
+  .opt input { accent-color: var(--gold); margin-top: 3px; flex: none; }
+  .opt:has(input:checked) { border-color: var(--gold); background: rgba(201,162,75,.12); }
+  .opt:has(input:focus-visible) { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
+  .answer { display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 16px; background: var(--card-2); border: 1px solid rgba(201,162,75,.35); }
+  .answer[hidden] { display: none; }
+  .answer-does { margin: 0; color: var(--muted); font-size: 15px; }
+  .code { font-family: var(--display); font-size: 15px; letter-spacing: .06em; color: #141619; background: var(--gold); border-radius: 8px; padding: 3px 9px; }
+  .tile-v.small { font-size: 15px; }
+  .orient .tile { background: var(--card); }
+  .known { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .chip-link { text-decoration: none; color: var(--gold-soft); border-color: rgba(201,162,75,.5); min-height: 36px; display: inline-flex; align-items: center; }
+  .chip-link:hover { background: rgba(201,162,75,.12); color: var(--gold-soft); }
+  .soft { gap: 20px; }
+  .soft-card { flex: 1 1 340px; padding: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .soft-t { font-size: 20px; font-weight: 600; color: var(--text-strong); }
+  .soft-d { color: var(--muted); font-size: 15px; }
+  .soft-b { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--gold-soft); }
+  .soft-b .dim { font-weight: 400; margin-right: 6px; }
+  .pill { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); color: var(--dim); }
+  .pill-on { border-color: rgba(63,125,78,.4); color: var(--good); background: rgba(63,125,78,.08); }
+
   .hero { position: relative; }
   .hero-in { position: relative; display: flex; flex-wrap: wrap; gap: 64px; align-items: center; padding-block: 104px 112px; }
   .hero-text { flex: 1 1 500px; min-width: 0; gap: 28px; }

@@ -28,7 +28,7 @@ Fixez trois objectifs mesurables avant de regarder le moindre logiciel : taux d'
 
 ## 2. Le cahier des charges
 
-Décrivez vos flux tels qu'ils devront fonctionner, pas tels qu'ils fonctionnent aujourd'hui. Chiffrez les volumes : lignes par jour, références actives, pics saisonniers. Classez chaque exigence en indispensable, importante ou souhaitable. Le [kit cahier des charges](/kit-cahier-des-charges/) vous donne cette structure prête à remplir.
+Décrivez vos flux tels qu'ils devront fonctionner, pas tels qu'ils fonctionnent aujourd'hui. Chiffrez les volumes : lignes par jour, références actives, pics saisonniers. Classez chaque exigence en indispensable, importante ou souhaitable. Le [kit cahier des charges](/kits/consultation-wms/) vous donne cette structure prête à remplir.
 
 ## 3. La consultation et le choix
 
@@ -50,4 +50,4 @@ Testez les cas d'exception autant que les cas nominaux : rupture, colis abîmé,
 
 Démarrez en période creuse, avec l'intégrateur sur site les deux premières semaines. Attendez-vous à une baisse de productivité de quelques semaines avant le retour au niveau initial, puis au gain.
 
-Pour estimer la durée de votre propre projet, utilisez le [simulateur](/simulateur/). Pour éviter les pièges de chaque étape, lisez [les 8 erreurs qui font déraper un projet WMS](/guides/erreurs-projet-wms/).
+Pour estimer la durée de votre propre projet, utilisez le [simulateur](/simulateur-wms/). Pour éviter les pièges de chaque étape, lisez [les 8 erreurs qui font déraper un projet WMS](/guides/erreurs-projet-wms/).

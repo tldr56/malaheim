@@ -55,4 +55,4 @@ Un démarrage avant un pic d'activité cumule la baisse de productivité normale
 | Formation rognée | Formation | Stock dégradé |
 | Démarrage en saison haute | Démarrage | Service client en baisse |
 
-Les quatre premières erreurs se commettent avant la signature du contrat. Le [kit cahier des charges](/kit-cahier-des-charges/) est conçu pour les éviter : exigences priorisées, cotation imposée aux éditeurs, offre financière poste par poste.
+Les quatre premières erreurs se commettent avant la signature du contrat. Le [kit cahier des charges](/kits/consultation-wms/) est conçu pour les éviter : exigences priorisées, cotation imposée aux éditeurs, offre financière poste par poste.

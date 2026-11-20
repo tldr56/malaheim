@@ -7,18 +7,19 @@ const jsonLd = {
   name: SITE.author,
   jobTitle: 'Consultant supply chain indépendant',
   address: { '@type': 'PostalAddress', addressLocality: 'Rennes', addressCountry: 'FR' },
-  knowsAbout: ['WMS', 'WCS', 'Automatisation logistique', 'Données de référence', 'Recette', 'Conduite du changement'],
+  knowsAbout: ['WMS', 'WCS', 'TMS', 'ERP', 'Automatisation logistique', 'Intégration d\'usines', 'Données de référence', 'Recette', 'Conduite du changement'],
+  worksFor: { '@type': 'Organization', name: SITE.company },
 };
 ---
-<Base title="À propos" description="Robin Thomas-Le Déoré, consultant supply chain indépendant à Rennes, spécialiste des projets WMS et WCS. Passé par GEODIS et KPMG." jsonLd={jsonLd}>
+<Base title="À propos" description="Robin Thomas-Le Déoré, fondateur de MALAHEIM Consulting, consultant supply chain indépendant à Rennes : sélection de logiciels, WMS et WCS, intégration d'usines, pilotage de projets SI." jsonLd={jsonLd}>
   <section class="wrap row" style="gap: 64px; align-items: center; padding-block: 88px">
     <div class="photo slide-in" role="img" aria-label="Emplacement de la photo de Robin Thomas-Le Déoré">[Votre photo]</div>
     <div class="stack" style="flex: 1 1 480px; min-width: 0; gap: 20px">
       <p class="eyebrow rise">À propos</p>
       <h1 class="h2 rise d1">{SITE.author}</h1>
-      <p class="lead rise d2">Consultant supply chain indépendant à Rennes. Je conduis des projets WMS et WCS, de la sélection de l'éditeur jusqu'au démarrage : analyse d'écarts, données de référence, campagnes de recette et conduite du changement.</p>
+      <p class="lead rise d2">Consultant supply chain indépendant à Rennes, fondateur de {SITE.company}. Je dirige des projets de systèmes d'information logistiques et industriels : sélection et déploiement de WMS et de WCS, intégration d'usines, montées de version, pilotage d'équipes, données de référence et campagnes de recette.</p>
       <p class="lead rise d3">Passé par GEODIS et KPMG, j'ai aussi mené des projets de maintenance prédictive et de direction de projets digitaux dans l'industrie. J'enseigne la logistique en master.</p>
-      <p class="lead rise d4">Ce site rassemble ce que j'aurais aimé trouver au début de chaque projet : des ordres de grandeur honnêtes, une méthode, et des outils prêts à servir.</p>
+      <p class="lead rise d4">Malaheim rassemble ce que j'aurais aimé trouver au début de chaque projet : des ordres de grandeur honnêtes, une méthode, et des outils prêts à servir, pour tous les logiciels de la supply chain.</p>
     </div>
   </section>
 

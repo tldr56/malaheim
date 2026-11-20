@@ -1,0 +1,94 @@
+---
+import Base from './Base.astro';
+import { SITE, SOFTWARE } from '../config';
+
+const { frontmatter } = Astro.props;
+const { title, description, slug, updated, readingTime } = frontmatter;
+const sw = SOFTWARE.find((s) => s.slug === slug)!;
+const others = SOFTWARE.filter((s) => s.slug !== slug);
+const full = sw.status === 'complet';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  inLanguage: 'fr-FR',
+  dateModified: updated,
+  author: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+  publisher: { '@type': 'Organization', name: SITE.company },
+};
+const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section class="dark sw-hero">
+    <div class="wrap stack" style="gap: 22px; padding-block: 48px 64px">
+      <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/logiciels/">Logiciels</a></nav>
+      <div class="row rise d1" style="align-items: center; gap: 12px">
+        <span class="code">{sw.code}</span>
+        <span class="dim" style="font-size: 15px">{sw.name}</span>
+      </div>
+      <h1 class="h2 rise d2" style="max-width: 18em">{title}</h1>
+      <p class="lead rise d3">{description}</p>
+      <div class="row rise d4" style="gap: 12px">
+        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Budget indicatif</div><div class="tile-v">{sw.budget}</div></div>
+        <div class="tile" style="flex: 0 1 200px"><div class="tile-k">Délai de mise en œuvre</div><div class="tile-v">{sw.delay}</div></div>
+        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? 'Simulateur, guides et kit' : 'Guide et accompagnement'}</div></div>
+      </div>
+      <p class="byline rise d5">Par {SITE.author}, consultant supply chain. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
+    </div>
+  </section>
+
+  <article class="wrap sw-body">
+    <div class="prose"><slot /></div>
+    <aside class="sw-side">
+      {full ? (
+        <div class="card card-hi side-cta">
+          <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
+          <h2 class="h3">Chiffrez votre projet WMS</h2>
+          <p>Le simulateur donne votre gamme, votre budget, votre délai et votre retour sur investissement en 8 questions.</p>
+          <a class="btn btn-gold btn-sm" href="/simulateur-wms/">Estimer mon budget <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/kits/consultation-wms/" style="font-size: 15px; font-weight: 500; text-decoration: none">Voir le kit de consultation, {SITE.kitFrom.toLowerCase().replace('ht', 'HT')} <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      ) : (
+        <div class="card card-hi side-cta">
+          <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
+          <h2 class="h3">Faites le point sur votre besoin</h2>
+          <p>Un appel gratuit de 30 minutes pour vérifier que c'est le bon type de logiciel, cadrer le budget et les étapes.</p>
+          <a class="btn btn-gold btn-sm" href="/accompagnement/#contact">Réserver un appel <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/kits/#bientot" style="font-size: 15px; font-weight: 500; text-decoration: none">Être prévenu de la sortie du kit {sw.code} <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      )}
+    </aside>
+  </article>
+
+  <section class="wrap more" aria-labelledby="titre-autres">
+    <h2 id="titre-autres" class="h3 sr-up">Les autres logiciels supply chain</h2>
+    <div class="row more-list">
+      {others.map((s, i) => (
+        <a class={`card card-lift more-item sr-up ${['', 'lag1', 'lag2', 'lag3', 'lag4'][i]}`} href={`/logiciels/${s.slug}/`}>
+          <span class="code" style="align-self: flex-start">{s.code}</span>
+          <span style="font-weight: 600; color: var(--text-strong)">{s.name}</span>
+          <span class="gold" style="font-size: 14px">Lire <span class="arrow" aria-hidden="true">→</span></span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .crumbs { display: flex; gap: 10px; font-size: 14px; color: var(--dim); }
+  .crumbs a { color: var(--dim); text-decoration: none; }
+  .crumbs a:hover { color: var(--text); }
+  .code { font-family: var(--display); font-size: 15px; letter-spacing: .06em; color: #141619; background: var(--gold); border-radius: 8px; padding: 3px 9px; }
+  .byline { margin: 0; color: var(--dim); font-size: 14px; }
+  .sw-body { display: flex; flex-wrap: wrap; gap: 56px; align-items: flex-start; padding-block: 64px 40px; }
+  .sw-body .prose { flex: 1 1 560px; min-width: 0; }
+  .sw-side { flex: 0 1 320px; position: sticky; top: 96px; }
+  @media (max-width: 960px) { .sw-side { position: static; flex-basis: 100%; } }
+  .side-cta { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .side-cta p { margin: 0; color: var(--muted); font-size: 15px; }
+  .side-cta .btn { align-self: flex-start; }
+  .more { display: flex; flex-direction: column; gap: 20px; padding-block: 40px 120px; border-top: 1px solid var(--line-soft); }
+  .more-list { gap: 16px; }
+  .more-item { flex: 1 1 200px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+</style>
