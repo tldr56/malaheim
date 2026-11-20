@@ -7,7 +7,7 @@ const { title, description, slug, updated, readingTime, cta = 'simulateur' } = f
 const others = GUIDES.filter((g) => g.slug !== slug);
 const ctas = {
   simulateur: { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur/', label: 'Estimer mon budget' },
-  kit: { title: 'Évitez ces erreurs dès le cahier des charges', text: 'Le kit contient 50 exigences prêtes à coter, la grille de notation et le calendrier de consultation.', href: '/kit-cahier-des-charges/', label: `Voir le kit, ${SITE.kitPrice}` },
+  kit: { title: 'Évitez ces erreurs dès le cahier des charges', text: 'Le kit contient 268 exigences commentées, 12 scénarios de démonstration imposés, la grille de dépouillement et la check-list contractuelle.', href: '/kit-cahier-des-charges/', label: `Voir le kit, dès ${SITE.kitEssentialPrice}` },
 };
 const c = ctas[cta as keyof typeof ctas] ?? ctas.simulateur;
 const jsonLd = {

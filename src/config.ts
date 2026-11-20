@@ -10,7 +10,11 @@ export const SITE = {
   brevoFormAction: '',
   // Adresse e-mail de contact affichee sur le site.
   contactEmail: '[adresse e-mail de contact]',
-  kitPrice: '99 € HT',
+  kitName: 'Kit Consultation WMS',
+  kitPrice: '349 € HT',
+  kitEssentialPrice: '149 € HT',
+  kitBundlePrice: '990 € HT',
+  kitFrom: 'Dès 149 € HT',
   reviewPrice: '690 € HT',
 };
 

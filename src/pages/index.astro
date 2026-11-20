@@ -4,11 +4,11 @@ import { SITE, GUIDES } from '../config';
 const check = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="7.5 12.5 10.5 15.5 16.5 9"></polyline></svg>';
 const cross = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
 const kitPoints = [
-  '50 exigences numérotées sur 8 processus, avec leur priorité',
-  'Tableaux de volumétrie à remplir : entrepôt, articles, flux, utilisateurs',
-  'Offre financière imposée poste par poste aux éditeurs',
-  'Grille de notation pondérée et calendrier de consultation',
-  'Livré en Word et en PDF, entièrement modifiable',
+  '268 exigences sur 20 domaines, pré-priorisées et commentées par un expert',
+  '18 flux d\'interface ERP, transport, e-commerce et équipements, à faire coter un par un',
+  '12 scénarios de démonstration imposés, avec ce qu\'il faut observer',
+  'Grille de dépouillement pondérée, coût sur 5 ans et questions aux références',
+  'Check-list contractuelle en 30 points et plan de recette en 72 cas',
 ];
 const pains = [
   { n: "1/3", t: "La licence ne pèse qu'un tiers du budget", d: "Intégration, interfaces, matériel et formation font le reste. Les comparer sur le seul prix du logiciel mène à de mauvaises surprises." },
@@ -16,11 +16,13 @@ const pains = [
   { n: '3 à 5', t: 'offres reçues, autant de formats différents', d: "Chaque éditeur répond à sa façon, avec ses forfaits. Sans format de réponse imposé, les offres ne se comparent pas ligne à ligne." },
 ];
 const compare = [
-  ['Base de comparaison', 'Chaque éditeur répond dans son format', 'Tous cotent les mêmes 50 exigences'],
+  ['Base de comparaison', 'Chaque éditeur répond dans son format', 'Tous cotent les mêmes 268 exigences'],
   ['Prix', 'Forfaits globaux, postes cachés', 'Offre décomposée poste par poste'],
   ['Spécifique', 'Découvert en atelier, après la signature', 'Identifié et chiffré dès la réponse'],
   ['Choix final', 'Sur la démonstration la plus convaincante', 'Sur une grille de notation pondérée'],
   ['Préparation', 'Plusieurs semaines de rédaction', 'Deux à quatre jours pour remplir le modèle'],
+  ['Démonstrations', 'Chaque éditeur montre ses points forts', 'Tous jouent les mêmes 12 scénarios'],
+  ['Contrat', 'Le modèle de l\'éditeur', 'Vérifié point par point sur 30 critères'],
 ];
 const faq = [
   { q: 'Le simulateur est-il vraiment gratuit ?', a: "Oui, sans inscription. Le calcul se fait dans votre navigateur. Votre adresse e-mail n'est demandée que si vous voulez recevoir le rapport détaillé." },
@@ -136,9 +138,9 @@ const jsonLd = {
             <span class="ribbon">Le plus utile pour démarrer</span>
             <div class="step-n step-n-on">2</div>
             <span class="step-k step-k-on">Cadrer</span>
-            <h3 class="h3">Le kit cahier des charges</h3>
-            <span class="price">{SITE.kitPrice}</span>
-            <p>Le document qui fait chiffrer tous les éditeurs sur la même base, prêt à remplir.</p>
+            <h3 class="h3">Le Kit Consultation WMS</h3>
+            <span class="price">{SITE.kitFrom}</span>
+            <p>Tout pour mener la consultation : cahier des charges expert, scénarios de démonstration, grille de dépouillement, contrat et recette.</p>
             <a class="btn btn-gold" href="/kit-cahier-des-charges/">Découvrir le kit <span class="arrow" aria-hidden="true">→</span></a>
           </div>
           <div class="card card-lift step sr-up lag2">
@@ -161,18 +163,19 @@ const jsonLd = {
         <div class="sheet sheet-2"></div>
         <div class="sheet sheet-1">
           <span class="sheet-k">Cahier des charges WMS</span>
-          <span class="sheet-t">3.1 Réception</span>
+          <span class="sheet-t">3.2 Réception</span>
           <div class="sheet-row sheet-head"><span>N°</span><span>Exigence</span><span>Prio.</span></div>
-          <div class="sheet-row"><span>REC-01</span><span>Réceptionner sur commande d'achat transmise par l'ERP</span><span>I</span></div>
-          <div class="sheet-row"><span>REC-03</span><span>Identifier les supports par lecture du code SSCC</span><span>I</span></div>
-          <div class="sheet-row"><span>REC-05</span><span>Gérer les écarts de quantité, de référence et les avaries</span><span>I</span></div>
-          <div class="sheet-row"><span>REC-06</span><span>Bloquer un stock en contrôle qualité puis le libérer</span><span>S</span></div>
-          <div class="sheet-row"><span>REC-08</span><span>Traiter le passage à quai sans stockage</span><span>O</span></div>
+          <div class="sheet-row"><span>REC-06</span><span>Réceptionner une palette homogène par lecture du SSCC, sans détail des colis</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-09</span><span>Contrôler la durée de vie résiduelle minimale à la réception</span><span>S</span></div>
+          <div class="sheet-row"><span>REC-10</span><span>Gérer les écarts de quantité, de référence et les avaries, avec motif codé</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-13</span><span>Clôturer une réception partielle et conserver le reliquat attendu</span><span>I</span></div>
+          <div class="sheet-row"><span>REC-16</span><span>Orienter vers l'expédition les quantités attendues par des commandes (cross-dock)</span><span>O</span></div>
+          <div class="sheet-note">Conseil d'expert : la réception par SSCC divise souvent le temps de réception, si vos avis d'expédition sont fiables.</div>
         </div>
       </div>
       <div class="stack kit-text">
-        <p class="eyebrow sr-right">Le kit cahier des charges WMS</p>
-        <h2 id="titre-kit" class="h2 sr-right lag1">Des offres d'éditeurs enfin comparables, ligne à ligne</h2>
+        <p class="eyebrow sr-right">Kit Consultation WMS, édition Expert</p>
+        <h2 id="titre-kit" class="h2 sr-right lag1">Toute la consultation, du cahier des charges au contrat</h2>
         <ul class="checks">
           {kitPoints.map((p, i) => (
             <li class={`sr-right ${lags[i + 1]}`}><span class="gold"><Fragment set:html={check} /></span><span>{p}</span></li>
@@ -181,7 +184,7 @@ const jsonLd = {
         <div class="buybox sr-zoom lag3">
           <div class="stack" style="gap: 2px">
             <span class="buy-price">{SITE.kitPrice}</span>
-            <span class="dim" style="font-size: 14px">Moins cher qu'une demi-journée de consultant</span>
+            <span class="dim" style="font-size: 14px">Moins de 0,2 % d'un projet à 200 k€</span>
           </div>
           <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Obtenir le kit <span class="arrow" aria-hidden="true">→</span></a>
         </div>
@@ -216,7 +219,7 @@ const jsonLd = {
         ))}
       </div>
       <div class="row sr-up" style="justify-content: center">
-        <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Voir le contenu du kit <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-gold btn-lg" href="/kit-cahier-des-charges/">Voir le contenu et les formules <span class="arrow" aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
@@ -365,10 +368,10 @@ const jsonLd = {
   .ribbon { position: absolute; top: -14px; right: 20px; background: #141619; color: #e3c886; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
 
   .kit-in { gap: 72px; align-items: center; }
-  .doc-stack { flex: 1 1 460px; min-width: 0; position: relative; height: 470px; }
+  .doc-stack { flex: 1 1 460px; min-width: 0; position: relative; height: 560px; }
   .sheet { position: absolute; border-radius: 16px; }
-  .sheet-3 { left: 12%; top: 34px; width: 74%; height: 380px; background: #2a2e33; transform: rotate(-6deg); }
-  .sheet-2 { left: 8%; top: 18px; width: 76%; height: 392px; background: #33373c; transform: rotate(-2.5deg); }
+  .sheet-3 { left: 12%; top: 34px; width: 74%; height: 470px; background: #2a2e33; transform: rotate(-6deg); }
+  .sheet-2 { left: 8%; top: 18px; width: 76%; height: 485px; background: #33373c; transform: rotate(-2.5deg); }
   .sheet-1 { left: 4%; top: 0; width: 80%; min-height: 420px; background: #f4efe4; color: #1f2124; padding: 28px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 40px 80px rgba(0,0,0,.5); font-size: 13px; }
   .sheet-k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a6d2c; font-weight: 600; }
   .sheet-t { font-family: var(--display); font-size: 22px; margin-bottom: 10px; }
@@ -377,7 +380,8 @@ const jsonLd = {
   .sheet-row span:last-child { font-weight: 600; text-align: center; }
   .sheet-head { color: #6b665c; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom-color: #ddd5c4; }
   .sheet-head span:first-child, .sheet-head span:last-child { color: #6b665c; font-weight: 500; }
-  @media (max-width: 520px) { .doc-stack { height: 520px; } .sheet-1 { width: 92%; } }
+  .sheet-note { margin-top: 12px; padding: 10px 12px; border-left: 3px solid #c9a24b; background: #ece4d2; font-size: 12px; color: #4a4438; }
+  @media (max-width: 520px) { .doc-stack { height: 640px; } .sheet-1 { width: 92%; } }
   .kit-text { flex: 1 1 440px; min-width: 0; gap: 24px; }
   .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
   .checks li { display: flex; gap: 14px; align-items: flex-start; font-size: 17px; }
