@@ -1,5 +1,7 @@
 ---
-import '@fontsource/marcellus/latin-400.css';
+import '@fontsource/sora/latin-500.css';
+import '@fontsource/sora/latin-600.css';
+import '@fontsource/sora/latin-700.css';
 import '@fontsource/ibm-plex-sans/latin-400.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-sans/latin-600.css';
@@ -18,9 +20,9 @@ const path = Astro.url.pathname;
 const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
 const nav = [
   { href: '/logiciels/', label: 'Logiciels' },
+  { href: '/conseil/', label: 'Conseil' },
   { href: '/kits/', label: 'Kits' },
   { href: '/guides/', label: 'Guides' },
-  { href: '/accompagnement/', label: 'Accompagnement' },
   { href: '/a-propos/', label: 'À propos' },
 ];
 ---
@@ -38,7 +40,7 @@ const nav = [
   <meta property="og:title" content={fullTitle}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
-  <meta name="theme-color" content="#faf8f4">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   <script is:inline>
@@ -51,6 +53,7 @@ const nav = [
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
+  <div class="aura" aria-hidden="true"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
   <header class="topbar">
     <div class="wrap topbar-in">
       <a class="brand" href="/">
@@ -71,10 +74,11 @@ const nav = [
     <slot />
   </main>
 
-  <footer class="footer dark">
+  <footer class="footer">
     <div class="wrap footer-in">
       <span>© {new Date().getFullYear()} {SITE.company}. Chiffrages indicatifs en euros hors taxes.</span>
       <nav aria-label="Liens légaux">
+        <a href="/accompagnement/">Formules</a>
         <a href="/mentions-legales/">Mentions légales</a>
         <a href="/confidentialite/">Confidentialité</a>
         <a href="/conditions-de-vente/">Conditions de vente</a>
@@ -84,7 +88,7 @@ const nav = [
   </footer>
 
   {dock && (
-    <div class="dock dark" id="dock" role="complementary" aria-label="Accès rapide à l'orientation">
+    <div class="dock" id="dock" role="complementary" aria-label="Accès rapide à l'orientation">
       <span class="dock-text">Quel logiciel vous faut-il ?</span>
       <a class="btn btn-gold btn-sm" href="/#orientation">Trouver mon logiciel <span class="arrow" aria-hidden="true">→</span></a>
     </div>

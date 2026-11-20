@@ -1,13 +1,17 @@
 ---
 layout: ../../layouts/Software.astro
-title: "Choisir un logiciel de planification (APS)"
-description: "Prévision de la demande, calcul des besoins, ordonnancement sous contraintes : ce que fait un APS, quand il devient utile, ce qui fait son prix et comment le choisir."
-slug: planification-aps
+title: "S&OP et planification : choisir le bon outil"
+description: "Processus S&OP, prévision de la demande, calcul des besoins, ordonnancement sous contraintes : ce que fait un outil de planification, quand il devient utile, ce qui fait son prix et comment le choisir."
+slug: sop-planification
 updated: 2026-11-20
 readingTime: 4
 ---
 
-Un APS (Advanced Planning and Scheduling) aide à décider quoi produire, acheter ou réapprovisionner, en quelle quantité et quand. Selon les solutions, il couvre la prévision de la demande, le plan industriel et commercial, le calcul des besoins et l'ordonnancement de la production en tenant compte des capacités réelles.
+Le S&OP (Sales and Operations Planning, ou plan industriel et commercial) est le processus mensuel qui aligne ventes, production, achats et finance sur un plan unique. Un APS (Advanced Planning and Scheduling) est l'outil qui le rend praticable : il aide à décider quoi produire, acheter ou réapprovisionner, en quelle quantité et quand. Selon les solutions, il couvre la prévision de la demande, le plan industriel et commercial, le calcul des besoins et l'ordonnancement de la production en tenant compte des capacités réelles.
+
+## Processus d'abord, outil ensuite
+
+Un outil de planification ne crée pas un S&OP. Sans réunion mensuelle tenue, sans responsables nommés et sans indicateurs partagés (précision des prévisions, taux de service, couverture de stock), le meilleur APS reste un tableur coûteux. Le bon ordre : installer le processus avec des outils simples pendant quelques cycles, puis outiller.
 
 ## Les signes qu'il vous faut un APS
 

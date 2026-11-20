@@ -54,10 +54,16 @@ export const SOFTWARE = [
     budget: 'Sur devis, abonnement le plus souvent', delay: '6 semaines à 12 mois', status: 'guide',
   },
   {
-    slug: 'planification-aps', code: 'APS', name: 'Planification', long: 'APS, logiciel de planification avancée',
+    slug: 'sop-planification', code: 'S&OP', name: 'S&OP et planification', long: 'S&OP et APS, planification de la supply chain',
     problem: 'Je subis à la fois des ruptures et des surstocks',
     does: 'Prévoit la demande, calcule les besoins et planifie la production sous contraintes',
     budget: 'Sur devis, intégration souvent supérieure à l’abonnement', delay: '4 à 12 mois', status: 'guide',
+  },
+  {
+    slug: 'donnees-pilotage', code: 'DATA', name: 'Données et pilotage', long: 'Données de référence, indicateurs et tour de contrôle',
+    problem: 'Mes données articles sont fausses et chaque service a ses propres chiffres',
+    does: 'Fiabilise les données de référence et donne à tous les mêmes indicateurs, en temps réel',
+    budget: 'Sur devis, selon le périmètre', delay: '3 à 12 mois', status: 'guide',
   },
 ];
 

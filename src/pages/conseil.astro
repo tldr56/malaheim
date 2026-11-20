@@ -1,0 +1,107 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+const services = [
+  { n: '01', t: 'Diagnostic digital supply chain', d: "Un état des lieux de vos systèmes, flux et données en deux à trois semaines : ce qui fonctionne, ce qui bloque, les gains rapides et les chantiers structurants.", tag: 'Point de départ' },
+  { n: '02', t: 'Schéma directeur des systèmes', d: "La feuille de route à trois ans : quels logiciels, dans quel ordre, avec quel budget et quelles dépendances entre ERP, WMS, TMS, S&OP et données.", tag: 'Vision' },
+  { n: '03', t: 'Sélection de logiciels', d: "Du besoin au contrat : cahier des charges, présélection, démonstrations sur vos scénarios, analyse des offres et négociation, pour tout logiciel supply chain.", tag: 'Choix' },
+  { n: '04', t: 'Direction de projets SI', d: "Le pilotage côté client des déploiements, intégrations d'usines et montées de version, avec les équipes internes, l'éditeur et l'intégrateur.", tag: 'Exécution' },
+  { n: '05', t: 'Données et indicateurs', d: "La fiabilisation des données de référence et la définition d'indicateurs communs, pour que tous les services pilotent sur les mêmes chiffres.", tag: 'Fondations' },
+  { n: '06', t: 'Conduite du changement', d: "L'accompagnement des équipes, de l'atelier de conception à la formation des référents, pour que l'outil soit réellement adopté.", tag: 'Adoption' },
+];
+const steps = [
+  { t: 'Appel de 30 minutes', d: 'Gratuit et sans engagement. Nous qualifions votre besoin et le bon format d’intervention.' },
+  { t: 'Proposition écrite', d: 'Sous 5 jours ouvrés : périmètre, livrables, planning et budget fermes.' },
+  { t: 'Intervention', d: 'En mission ponctuelle ou en temps partagé, sur site et à distance.' },
+];
+const lags = ['', 'lag1', 'lag2'];
+const bookHref = SITE.bookingUrl || '/a-propos/#contact';
+---
+<Base title="Conseil en transformation digitale supply chain" description="Diagnostic digital, schéma directeur, sélection de logiciels, direction de projets SI, données et conduite du changement : le conseil indépendant pour transformer votre supply chain.">
+  <section class="wrap c-hero">
+    <div class="stack" style="gap: 22px; max-width: 860px">
+      <p class="eyebrow rise">Conseil en transformation digitale</p>
+      <h1 class="h1 rise d1">Transformer la supply chain, <span class="grad">sans se perdre dans les outils</span></h1>
+      <p class="lead rise d2">Avant de choisir un logiciel, il faut savoir lequel, dans quel ordre et pour quel gain. {SITE.company} vous aide à construire la feuille de route, à choisir les bons outils et à les déployer jusqu'à leur adoption.</p>
+      <div class="row rise d3" style="gap: 12px">
+        <a class="btn btn-gold btn-lg" href={bookHref}>Réserver un appel de 30 min <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-line btn-lg" href="/accompagnement/">Voir les formules</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-services" style="padding-top: 40px">
+    <div class="wrap stack" style="gap: 40px">
+      <h2 id="titre-services" class="h2 sr-up">Six façons d'intervenir</h2>
+      <div class="row" style="gap: 20px">
+        {services.map((s, i) => (
+          <div class={`card card-lift svc sr-up ${lags[i % 3]}`}>
+            <div class="row" style="justify-content: space-between; align-items: center">
+              <span class="svc-n grad">{s.n}</span>
+              <span class="chip" style="font-size: 12px; padding: 4px 12px">{s.tag}</span>
+            </div>
+            <h3 class="svc-t">{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" aria-labelledby="titre-domaines">
+    <div class="wrap row" style="gap: 56px; align-items: center">
+      <div class="stack sr-left" style="flex: 1 1 380px; gap: 16px">
+        <p class="eyebrow">Les domaines</p>
+        <h2 id="titre-domaines" class="h2">Toute la chaîne, de la donnée au quai</h2>
+        <p class="lead" style="font-size: 17px">Chaque domaine dispose d'un guide de choix, avec budgets et délais sourcés.</p>
+      </div>
+      <div class="row doms sr-right" style="flex: 1 1 520px; gap: 12px">
+        <a class="card card-lift dom" href="/logiciels/wms/"><span class="code">WMS</span>Entrepôt</a>
+        <a class="card card-lift dom" href="/logiciels/tms/"><span class="code">TMS</span>Transport</a>
+        <a class="card card-lift dom" href="/logiciels/sop-planification/"><span class="code">S&amp;OP</span>Planification</a>
+        <a class="card card-lift dom" href="/logiciels/erp/"><span class="code">ERP</span>Gestion</a>
+        <a class="card card-lift dom" href="/logiciels/oms/"><span class="code">OMS</span>Commandes</a>
+        <a class="card card-lift dom" href="/logiciels/automatisation-wcs/"><span class="code">WCS</span>Automatisation</a>
+        <a class="card card-lift dom" href="/logiciels/donnees-pilotage/"><span class="code">DATA</span>Données</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="titre-etapes">
+    <div class="wrap stack" style="gap: 40px">
+      <h2 id="titre-etapes" class="h2 sr-up">Comment on démarre</h2>
+      <div class="row" style="gap: 20px">
+        {steps.map((s, i) => (
+          <div class={`card stepc sr-up ${lags[i]}`}>
+            <span class="step-i">{i + 1}</span>
+            <h3 class="svc-t">{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="titre-final" style="padding-bottom: 140px">
+    <div class="wrap">
+      <div class="card final-c stack center sr-zoom">
+        <h2 id="titre-final" class="h2" style="max-width: 15em">Parlons de votre transformation en 30 minutes</h2>
+        <p class="lead" style="text-align: center">Un premier échange gratuit pour clarifier le besoin, les priorités et le bon format d'intervention.</p>
+        <a class="btn btn-gold btn-lg" href={bookHref}>Réserver un appel <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .c-hero { padding-block: 96px 24px; }
+  .svc { flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .svc-n { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: -0.03em; }
+  .svc-t { font-family: var(--display); font-size: 20px; font-weight: 600; }
+  .svc p, .stepc p { margin: 0; color: var(--muted); font-size: 15px; }
+  .dom { flex: 1 1 150px; padding: 18px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: var(--text-strong); font-weight: 600; }
+  .code { align-self: flex-start; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 3px 9px; }
+  .stepc { flex: 1 1 280px; padding: 26px; display: flex; flex-direction: column; gap: 10px; }
+  .step-i { width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; }
+  .final-c { padding: 64px 40px; gap: 18px; }
+</style>
