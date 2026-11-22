@@ -3,12 +3,13 @@ import Base from '../../layouts/Base.astro';
 import { GUIDES, SOFTWARE, KITS, SITE } from '../../config';
 const families = SOFTWARE.map((s) => ({ ...s, kit: KITS.find((k) => k.sw === s.slug)!, guides: GUIDES.filter((g) => g.sw === s.slug) }));
 const lags = ['', 'lag1', 'lag2'];
+const socle = GUIDES.find((g) => g.sw === 'transverse')!;
 ---
 <Base title="Guides" description={`${GUIDES.length} guides courts et chiffrés pour préparer un projet supply chain : WMS, TMS, ERP, automatisation, OMS, S&OP et données. Prix, étapes, erreurs à éviter.`}>
   <section class="wrap g-hero">
     <p class="eyebrow rise">Guides gratuits</p>
     <h1 class="h1 rise d1">Les bonnes questions, avant le bon logiciel.</h1>
-    <p class="lead rise d2">{GUIDES.length} guides courts et chiffrés, pour les 7 familles de logiciels supply chain. Prix, méthode et pièges à éviter.</p>
+    <p class="lead rise d2">{GUIDES.length} guides courts et chiffrés, pour les 7 familles de logiciels supply chain. Prix, méthode, pièges et exigences techniques.</p>
     <nav class="seg rise d3" aria-label="Filtrer par logiciel">
       <button type="button" class="seg-b is-on" data-f="tous" aria-pressed="true">Tous</button>
       {families.map((f) => <button type="button" class="seg-b" data-f={f.slug} aria-pressed="false">{f.code}</button>)}
@@ -16,6 +17,17 @@ const lags = ['', 'lag1', 'lag2'];
   </section>
 
   <div class="wrap g-list">
+    <a class="socle sr-up" href={`/guides/${socle.slug}/`}>
+      <div class="socle-txt">
+        <span class="socle-k">À lire avant tout projet</span>
+        <h2 class="socle-t">Sécurité, SSO, API, hébergement : le socle technique de tout logiciel supply chain.</h2>
+        <p>Les exigences à imposer à chaque éditeur, les preuves à demander et les 12 questions qui font tomber les réponses commerciales.</p>
+        <span class="socle-go">Lire le guide technique</span>
+      </div>
+      <ul class="socle-tags" aria-hidden="true">
+        {['SAML 2.0', 'OpenID Connect', 'MFA', 'SCIM', 'TLS 1.3', 'AES-256', 'ISO 27001', 'SOC 2 Type II', 'API REST', 'Webhooks', 'EDI', 'RPO et RTO', 'NIS2', 'RGPD', 'Réversibilité'].map((t) => <li>{t}</li>)}
+      </ul>
+    </a>
     {families.map((f) => (
       <section class="fam" id={f.slug} data-fam={f.slug} aria-labelledby={`t-${f.slug}`}>
         <div class="fam-head sr-up">
@@ -58,6 +70,7 @@ const lags = ['', 'lag1', 'lag2'];
   const fams = Array.from(document.querySelectorAll<HTMLElement>('.fam'));
   const apply = (f: string) => {
     btns.forEach((b) => { const on = b.dataset.f === f; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+    document.querySelector<HTMLElement>('.socle')!.hidden = false;
     fams.forEach((s) => { s.hidden = f !== 'tous' && s.dataset.fam !== f; s.querySelectorAll('.sr-up').forEach((e) => e.classList.add('in')); });
   };
   btns.forEach((b) => b.addEventListener('click', () => { apply(b.dataset.f!); history.replaceState(null, '', b.dataset.f === 'tous' ? location.pathname : `#${b.dataset.f}`); }));
@@ -75,6 +88,16 @@ const lags = ['', 'lag1', 'lag2'];
   .seg-b.is-on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
   .g-list { padding-bottom: 120px; display: flex; flex-direction: column; gap: 88px; }
   .fam[hidden] { display: none; }
+  .socle { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: center; padding: 48px; border-radius: 32px; background: #000; color: #fff; text-decoration: none !important; transition: transform .6s var(--ease); }
+  .socle:hover { transform: scale(1.01); color: #fff; }
+  @media (max-width: 900px) { .socle { grid-template-columns: 1fr; padding: 32px; } }
+  .socle-txt { display: flex; flex-direction: column; gap: 14px; }
+  .socle-k { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.55); }
+  .socle-t { margin: 0; color: #fff; font-size: clamp(26px, 3vw, 40px); line-height: 1.1; letter-spacing: -0.04em; }
+  .socle p { margin: 0; color: rgba(255,255,255,.65); font-size: 17px; max-width: 34em; }
+  .socle-go { color: #9db0ff; font-weight: 500; }
+  .socle-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .socle-tags li { padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); font-size: 14px; font-weight: 500; color: rgba(255,255,255,.85); }
   .fam { scroll-margin-top: 140px; }
   .fam-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 40px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line-soft); }
   .fam-k { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--dim); }

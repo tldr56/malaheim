@@ -4,12 +4,14 @@ import { SITE, GUIDES, KITS, SOFTWARE } from '../config';
 
 const { frontmatter } = Astro.props;
 const { title, description, slug, updated, readingTime, cta, sw = 'wms' } = frontmatter;
-const soft = SOFTWARE.find((x) => x.slug === sw)!;
-const kit = KITS.find((k) => k.sw === sw)!;
+const transverse = sw === 'transverse';
+const soft = SOFTWARE.find((x) => x.slug === sw) ?? { code: 'Technique', slug: 'transverse', name: 'Socle technique' };
+const kit = KITS.find((k) => k.sw === sw);
 const family = GUIDES.filter((g) => g.sw === sw && g.slug !== slug);
-const others = [...family, ...GUIDES.filter((g) => g.sw !== sw && g.kind === 'Prix')].slice(0, 4);
+const others = transverse ? GUIDES.filter((g) => g.kind === 'Technique' && g.sw !== 'transverse').slice(0, 4) : [...family, ...GUIDES.filter((g) => g.slug === 'exigences-techniques-communes'), ...GUIDES.filter((g) => g.sw !== sw && g.kind === 'Prix')].slice(0, 4);
 const c = cta === 'simulateur' && sw === 'wms'
   ? { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur-wms/', label: 'Estimer mon budget' }
+  : !kit ? { title: 'Les 7 kits de consultation', text: 'Chaque kit contient un cahier des charges complet, exigences techniques comprises, les scénarios de démonstration, la grille de dépouillement et la check-list contractuelle.', href: '/kits/', label: `Voir les kits, ${SITE.kitPrice}` }
   : { title: `Le kit de consultation ${soft.code}`, text: `${kit.reqs} exigences commentées, scénarios de démonstration imposés, grille de dépouillement, check-list contractuelle et plan de recette.`, href: `/kits/${kit.page}/`, label: `Voir le kit, ${SITE.kitPrice}` };
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -25,9 +27,9 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
 ---
 <Base title={title} description={description} jsonLd={jsonLd}>
   <article class="wrap guide-page">
-    <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/guides/">Guides</a><span aria-hidden="true">/</span><a href={`/guides/#${sw}`}>{soft.code}</a></nav>
+    <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/guides/">Guides</a><span aria-hidden="true">/</span><a href={transverse ? '/guides/' : `/guides/#${sw}`}>{soft.code}</a></nav>
     <header class="stack guide-head">
-      <p class="eyebrow rise d1">Guide {soft.code}</p>
+      <p class="eyebrow rise d1">{transverse ? 'Guide technique' : `Guide ${soft.code}`}</p>
       <h1 class="h2 rise d2">{title}</h1>
       <p class="lead rise d3">{description}</p>
       <p class="byline rise d4">Par {SITE.company}. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
@@ -40,7 +42,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
           <h2 class="h3">{c.title}</h2>
           <p>{c.text}</p>
           <a class="btn btn-gold btn-sm" href={c.href}>{c.label}</a>
-          <a class="side-more" href={`/logiciels/${sw}/`}>Lire le guide complet {soft.code}</a>
+          {!transverse && <a class="side-more" href={`/logiciels/${sw}/`}>Lire le guide complet {soft.code}</a>}
         </div>
       </aside>
     </div>
@@ -49,7 +51,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       <div class="row more-list">
         {others.map((g, i) => (
           <a class={`card card-lift more-item sr-up ${['', 'lag1', 'lag2', 'lag3'][i]}`} href={`/guides/${g.slug}/`}>
-            <span class="more-k">{SOFTWARE.find((x) => x.slug === g.sw)!.code}, {g.kind.toLowerCase()}</span>
+            <span class="more-k">{SOFTWARE.find((x) => x.slug === g.sw)?.code ?? 'Socle commun'}, {g.kind.toLowerCase()}</span>
             <span style="font-weight: 600">{g.title}</span>
             <span class="gold" style="font-size: 14px; margin-top: auto">Lire</span>
           </a>
