@@ -3,6 +3,7 @@ layout: ../../layouts/Guide.astro
 title: "Les 7 étapes d'un projet WMS, du cadrage au démarrage"
 description: "Cadrage, cahier des charges, choix de l'éditeur, conception, recette, formation, démarrage : les 7 étapes d'un projet WMS, leur durée et ce qu'il faut livrer à chacune."
 slug: etapes-projet-wms
+sw: wms
 updated: 2026-11-12
 readingTime: 6
 cta: simulateur

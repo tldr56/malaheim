@@ -3,6 +3,7 @@ layout: ../../layouts/Guide.astro
 title: "WMS en SaaS ou en licence : comment trancher"
 description: "Abonnement ou licence hébergée chez vous ? Comparaison chiffrée sur 5 et 8 ans, critères de choix et cas où la licence reste pertinente pour un WMS."
 slug: wms-saas-ou-licence
+sw: wms
 updated: 2026-11-12
 readingTime: 5
 cta: simulateur

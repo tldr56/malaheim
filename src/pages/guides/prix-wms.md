@@ -3,6 +3,7 @@ layout: ../../layouts/Guide.astro
 title: Combien coûte un WMS en 2026 ?
 description: "Le budget réel d'un projet WMS, de 60 k€ pour une PME à plus de 800 k€ pour une ETI automatisée : fourchettes par taille, postes de coût et retour sur investissement."
 slug: prix-wms
+sw: wms
 updated: 2026-11-12
 readingTime: 6
 cta: simulateur

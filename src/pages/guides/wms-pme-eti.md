@@ -3,6 +3,7 @@ layout: ../../layouts/Guide.astro
 title: Quel WMS pour une PME, une ETI ou un grand groupe ?
 description: "WMS SaaS standard, milieu de gamme ou solution de premier rang : les critères concrets pour savoir quelle gamme correspond à votre entrepôt, avec budgets et délais."
 slug: wms-pme-eti
+sw: wms
 updated: 2026-11-12
 readingTime: 5
 cta: simulateur

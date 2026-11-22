@@ -3,6 +3,7 @@ layout: ../../layouts/Guide.astro
 title: Les 8 erreurs qui font déraper un projet WMS
 description: "Cahier des charges flou, données articles incomplètes, spécifique en excès, démarrage en saison haute : les 8 erreurs qui coûtent le plus cher dans un projet WMS, et comment les éviter."
 slug: erreurs-projet-wms
+sw: wms
 updated: 2026-11-12
 readingTime: 7
 cta: kit

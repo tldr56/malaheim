@@ -1,15 +1,16 @@
 ---
 import Base from './Base.astro';
-import { SITE, GUIDES } from '../config';
+import { SITE, GUIDES, KITS, SOFTWARE } from '../config';
 
 const { frontmatter } = Astro.props;
-const { title, description, slug, updated, readingTime, cta = 'simulateur' } = frontmatter;
-const others = GUIDES.filter((g) => g.slug !== slug);
-const ctas = {
-  simulateur: { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur-wms/', label: 'Estimer mon budget' },
-  kit: { title: 'Évitez ces erreurs dès le cahier des charges', text: 'Le kit contient 268 exigences commentées, 12 scénarios de démonstration imposés, la grille de dépouillement et la check-list contractuelle.', href: '/kits/consultation-wms/', label: `Voir le kit, ${SITE.kitPrice}` },
-};
-const c = ctas[cta as keyof typeof ctas] ?? ctas.simulateur;
+const { title, description, slug, updated, readingTime, cta, sw = 'wms' } = frontmatter;
+const soft = SOFTWARE.find((x) => x.slug === sw)!;
+const kit = KITS.find((k) => k.sw === sw)!;
+const family = GUIDES.filter((g) => g.sw === sw && g.slug !== slug);
+const others = [...family, ...GUIDES.filter((g) => g.sw !== sw && g.kind === 'Prix')].slice(0, 4);
+const c = cta === 'simulateur' && sw === 'wms'
+  ? { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur-wms/', label: 'Estimer mon budget' }
+  : { title: `Le kit de consultation ${soft.code}`, text: `${kit.reqs} exigences commentées, scénarios de démonstration imposés, grille de dépouillement, check-list contractuelle et plan de recette.`, href: `/kits/${kit.page}/`, label: `Voir le kit, ${SITE.kitPrice}` };
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -24,9 +25,9 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
 ---
 <Base title={title} description={description} jsonLd={jsonLd}>
   <article class="wrap guide-page">
-    <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/guides/">Guides</a></nav>
+    <nav class="crumbs rise" aria-label="Fil d'Ariane"><a href="/">Accueil</a><span aria-hidden="true">/</span><a href="/guides/">Guides</a><span aria-hidden="true">/</span><a href={`/guides/#${sw}`}>{soft.code}</a></nav>
     <header class="stack guide-head">
-      <p class="eyebrow rise d1">Guide</p>
+      <p class="eyebrow rise d1">Guide {soft.code}</p>
       <h1 class="h2 rise d2">{title}</h1>
       <p class="lead rise d3">{description}</p>
       <p class="byline rise d4">Par {SITE.company}. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
@@ -38,18 +39,19 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
           <span class="eyebrow" style="font-size: 12px">Passez à l'action</span>
           <h2 class="h3">{c.title}</h2>
           <p>{c.text}</p>
-          <a class="btn btn-gold btn-sm" href={c.href}>{c.label} <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-gold btn-sm" href={c.href}>{c.label}</a>
+          <a class="side-more" href={`/logiciels/${sw}/`}>Lire le guide complet {soft.code}</a>
         </div>
       </aside>
     </div>
     <section class="more" aria-labelledby="titre-autres">
-      <h2 id="titre-autres" class="h3 sr-up">Les autres guides</h2>
+      <h2 id="titre-autres" class="h3 sr-up">À lire ensuite</h2>
       <div class="row more-list">
         {others.map((g, i) => (
           <a class={`card card-lift more-item sr-up ${['', 'lag1', 'lag2', 'lag3'][i]}`} href={`/guides/${g.slug}/`}>
-            <span class="gold" style="font-family: var(--display); font-size: 22px">{g.figure}</span>
+            <span class="more-k">{SOFTWARE.find((x) => x.slug === g.sw)!.code}, {g.kind.toLowerCase()}</span>
             <span style="font-weight: 600">{g.title}</span>
-            <span class="gold" style="font-size: 14px">Lire <span class="arrow" aria-hidden="true">→</span></span>
+            <span class="gold" style="font-size: 14px; margin-top: auto">Lire</span>
           </a>
         ))}
       </div>
@@ -73,5 +75,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
   .side-cta .btn { align-self: flex-start; }
   .more { display: flex; flex-direction: column; gap: 20px; padding-top: 40px; border-top: 1px solid var(--line-soft); }
   .more-list { gap: 16px; }
-  .more-item { flex: 1 1 240px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .more-item { flex: 1 1 240px; padding: 24px; display: flex; flex-direction: column; gap: 8px; text-decoration: none !important; color: var(--text); }
+  .more-k { font-size: 13px; color: var(--dim); font-weight: 600; }
+  .side-more { font-size: 14px; }
 </style>

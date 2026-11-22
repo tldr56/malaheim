@@ -1,28 +1,96 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { GUIDES } from '../../config';
+import { GUIDES, SOFTWARE, KITS, SITE } from '../../config';
+const families = SOFTWARE.map((s) => ({ ...s, kit: KITS.find((k) => k.sw === s.slug)!, guides: GUIDES.filter((g) => g.sw === s.slug) }));
 const lags = ['', 'lag1', 'lag2'];
 ---
-<Base title="Guides WMS" description="Cinq guides courts et chiffrés pour préparer un projet WMS : prix, étapes, erreurs à éviter, choix de gamme, SaaS ou licence.">
-  <section class="wrap stack" style="padding-block: 72px 120px; gap: 48px">
-    <header class="stack" style="gap: 16px; max-width: 760px">
-      <p class="eyebrow rise">Les guides WMS</p>
-      <h1 class="h2 rise d1">Les cinq questions qui précèdent un projet WMS</h1>
-      <p class="lead rise d2">Des réponses courtes et chiffrées, écrites par un consultant qui conduit ces projets. Chaque guide renvoie au simulateur pour passer de la moyenne à votre cas.</p>
-    </header>
-    <div class="row" style="gap: 20px">
-      {GUIDES.map((g, i) => (
-        <a class={`card card-lift sr-up ${lags[i % 3]}`} href={`/guides/${g.slug}/`} style="flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
-          <span style="font-family: var(--display); font-size: 30px" class="gold">{g.figure}</span>
-          <h2 style="font-family: var(--body); font-size: 19px; font-weight: 600; color: var(--text)">{g.title}</h2>
-          <span style="color: var(--dim); font-size: 15px">{g.summary}</span>
-          <span class="gold" style="font-size: 15px; margin-top: 6px">Lire le guide <span class="arrow" aria-hidden="true">→</span></span>
-        </a>
-      ))}
-      <a class="card card-gold card-lift sr-up lag2" href="/simulateur-wms/" style="flex: 1 1 340px; padding: 28px; display: flex; flex-direction: column; gap: 12px; justify-content: space-between">
-        <span style="font-family: var(--display); font-size: 30px">Votre propre chiffrage</span>
-        <span style="font-size: 16px; font-weight: 500">Passez des moyennes à votre entrepôt en 3 minutes. <span class="arrow" aria-hidden="true">→</span></span>
-      </a>
-    </div>
+<Base title="Guides" description={`${GUIDES.length} guides courts et chiffrés pour préparer un projet supply chain : WMS, TMS, ERP, automatisation, OMS, S&OP et données. Prix, étapes, erreurs à éviter.`}>
+  <section class="wrap g-hero">
+    <p class="eyebrow rise">Guides gratuits</p>
+    <h1 class="h1 rise d1">Les bonnes questions, avant le bon logiciel.</h1>
+    <p class="lead rise d2">{GUIDES.length} guides courts et chiffrés, pour les 7 familles de logiciels supply chain. Prix, méthode et pièges à éviter.</p>
+    <nav class="seg rise d3" aria-label="Filtrer par logiciel">
+      <button type="button" class="seg-b is-on" data-f="tous" aria-pressed="true">Tous</button>
+      {families.map((f) => <button type="button" class="seg-b" data-f={f.slug} aria-pressed="false">{f.code}</button>)}
+    </nav>
   </section>
+
+  <div class="wrap g-list">
+    {families.map((f) => (
+      <section class="fam" id={f.slug} data-fam={f.slug} aria-labelledby={`t-${f.slug}`}>
+        <div class="fam-head sr-up">
+          <div>
+            <p class="fam-k">{f.code}</p>
+            <h2 id={`t-${f.slug}`} class="h3 fam-t">{f.name}</h2>
+          </div>
+          <div class="fam-links">
+            <a href={`/logiciels/${f.slug}/`}>Le guide complet</a>
+            <a href={`/kits/${f.kit.page}/`}>Le kit, {SITE.kitPrice}</a>
+          </div>
+        </div>
+        <div class="g-grid">
+          {f.guides.map((g, i) => (
+            <a class={`card card-lift g-card sr-up ${lags[i % 3]}`} href={`/guides/${g.slug}/`}>
+              <span class="g-kind">{g.kind}</span>
+              <span class="g-fig">{g.figure}</span>
+              <h3 class="g-t">{g.title}</h3>
+              <span class="g-sum">{g.summary}</span>
+              <span class="g-go">Lire le guide</span>
+            </a>
+          ))}
+          {f.slug === 'wms' && (
+            <a class="card card-lift g-card g-sim sr-up lag2" href="/simulateur-wms/">
+              <span class="g-kind">Outil gratuit</span>
+              <span class="g-fig">Votre chiffrage</span>
+              <h3 class="g-t">Le simulateur de budget WMS</h3>
+              <span class="g-sum">Passez des moyennes à votre entrepôt en 3 minutes.</span>
+              <span class="g-go">Lancer le simulateur</span>
+            </a>
+          )}
+        </div>
+      </section>
+    ))}
+  </div>
 </Base>
+
+<script>
+  const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('.seg-b'));
+  const fams = Array.from(document.querySelectorAll<HTMLElement>('.fam'));
+  const apply = (f: string) => {
+    btns.forEach((b) => { const on = b.dataset.f === f; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+    fams.forEach((s) => { s.hidden = f !== 'tous' && s.dataset.fam !== f; s.querySelectorAll('.sr-up').forEach((e) => e.classList.add('in')); });
+  };
+  btns.forEach((b) => b.addEventListener('click', () => { apply(b.dataset.f!); history.replaceState(null, '', b.dataset.f === 'tous' ? location.pathname : `#${b.dataset.f}`); }));
+  const h = location.hash.slice(1);
+  if (h && btns.some((b) => b.dataset.f === h)) apply(h);
+</script>
+
+<style>
+  .g-hero { padding-block: 80px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+  .g-hero .h1 { margin: 0; max-width: 13em; font-size: clamp(42px, 6vw, 84px); }
+  .g-hero .lead { margin: 0; max-width: 32em; }
+  .seg { position: sticky; top: 80px; z-index: 5; margin-top: 24px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(245,245,247,.85); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); }
+  .seg-b { font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer; transition: background-color .3s, color .3s; }
+  .seg-b:hover { color: var(--ink); }
+  .seg-b.is-on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .g-list { padding-bottom: 120px; display: flex; flex-direction: column; gap: 88px; }
+  .fam[hidden] { display: none; }
+  .fam { scroll-margin-top: 140px; }
+  .fam-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 40px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line-soft); }
+  .fam-k { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--dim); }
+  .fam-t { margin: 0; font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.035em; }
+  .fam-links { display: flex; gap: 24px; font-size: 15px; font-weight: 500; }
+  .g-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  @media (max-width: 960px) { .g-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .g-grid { grid-template-columns: 1fr; } }
+  .g-card { padding: 32px; display: flex; flex-direction: column; gap: 10px; min-height: 260px; text-decoration: none !important; color: var(--text); }
+  .g-kind { font-size: 13px; font-weight: 600; color: var(--dim); }
+  .g-fig { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 2.2vw, 30px); line-height: 1.1; letter-spacing: -0.04em; color: var(--ink); }
+  .g-t { margin: 6px 0 0; font-size: 18px; line-height: 1.3; letter-spacing: -0.02em; }
+  .g-sum { color: var(--muted); font-size: 15px; line-height: 1.45; }
+  .g-go { margin-top: auto; padding-top: 8px; color: var(--cobalt); font-size: 15px; font-weight: 500; }
+  .g-sim { background: #000 !important; color: #fff !important; }
+  .g-sim .g-fig, .g-sim .g-t { color: #fff; }
+  .g-sim .g-kind, .g-sim .g-sum { color: rgba(255,255,255,.6); }
+  .g-sim .g-go { color: #9db0ff; }
+</style>

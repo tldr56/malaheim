@@ -1,6 +1,6 @@
 ---
 import Base from './Base.astro';
-import { SITE, SOFTWARE, KITS } from '../config';
+import { SITE, SOFTWARE, KITS, GUIDES } from '../config';
 
 const { frontmatter } = Astro.props;
 const { title, description, slug, updated, readingTime } = frontmatter;
@@ -8,6 +8,7 @@ const sw = SOFTWARE.find((s) => s.slug === slug)!;
 const others = SOFTWARE.filter((s) => s.slug !== slug);
 const full = sw.status === 'complet';
 const kit = KITS.find((k) => k.sw === slug)!;
+const guides = GUIDES.filter((g) => g.sw === slug);
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -33,7 +34,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       <div class="row rise d4" style="gap: 12px">
         <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Budget indicatif</div><div class="tile-v">{sw.budget}</div></div>
         <div class="tile" style="flex: 0 1 200px"><div class="tile-k">Délai de mise en œuvre</div><div class="tile-v">{sw.delay}</div></div>
-        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? 'Simulateur, guides et kit' : 'Guide et kit de consultation'}</div></div>
+        <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? `Simulateur, ${guides.length} guides et kit` : `${guides.length} guides et kit de consultation`}</div></div>
       </div>
       <p class="byline rise d5">Par {SITE.company}. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
     </div>
@@ -61,6 +62,19 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       )}
     </aside>
   </article>
+
+  <section class="wrap more" aria-labelledby="titre-guides">
+    <h2 id="titre-guides" class="h3 sr-up">Les guides {sw.code}</h2>
+    <div class="row more-list">
+      {guides.map((g, i) => (
+        <a class={`card card-lift more-item sr-up ${['', 'lag1', 'lag2', 'lag3', 'lag4'][i] ?? ''}`} href={`/guides/${g.slug}/`}>
+          <span style="font-size: 13px; font-weight: 600; color: var(--dim)">{g.kind}</span>
+          <span style="font-weight: 600; color: var(--text-strong)">{g.title}</span>
+          <span class="gold" style="font-size: 14px; margin-top: auto">Lire le guide</span>
+        </a>
+      ))}
+    </div>
+  </section>
 
   <section class="wrap more" aria-labelledby="titre-autres">
     <h2 id="titre-autres" class="h3 sr-up">Les autres logiciels supply chain</h2>
