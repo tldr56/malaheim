@@ -30,7 +30,7 @@ const parts = [
 const kitItems = ['268 exigences commentées sur 20 domaines', "18 flux d'interface, 12 scénarios de démonstration", 'Check-list contractuelle en 30 points', 'Plan de recette en 72 cas', 'Word et PDF, satisfait ou remboursé 14 jours'];
 const faq = [
   { q: 'En quoi est-ce différent d’un modèle gratuit trouvé en ligne ?', a: "Un modèle gratuit liste des fonctions. Ce kit impose une méthode : priorités pré-remplies, cotation obligatoire par l'éditeur, offre financière décomposée, scénarios de démonstration et grille de notation. Chaque domaine porte un conseil issu de projets réels." },
-  { q: 'Le kit convient-il à mon entreprise ?', a: "Il est conçu pour les entrepôts de PME, en distribution, industrie, e-commerce ou prestation logistique, qui n'ont pas de service achats pour mener un appel d'offres. Les domaines hors de votre périmètre se suppriment en quelques minutes." },
+  { q: 'Le kit convient-il à mon entreprise ?', a: "Il convient aux entrepôts de toutes tailles, en distribution, industrie, e-commerce ou prestation logistique, et d'abord à ceux qui n'ont pas de service achats pour mener un appel d'offres. Les domaines hors de votre périmètre se suppriment en quelques minutes." },
   { q: 'Sous quel format est-il livré ?', a: "En Word, entièrement modifiable, et en PDF. Vous envoyez les parties 1 à 5 aux éditeurs et gardez les annexes pour vous." },
   { q: 'Combien de temps faut-il pour le remplir ?', a: 'Deux à quatre jours de travail, surtout pour réunir la volumétrie. Les 268 exigences sont déjà rédigées : il reste à ajuster les priorités.' },
   { q: 'Et si le kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
@@ -47,11 +47,11 @@ const jsonLd = {
   offers: { '@type': 'Offer', price: SITE.kitPriceNum, priceCurrency: 'EUR' },
 };
 ---
-<Base title="Kit Consultation WMS" description="Le kit expert pour mener une consultation WMS : 268 exigences commentées, 18 flux d'interface, 12 scénarios de démonstration, grille de dépouillement, check-list contractuelle, plan de recette. 149 € HT, pensé pour les PME." jsonLd={jsonLd}>
+<Base title="Kit Consultation WMS" description="Le kit expert pour mener une consultation WMS : 268 exigences commentées, 18 flux d'interface, 12 scénarios de démonstration, grille de dépouillement, check-list contractuelle, plan de recette. 149 € HT, pour toutes les tailles d'entreprise." jsonLd={jsonLd}>
   <section class="dark">
     <div class="wrap row" style="gap: 64px; align-items: center; padding-block: 88px 104px">
       <div class="stack" style="flex: 1 1 480px; min-width: 0; gap: 24px">
-        <p class="eyebrow rise">Kit Consultation WMS, pour les PME</p>
+        <p class="eyebrow rise">Kit Consultation WMS, pour toutes les entreprises</p>
         <h1 class="h1 rise d1" style="font-size: clamp(38px, 4.4vw, 60px)">Toute votre consultation WMS, du cahier des charges au contrat</h1>
         <p class="lead rise d2">Le cahier des charges qui fait chiffrer tous les éditeurs sur la même base, et les outils pour juger leurs réponses, négocier le contrat et recetter la solution. Écrit par un consultant qui conduit ces projets.</p>
         <div class="row rise d3" style="align-items: center; gap: 22px">
@@ -112,7 +112,7 @@ const jsonLd = {
     <div class="wrap stack" style="gap: 48px">
       <div class="stack center" style="gap: 14px">
         <p class="eyebrow sr-down">Le prix</p>
-        <h2 id="titre-formules" class="h2 sr-up" style="max-width: 18em">Un prix de PME, et de l'aide seulement si vous en avez besoin</h2>
+        <h2 id="titre-formules" class="h2 sr-up" style="max-width: 18em">Un prix adapté, et de l'aide seulement si vous en avez besoin</h2>
         <p class="lead sr-up lag1" style="text-align: center">Moins de 0,2 % d'un projet WMS à 100 k€, pour éviter les erreurs qui en coûtent des dizaines de milliers.</p>
       </div>
       <Offer kitLabel={title} kitHref={buyHref} kitCta={`Acheter le kit, ${SITE.kitPrice}`} kitItems={kitItems} />

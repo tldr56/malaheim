@@ -14,7 +14,7 @@ export const SITE = {
   // Adresse e-mail de contact affichee sur le site.
   contactEmail: '[adresse e-mail de contact]',
   kitName: 'Kit Consultation WMS',
-  // Offre PME en trois marches : le kit, la relecture, puis l'accompagnement à l'heure au réel.
+  // Offre en trois marches, adaptée à toutes les tailles d'entreprise : le kit, la relecture, puis l'accompagnement à l'heure au réel.
   kitPrice: '149 € HT',
   kitPriceNum: '149',
   kitFrom: '149 € HT',
@@ -85,7 +85,7 @@ export const KITS = [
     highlights: ['154 exigences commentées', '10 scénarios, dont un mois de vos factures', 'Contrôle des factures et facturation électronique', 'Plan de recette en 48 cas'],
     h1: 'Toute votre consultation TMS, du cahier des charges au contrat',
     lead: "Le cahier des charges qui fait chiffrer les éditeurs de TMS sur la même base, du moteur tarifaire au contrôle des factures, et les outils pour juger leurs réponses, négocier le contrat et recetter la solution.",
-    audience: "Il est conçu pour les PME qui achètent du transport (industriels, distributeurs, e-commerçants) et n'ont pas de service achats pour mener un appel d'offres, de quelques dizaines à quelques milliers d'expéditions par jour. Les domaines hors de votre périmètre (international, flotte propre, appels d'offres) se suppriment en quelques minutes.",
+    audience: "Il convient à toute entreprise qui achète du transport (industriels, distributeurs, e-commerçants), et d'abord à celles qui n'ont pas de service achats pour mener un appel d'offres, de quelques dizaines à quelques milliers d'expéditions par jour. Les domaines hors de votre périmètre (international, flotte propre, appels d'offres) se suppriment en quelques minutes.",
     fill: "Deux à trois jours de travail, surtout pour réunir la volumétrie et vos grilles tarifaires. Les 154 exigences sont déjà rédigées : il reste à ajuster les priorités.",
     ratio: "Moins de 0,3 % d'un projet TMS à 60 k€, pour éviter un moteur tarifaire qui ne sait pas lire vos grilles.",
     figures: [
@@ -125,7 +125,7 @@ export const KITS = [
     highlights: ['158 exigences commentées', 'Facturation électronique 2026 et 2027', 'Stratégie de reprise des données', 'Plan de recette en 50 cas'],
     h1: 'Toute votre consultation ERP, du cahier des charges au contrat',
     lead: "Le cahier des charges qui fait chiffrer éditeurs et intégrateurs sur la même base, de la commande client à la clôture mensuelle, et les outils pour juger leurs réponses, négocier le contrat et recetter la solution.",
-    audience: "Il est conçu pour les PME industrielles, de négoce et de distribution, de 10 à 100 utilisateurs environ, sans service achats ni grande DSI. Les domaines hors de votre périmètre (production, e-commerce, multisociétés) se suppriment en quelques minutes.",
+    audience: "Il convient aux entreprises industrielles, de négoce et de distribution de toutes tailles, et il a été pensé d'abord pour celles qui n'ont ni service achats ni grande DSI. Les domaines hors de votre périmètre (production, e-commerce, multisociétés) se suppriment en quelques minutes.",
     fill: 'Trois à cinq jours de travail, surtout pour décrire vos processus réels et préparer la reprise des données. Les 158 exigences sont déjà rédigées : il reste à ajuster les priorités.',
     ratio: "Moins de 0,2 % d'un projet ERP à 100 k€, pour éviter les avenants qui en coûtent des dizaines de milliers.",
     figures: [
@@ -165,7 +165,7 @@ export const KITS = [
     highlights: ['136 exigences commentées', 'Test de prévision à l’aveugle', 'Échelle de maturité en 5 niveaux', 'Plan de recette en 48 cas'],
     h1: 'Toute votre consultation S&OP et planification, sur des preuves mesurées',
     lead: "Le cahier des charges qui fait chiffrer les éditeurs de prévision et de planification sur la même base, et un test à l'aveugle qui mesure leur promesse sur vos propres ventes avant de signer.",
-    audience: "Il est conçu pour les PME industrielles et de distribution qui veulent aligner ventes, production, achats et finance sur un plan unique, sans équipe de planification dédiée. Les blocs hors de votre périmètre (distribution, ordonnancement) se suppriment en quelques minutes.",
+    audience: "Il convient aux industriels et distributeurs de toutes tailles qui veulent aligner ventes, production, achats et finance sur un plan unique, y compris sans équipe de planification dédiée. Les blocs hors de votre périmètre (distribution, ordonnancement) se suppriment en quelques minutes.",
     fill: "Trois à quatre jours de travail, plus la préparation du jeu de données du test à l'aveugle. Les 136 exigences sont déjà rédigées : il reste à ajuster les priorités.",
     ratio: "Moins de 0,2 % d'un projet de planification à 80 k€, pour acheter une précision mesurée plutôt qu'une promesse.",
     figures: [
@@ -205,7 +205,7 @@ export const KITS = [
     highlights: ['158 exigences commentées', 'Performances et disponibilité garanties', 'Coût et retour sur 10 ans', '46 essais de réception'],
     h1: "Toute votre consultation d'automatisation, de la simulation à la réception",
     lead: "Le cahier des charges qui fait chiffrer les intégrateurs sur vos données et vos performances, quelle que soit leur technologie favorite, et les outils pour comparer sur 10 ans, négocier les garanties et réceptionner l'installation.",
-    audience: "Il est conçu pour les PME dont l'entrepôt étudie un stockage automatisé, des postes marchandise vers opérateur, du convoyage et du tri, des robots mobiles ou une fin de ligne automatique. Les technologies qui ne vous concernent pas se suppriment en quelques minutes.",
+    audience: "Il convient à tout entrepôt, de la PME au groupe, qui étudie un stockage automatisé, des postes marchandise vers opérateur, du convoyage et du tri, des robots mobiles ou une fin de ligne automatique. Les technologies qui ne vous concernent pas se suppriment en quelques minutes.",
     fill: "Deux à quatre semaines, surtout pour préparer les 16 fichiers de dimensionnement. Les 158 exigences sont déjà rédigées : il reste à ajuster les priorités et à isoler votre jour de pointe.",
     ratio: "Moins de 0,05 % d'une installation à 300 k€, pour obtenir des performances garanties par écrit.",
     figures: [
@@ -245,7 +245,7 @@ export const KITS = [
     highlights: ['138 exigences commentées', '14 parcours omnicanaux', 'Règles simulées sur vos commandes', 'Plan de recette en 46 cas'],
     h1: 'Toute votre consultation OMS, du stock unifié au contrat',
     lead: "Le cahier des charges qui fait chiffrer les éditeurs d'OMS sur la même base, de la promesse de livraison à l'expédition depuis les magasins, et une simulation de leurs règles d'affectation sur vos propres commandes.",
-    audience: "Il est conçu pour les PME, enseignes et marques qui vendent en ligne, sur places de marché et en magasins, et veulent expédier, retirer et reprendre partout. Les parcours hors de votre périmètre se suppriment en quelques minutes.",
+    audience: "Il convient aux enseignes et marques de toutes tailles qui vendent en ligne, sur places de marché et en magasins, et veulent expédier, retirer et reprendre partout. Les parcours hors de votre périmètre se suppriment en quelques minutes.",
     fill: "Deux à trois jours de travail, plus l'extraction de 3 mois de commandes anonymisées. Les 138 exigences sont déjà rédigées : il reste à ajuster les priorités.",
     ratio: "Moins de 0,2 % d'un projet OMS à 80 k€, pour ne pas découvrir les limites de l'outil le jour du Black Friday.",
     figures: [
@@ -285,7 +285,7 @@ export const KITS = [
     highlights: ['130 exigences commentées', '30 indicateurs définis avec formules', 'Analyse de votre fichier articles', 'Plan de recette en 45 cas'],
     h1: 'Toute votre consultation données et pilotage, de la gouvernance au contrat',
     lead: "Le cahier des charges qui fait chiffrer éditeurs de référentiels et de décisionnel sur la même base, un dictionnaire de 30 indicateurs prêt à l'emploi, et l'analyse de votre vrai fichier articles pendant la consultation.",
-    audience: "Il est conçu pour les PME qui veulent fiabiliser articles et tiers avant un projet ERP ou WMS, ou partager enfin les mêmes indicateurs. Vous pouvez consulter sur les référentiels, sur le pilotage ou sur les deux.",
+    audience: "Il convient à toute entreprise qui veut fiabiliser articles et tiers avant un projet ERP ou WMS, ou partager enfin les mêmes indicateurs. Vous pouvez consulter sur les référentiels, sur le pilotage ou sur les deux.",
     fill: "Deux à trois jours de travail, surtout pour valider le dictionnaire d'indicateurs avec chaque propriétaire. Les 130 exigences sont déjà rédigées : il reste à ajuster les priorités.",
     ratio: "Moins de 0,3 % d'un projet à 60 k€, pour démarrer vos prochains projets sur des données justes.",
     figures: [

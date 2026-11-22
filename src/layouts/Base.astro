@@ -17,7 +17,7 @@ interface Props {
 const { title, description, dock = true, jsonLd } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const path = Astro.url.pathname;
-const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain en PME : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
+const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
 const nav = [
   { href: '/logiciels/', label: 'Logiciels' },
   { href: '/conseil/', label: 'Conseil' },
