@@ -2,7 +2,8 @@
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
-import { SIM_LIST } from '../lib/sims.js';
+import { SIM_LIST, defaults as simDefaults, simulate as simRun, money as simMoney } from '../lib/sims.js';
+const est = Object.fromEntries(SIM_LIST.map((m) => { const d = simDefaults(m); const r = simRun(m, d.i, d.a); return [m.sw, { slug: m.slug, code: m.code, budget: `${simMoney(r.low)} à ${simMoney(r.high)}`, pay: r.breakEven ? `${r.breakEven} mois` : `Au-delà de ${m.horizon} ans` }]; }));
 const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
 const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
@@ -162,12 +163,13 @@ const jsonLd = {
                     <span class="lbl-ref"><Fragment set:html={bars(s.slug)} /><span>Réf. KIT-{s.code.replace('&', '')}</span></span>
                   </div>
                   <span class="ans-t">{s.long}</span>
-                  <dl class="ans-facts">
-                    <div><dt>Budget</dt><dd>{s.budget}</dd></div>
-                    <div><dt>Délai</dt><dd>{s.delay}</dd></div>
+                  <dl class="ans-facts" data-est={est[s.slug].slug}>
+                    <div><dt>Budget estimé</dt><dd data-k="budget">{est[s.slug].budget}</dd></div>
+                    <div><dt>Rentabilisé en</dt><dd data-k="pay">{est[s.slug].pay}</dd></div>
                   </dl>
+                  <a class="ans-adj" href="#simus"><span data-k="note">Profil type.</span> Ajuster à vos volumes</a>
                   <a class="btn btn-gold ans-cta" href={`/kits/${k.page}/`}>Le kit {s.code}, {SITE.kitPrice}</a>
-                  <p class="ans-more"><a href={`/simulateurs/${SIM_LIST.find((m) => m.sw === s.slug)!.slug}/`}>Simuler mon budget</a> ou <a href={bookHref}>parler 30 min à un expert</a></p>
+                  <p class="ans-more"><a href={bookHref}>Parler 30 min à un expert</a> ou <a href={`/logiciels/${s.slug}/`}>lire le guide</a></p>
                 </div>
               );
             })}
@@ -187,11 +189,11 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="simshow" aria-labelledby="titre-simus">
+  <section class="simshow" id="simus" aria-labelledby="titre-simus">
     <div class="wrap">
       <div class="sec-head">
         <h2 id="titre-simus" class="h2 sr-up">Sept simulateurs. Votre budget en deux minutes.</h2>
-        <p class="lead sr-up lag1">Budget poste par poste, délai et point mort, calculés sur des sources publiées. Essayez ici, affinez ensuite.</p>
+        <p class="lead sr-up lag1" id="simus-lead">Budget poste par poste, délai et point mort, calculés sur des sources publiées. Essayez ici, affinez ensuite.</p>
       </div>
       <div class="ms-pills sr-up" role="tablist" aria-label="Choisir un simulateur">
         {SIM_LIST.map((m, n) => <button type="button" role="tab" class={`ms-pill ${n === 0 ? 'is-on' : ''}`} data-sim={m.slug} aria-selected={n === 0 ? 'true' : 'false'}>{m.code}</button>)}
@@ -205,9 +207,11 @@ const jsonLd = {
           <span class="ms-k">Budget de mise en place</span>
           <span class="ms-big" id="ms-budget"></span>
           <span class="ms-tier" id="ms-tier"></span>
+          <div class="ms-bar" id="ms-bar" aria-hidden="true"></div>
           <div class="ms-row">
             <div><span class="ms-k">Délai</span><strong id="ms-delay"></strong></div>
-            <div><span class="ms-k">Retour sur investissement</span><strong id="ms-pay"></strong></div>
+            <div><span class="ms-k">Coût annuel</span><strong id="ms-rec"></strong></div>
+            <div><span class="ms-k">Rentabilisé en</span><strong id="ms-pay"></strong></div>
           </div>
           <a class="btn ms-cta" id="ms-cta" href="/simulateurs/wms/">Affiner dans le simulateur complet</a>
         </div>
@@ -359,7 +363,7 @@ const jsonLd = {
   const msFields = document.getElementById('ms-fields');
   if (msFields) {
     const nf = new Intl.NumberFormat('fr-FR');
-    let cur = 'wms'; let vals: Record<string, number> = {};
+    let cur = 'wms'; let vals: Record<string, number> = {}; const saved: Record<string, Record<string, number>> = {};
     const fromPos = (f: any, p: number) => { if (!f.log) return p; const v = f.min * Math.pow(f.max / f.min, p / 1000); const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1)); const st = Math.max(f.step, mag); return Math.min(f.max, Math.max(f.min, Math.round(v / st) * st)); };
     const toPos = (f: any, v: number) => (f.log ? Math.round((1000 * Math.log(v / f.min)) / Math.log(f.max / f.min)) : v);
     const draw = () => {
@@ -368,22 +372,44 @@ const jsonLd = {
       document.getElementById('ms-budget')!.textContent = `${money(r.low)} à ${money(r.high)}`;
       document.getElementById('ms-tier')!.textContent = r.tier.name;
       document.getElementById('ms-delay')!.textContent = `${Math.round(r.months[0])} à ${Math.round(r.months[1])} mois`;
-      document.getElementById('ms-pay')!.textContent = r.breakEven ? `${r.breakEven} mois` : `Au-delà de ${m.horizon} ans`;
+      const pay = r.breakEven ? `${r.breakEven} mois` : `Au-delà de ${m.horizon} ans`;
+      document.getElementById('ms-pay')!.textContent = pay;
+      document.getElementById('ms-rec')!.textContent = r.recurring > 0 ? `${money(r.recurring)} par an` : 'Aucun';
+      const cols = ['#2448f5', '#6f8bff', '#a9b8ff', '#d7defd', '#8e8e93', '#48484a', '#c7c7cc'];
+      document.getElementById('ms-bar')!.innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<span title="${p[0]}" style="width:${((p[1] / r.initial) * 100).toFixed(2)}%;background:${cols[n % cols.length]}"></span>`).join('');
+      // L'étiquette de l'orientation reprend la même estimation : une seule source de vérité
+      const lab = document.querySelector<HTMLElement>(`.ans-facts[data-est="${m.slug}"]`);
+      if (lab) {
+        lab.querySelector('[data-k="budget"]')!.textContent = `${money(r.low)} à ${money(r.high)}`;
+        lab.querySelector('[data-k="pay"]')!.textContent = pay;
+        const note = lab.parentElement!.querySelector('[data-k="note"]'); if (note && saved[cur]) note.textContent = 'Selon vos volumes.';
+      }
       const q = new URLSearchParams(); Object.entries(vals).forEach(([k, v]) => q.set(k, String(v)));
       (document.getElementById('ms-cta') as HTMLAnchorElement).href = `/simulateurs/${m.slug}/?${q.toString()}`;
     };
     const build = () => {
-      const m = SIMS[cur]; vals = {};
+      const m = SIMS[cur]; vals = { ...(saved[cur] || {}) };
       document.getElementById('ms-name')!.textContent = m.title;
       const fs = m.fields.filter((f: any) => f.type === 'range').slice(0, 2);
-      msFields.innerHTML = fs.map((f: any) => `<div class="ms-f"><div class="ms-fh"><label for="ms-${f.id}">${f.label}</label><output id="mo-${f.id}"></output></div><input type="range" id="ms-${f.id}" data-id="${f.id}" min="${f.log ? 0 : f.min}" max="${f.log ? 1000 : f.max}" step="${f.log ? 1 : f.step}" value="${toPos(f, f.value)}"></div>`).join('');
+      msFields.innerHTML = fs.map((f: any) => `<div class="ms-f"><div class="ms-fh"><label for="ms-${f.id}">${f.label}</label><output id="mo-${f.id}"></output></div><input type="range" id="ms-${f.id}" data-id="${f.id}" min="${f.log ? 0 : f.min}" max="${f.log ? 1000 : f.max}" step="${f.log ? 1 : f.step}" value="${toPos(f, vals[f.id] ?? f.value)}"></div>`).join('');
       const upd = () => { fs.forEach((f: any) => { const v = fromPos(f, Number((document.getElementById(`ms-${f.id}`) as HTMLInputElement).value)); vals[f.id] = v; document.getElementById(`mo-${f.id}`)!.textContent = `${nf.format(v)} ${f.unit}`; }); draw(); };
-      msFields.oninput = upd; upd();
+      msFields.oninput = () => { upd(); saved[cur] = { ...vals }; draw(); }; upd();
     };
-    document.querySelectorAll<HTMLButtonElement>('.ms-pill').forEach((b) => b.addEventListener('click', () => {
-      document.querySelectorAll('.ms-pill').forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-selected', String(x === b)); });
-      cur = b.dataset.sim!; build();
-    }));
+    const select = (slug: string) => {
+      if (!SIMS[slug]) return;
+      document.querySelectorAll('.ms-pill').forEach((x) => { const on = (x as HTMLElement).dataset.sim === slug; x.classList.toggle('is-on', on); x.setAttribute('aria-selected', String(on)); });
+      cur = slug; build();
+    };
+    document.querySelectorAll<HTMLButtonElement>('.ms-pill').forEach((b) => b.addEventListener('click', () => select(b.dataset.sim!)));
+    // Le choix fait dans l'orientation prépare le simulateur de la même famille
+    const title = document.getElementById('titre-simus')!; const lead = document.getElementById('simus-lead')!;
+    document.addEventListener('malaheim:choice', (e: Event) => {
+      const sim = (e as CustomEvent).detail as string | null;
+      if (!sim || !SIMS[sim]) return;
+      select(sim);
+      title.textContent = `Votre projet ${SIMS[sim].code}, chiffré en direct.`;
+      lead.textContent = 'Ajustez vos volumes : le budget, le délai et le point mort se recalculent, et l’étiquette du haut de page suit. Le simulateur complet détaille chaque poste.';
+    });
     build();
   }
 
@@ -399,6 +425,8 @@ const jsonLd = {
     answers.forEach((a) => { a.hidden = a.dataset.for !== slug; });
     btns.forEach((b) => { const on = b.dataset.for === slug; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
     light(slug, 'is-on');
+    const fact = document.querySelector<HTMLElement>(`.answer[data-for="${slug}"] .ans-facts`);
+    document.dispatchEvent(new CustomEvent('malaheim:choice', { detail: fact ? fact.dataset.est : null }));
     if (scroll && panel && window.matchMedia('(max-width: 1180px)').matches) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   btns.forEach((b) => b.addEventListener('click', () => { show(b.dataset.for!, true); history.replaceState(null, '', `#${b.dataset.for}`); }));
@@ -503,6 +531,8 @@ const jsonLd = {
   .ans-facts div { background: var(--pearl); border-radius: 10px; padding: 8px 10px; }
   .ans-facts dt { font-size: 11px; color: var(--dim); }
   .ans-facts dd { margin: 2px 0 0; font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .ans-adj { margin-top: -4px; font-size: 13px; font-weight: 500; }
+  .ans-adj span { color: var(--dim); font-weight: 400; }
   .ans-cta { justify-content: center; text-align: center; }
   .ans-more { margin: 0; font-size: 13px; color: var(--dim); text-align: center; }
   .ans-steps { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-direction: column; gap: 9px; }
@@ -527,7 +557,7 @@ const jsonLd = {
   }
 
   /* Démonstration des simulateurs */
-  .simshow { background: var(--pearl); padding-block: 120px; }
+  .simshow { background: var(--pearl); padding-block: 120px; scroll-margin-top: 40px; }
   .ms-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; width: fit-content; max-width: 100%; margin: 0 auto 28px; padding: 5px; border-radius: 999px; background: #e8e8ed; }
   .ms-pill { font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; transition: background-color .3s, color .3s; }
   .ms-pill.is-on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
@@ -548,9 +578,12 @@ const jsonLd = {
   .ms-k { display: block; font-size: 13px; color: rgba(255,255,255,.55); }
   .ms-big { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 5vw, 68px); line-height: 1; letter-spacing: -0.055em; font-variant-numeric: tabular-nums; }
   .ms-tier { font-size: 15px; color: rgba(255,255,255,.7); }
-  .ms-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 10px; }
+  .ms-bar { display: flex; gap: 2px; height: 8px; margin-top: 14px; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,.08); }
+  .ms-bar :global(span) { display: block; height: 100%; transition: width .6s var(--ease); }
+  .ms-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 10px; }
   .ms-row div { background: rgba(255,255,255,.08); border-radius: 18px; padding: 14px 16px; }
-  .ms-row strong { display: block; margin-top: 2px; font-size: 20px; letter-spacing: -0.02em; }
+  .ms-row strong { display: block; margin-top: 2px; font-size: 17px; letter-spacing: -0.02em; }
+  @media (max-width: 480px) { .ms-row { grid-template-columns: 1fr 1fr; } }
   .ms-cta { align-self: flex-start; background: #fff !important; color: #000 !important; }
   .ms-cta:hover { background: #fff !important; color: #000 !important; }
   .ms-all { margin: 28px 0 0; text-align: center; font-size: 17px; font-weight: 500; }
