@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
 import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
 const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
@@ -136,7 +137,7 @@ const jsonLd = {
 
         <div class="reponse" id="reponse" aria-live="polite">
           <div class="lbl-head" aria-hidden="true">
-            <div><span>Expéditeur</span><strong>Malaheim Consulting</strong></div>
+            <div class="lbl-from"><span>Expéditeur</span><strong><Logo variant="mark" />Malaheim Consulting</strong></div>
             <div><span>Destinataire</span><strong>Votre entreprise</strong></div>
           </div>
           <div class="answer" data-for="none">
@@ -324,6 +325,7 @@ const jsonLd = {
   <section aria-labelledby="titre-final" class="final">
     <div class="wrap">
       <div class="final-in sr-zoom">
+        <span class="final-mark" aria-hidden="true"><Logo variant="mark" /></span>
         <div class="stack" style="gap: 18px; flex: 1 1 460px">
           <h2 id="titre-final" class="h2" style="color: #fff">Votre projet supply chain démarre dans les 12 prochains mois ?</h2>
           <p style="margin: 0; font-size: 19px; color: #c8d2ea; max-width: 32em">Commencez par la bonne question. L'orientation prend une minute, l'appel de cadrage trente.</p>
@@ -439,7 +441,8 @@ const jsonLd = {
   .lbl-head div { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; }
   .lbl-head div + div { border-left: 1.5px solid var(--ink); }
   .lbl-head span { font-size: 11.5px; color: var(--dim); }
-  .lbl-head strong { font-size: 13.5px; font-stretch: 90%; color: var(--ink); }
+  .lbl-head strong { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-stretch: 90%; color: var(--ink); line-height: 1.15; }
+  .lbl-head strong :global(.logo-mark) { flex: none; width: 26px; height: auto; }
   .answer[hidden] { display: none !important; }
   .answer { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 18px; }
   .answer:not([data-for='none']) { animation: print .7s cubic-bezier(.2,.8,.2,1) both; }
@@ -534,7 +537,9 @@ const jsonLd = {
 
   /* Appel final */
   .final { padding-block: 96px 140px; }
-  .final-in { display: flex; flex-wrap: wrap; gap: 32px 56px; align-items: center; padding: 56px; border-radius: 16px; background: radial-gradient(120% 120% at 0% 0%, #1d3266 0%, #13213a 60%); box-shadow: 0 40px 80px -40px rgba(19,33,58,.7); }
+  .final-in { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-wrap: wrap; gap: 32px 56px; align-items: center; padding: 56px; border-radius: 16px; background: radial-gradient(120% 120% at 0% 0%, #1d3266 0%, #13213a 60%); box-shadow: 0 40px 80px -40px rgba(19,33,58,.7); }
+  .final-mark { position: absolute; right: -60px; bottom: -70px; width: 460px; color: #fff; opacity: .05; z-index: -1; pointer-events: none; }
+  .final-mark :global(.logo-mark) { width: 100%; height: auto; display: block; }
   .btn-ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35); }
   .btn-ghost:hover { color: #fff; border-color: #fff; transform: translateY(-1px); }
 

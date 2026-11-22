@@ -20,6 +20,7 @@ const nav = [
   { href: '/guides/', label: 'Guides' },
   { href: '/a-propos/', label: 'À propos' },
 ];
+import Logo from '../components/Logo.astro';
 ---
 <!doctype html>
 <html lang="fr">
@@ -50,9 +51,8 @@ const nav = [
   <a class="skip" href="#contenu">Aller au contenu</a>
   <header class="topbar">
     <div class="wrap topbar-in">
-      <a class="brand" href="/">
-        <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="6" fill="#2448f5"></rect><g fill="#fff"><rect x="7" y="8" width="9" height="7" rx="1"></rect><rect x="18" y="8" width="9" height="7" rx="1"></rect><rect x="7" y="19" width="9" height="7" rx="1"></rect></g><rect x="18" y="19" width="9" height="7" rx="1" fill="none" stroke="#fff" stroke-width="1.6"></rect></svg>
-        <span>{SITE.name}</span>
+      <a class="brand" href="/" aria-label="Malaheim Consulting, accueil">
+        <Logo variant="lockup" />
       </a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
       <nav class="nav" id="nav" aria-label="Navigation principale">
@@ -70,7 +70,7 @@ const nav = [
 
   <footer class="footer">
     <div class="wrap footer-in">
-      <span>© {new Date().getFullYear()} {SITE.company}. Chiffrages indicatifs en euros hors taxes.</span>
+      <div class="foot-brand"><Logo variant="full" /><span>© {new Date().getFullYear()} {SITE.company}. Chiffrages indicatifs en euros hors taxes.</span></div>
       <nav aria-label="Liens légaux">
         <a href="/accompagnement/">Tarifs</a>
         <a href="/mentions-legales/">Mentions légales</a>

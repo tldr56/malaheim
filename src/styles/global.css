@@ -365,3 +365,11 @@ a:hover { color: var(--cobalt-dark); }
   font-weight: 780 !important; font-stretch: 116% !important; letter-spacing: -0.025em !important;
 }
 .ans-big { font-weight: 700 !important; font-stretch: 108% !important; }
+
+/* Logo */
+.brand { color: var(--ink) !important; gap: 0 !important; }
+.brand .logo { display: block; height: 44px; width: auto; transition: opacity .2s; }
+.brand:hover .logo { opacity: .8; }
+@media (max-width: 420px) { .brand .logo { height: 36px; } }
+.foot-brand { display: flex; align-items: center; gap: 20px; }
+.foot-brand .logo-full { height: 64px; width: auto; color: var(--ink); flex: none; }
