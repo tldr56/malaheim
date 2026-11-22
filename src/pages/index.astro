@@ -3,25 +3,22 @@ import Base from '../layouts/Base.astro';
 import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
 const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
-const words = ['WMS', 'TMS', 'S&OP', 'ERP', 'OMS', 'data'];
+const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
+const short: Record<string, string> = {
+  wms: "Mon stock est faux et les erreurs de préparation s'accumulent",
+  tms: 'Mes coûts de transport dérapent',
+  erp: 'Mes outils de gestion ne se parlent plus',
+  'automatisation-wcs': 'Mon entrepôt sature et je manque de bras',
+  oms: 'Je vends sur plusieurs canaux et je promets mal les délais',
+  'sop-planification': "J'ai des ruptures et des surstocks en même temps",
+  'donnees-pilotage': 'Mes données sont fausses, chacun a ses propres chiffres',
+};
+const pains = [...SOFTWARE.map((s) => ({ slug: s.slug, code: s.code, t: short[s.slug] })), { slug: 'autre', code: '?', t: "J'ai plusieurs problèmes, ou je ne sais pas par où commencer" }];
 const ticker = ["Gestion d'entrepôt", 'Transport', 'S&OP', 'ERP', 'Commandes omnicanal', 'Automatisation', 'Données de référence', 'Tour de contrôle', 'Recette', 'Conduite du changement', 'Schéma directeur', 'Intégration d’usines'];
-const facts = [
-  { t: "Un projet WMS coûte de 60 k€ à plus d'un million d'euros, et la licence en représente rarement plus d'un tiers.", s: 'Guide Malaheim, prix d’un WMS', href: '/guides/prix-wms/' },
-  { t: 'Sur dix éditeurs de TMS vérifiés en août 2026, aucun ne publiait ses prix.', s: 'Logiciels.pro', href: '/logiciels/tms/' },
-  { t: 'Un projet ERP avec intégrateur dure 3 à 6 mois pour une PME simple, 9 à 18 mois pour une ETI multi-sites.', s: 'Cegid', href: '/logiciels/erp/' },
-  { t: "La conduite du changement pèse entre 15 et 30 % d'un projet ERP.", s: 'Cegid, d’après Prosci', href: '/logiciels/erp/' },
-  { t: "Un projet de 25 robots mobiles représente environ 650 000 €, dont 120 000 € d'intégration et d'ingénierie.", s: 'Cleverence', href: '/logiciels/automatisation-wcs/' },
-];
-const services = [
-  { t: 'Diagnostic digital supply chain', d: 'Ce qui bloque, les gains rapides, les chantiers structurants.' },
-  { t: 'Schéma directeur des systèmes', d: 'Quels outils, dans quel ordre, pour quel budget.' },
-  { t: 'Sélection de logiciels', d: 'Du cahier des charges au contrat négocié.' },
-  { t: 'Direction de projets SI', d: 'Déploiements, intégrations d’usines, montées de version.' },
-];
 const faq = [
   { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateurs, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
   { q: 'Quels kits de consultation proposez-vous ?', a: "Sept kits, un par famille de logiciels : WMS, TMS, ERP, S&OP et planification, automatisation et WCS, OMS, données et pilotage. Chacun contient un cahier des charges de 130 à 268 exigences, des scénarios de démonstration, une grille de dépouillement, une check-list contractuelle en 30 points et un plan de recette." },
-  { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Par l'orientation de cette page : choisissez la situation qui vous ressemble le plus. Si plusieurs vous ressemblent, réservez un appel gratuit de 30 minutes." },
+  { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Cliquez en haut de cette page sur le problème qui vous ressemble le plus. Si plusieurs vous ressemblent, choisissez la dernière case : un appel gratuit de 30 minutes suffit pour trouver le premier chantier." },
   { q: "Le site s'adresse-t-il aux grandes entreprises ?", a: "Il est pensé pour les PME. Les grands groupes ont des services achats et des cabinets pour leurs appels d'offres ; une PME doit souvent choisir avec un dirigeant et un responsable logistique. Les kits font ce travail d'équipe, à un prix de PME." },
   { q: "Combien coûte l'accompagnement ?", a: `Le kit coûte ${SITE.kitPrice}. La relecture de votre cahier des charges coûte ${SITE.reviewPrice}, prix du kit déduit. Au-delà, l'accompagnement est facturé ${SITE.hourlyRate} de l'heure, au temps réellement passé, avec une estimation écrite avant de commencer.` },
   { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
@@ -40,51 +37,65 @@ const jsonLd = {
 ---
 <Base title="Accueil" description="Malaheim aide les PME à choisir le bon logiciel supply chain (WMS, TMS, S&OP, ERP, OMS, données) sans service achats : budgets réels, kits de consultation à 149 € HT, expert à l'heure." jsonLd={jsonLd}>
 
-  <section class="wrap hero" aria-labelledby="titre-accueil">
+  <section id="orientation" class="wrap hero" aria-labelledby="titre-accueil">
     <div class="stack hero-text">
-      <p class="eyebrow rise">Pour les PME : logiciels et transformation digitale de la supply chain</p>
-      <h1 id="titre-accueil" class="h1 hero-title">
-        <span class="sr-only">Votre projet de logiciel supply chain commence ici.</span>
-        <span class="line rise d1" aria-hidden="true">Votre projet</span>
-        <span class="line rise d2" aria-hidden="true">
-          <span class="rotator" id="rotator">
-            {words.map((w, i) => <span class={`rot grad ${i === 0 ? 'is-on' : ''}`}>{w}</span>)}
-          </span>
-        </span>
-        <span class="line rise d3" aria-hidden="true">commence ici.</span>
-      </h1>
-      <p class="lead rise d4">Pas de service achats, pas d'équipe projet ? Malaheim donne aux PME les budgets réels, la méthode et les documents pour choisir seules le bon logiciel supply chain, et un expert à l'heure quand il le faut.</p>
-      <div class="doors-cta rise d5">
-        <a class="btn btn-gold btn-lg" href="#orientation">Je cherche un logiciel <span class="arrow" aria-hidden="true">→</span></a>
-        <a class="btn btn-line btn-lg" href="/conseil/">Je veux être conseillé</a>
-      </div>
-      <ul class="trust rise d5">
-        <li><Fragment set:html={check} />Orientation gratuite</li>
-        <li><Fragment set:html={check} />Pensé pour les PME</li>
-        <li><Fragment set:html={check} />Indépendant des éditeurs</li>
-      </ul>
+      <p class="eyebrow rise">Pour les dirigeants de PME</p>
+      <h1 id="titre-accueil" class="h1 hero-title rise d1">Quel est votre problème&#8239;?</h1>
+      <p class="lead rise d2">Cliquez sur celui qui vous ressemble. Vous voyez tout de suite le logiciel qu'il vous faut, ce qu'il coûte, et comment le choisir sans service achats.</p>
     </div>
 
-    <div class="floats" aria-label="Exemples de résultats">
-      <div class="card fl fl-1">
-        <span class="fl-k">Estimation WMS, 25 opérateurs</span>
-        <span class="fl-big num">171 à 278 k€</span>
-        <div class="bar" aria-hidden="true"><span style="width: 43%; background: #d9a441"></span><span style="width: 22%; background: #7fb88a"></span><span style="width: 19%; background: #8fb6d4"></span><span style="width: 16%; background: #e8a06a"></span></div>
-        <span class="fl-s">Amorti en 19 mois</span>
+    <div class="pick">
+      <div class="tiles" role="group" aria-label="Votre problème">
+        {pains.map((p, i) => (
+          <button type="button" class={`card tile-btn rise d${Math.min(i + 2, 5)}`} data-for={p.slug} aria-pressed="false" aria-controls="reponse">
+            <span class="tb-code">{p.code}</span>
+            <span class="tb-t">{p.t}</span>
+            <span class="tb-go" aria-hidden="true">→</span>
+          </button>
+        ))}
       </div>
-      <div class="card fl fl-2">
-        <span class="code">TMS</span>
-        <span class="fl-mid">40 à 120 € HT</span>
-        <span class="fl-s">par utilisateur et par mois en PME</span>
-      </div>
-      <div class="card fl fl-3">
-        <div class="row" style="gap: 8px; align-items: center"><span class="code">KIT</span><span class="pill-on">Disponible</span></div>
-        <span class="fl-mid">268 exigences</span>
-        <span class="fl-s">commentées par un expert</span>
-      </div>
-      <div class="card fl fl-4">
-        <span class="code">S&amp;OP</span>
-        <span class="fl-s" style="color: var(--text-strong); font-weight: 600">Processus d'abord, outil ensuite</span>
+
+      <div class="card reponse rise d3" id="reponse" aria-live="polite">
+        <div class="answer" data-for="none">
+          <span class="ans-k">Votre réponse s'affiche ici</span>
+          <p class="ans-big">Un clic sur votre problème, et vous savez quoi faire.</p>
+          <ul class="ans-steps">
+            <li><strong>{SITE.kitPrice}</strong><span>le kit pour choisir seul, sans service achats</span></li>
+            <li><strong>{SITE.reviewPrice}</strong><span>la relecture experte de votre cahier des charges</span></li>
+            <li><strong>{SITE.hourlyRate} / h</strong><span>un expert à l'heure, au temps réellement passé</span></li>
+          </ul>
+          <ul class="trust">
+            <li><Fragment set:html={check} />Indépendant des éditeurs</li>
+            <li><Fragment set:html={check} />Satisfait ou remboursé 14 jours</li>
+          </ul>
+        </div>
+        {SOFTWARE.map((s) => {
+          const k = KITS.find((x) => x.sw === s.slug)!;
+          return (
+            <div class="answer" data-for={s.slug} hidden>
+              <span class="ans-k">Il vous faut</span>
+              <div class="row" style="align-items: center; gap: 10px">
+                <span class="code">{s.code}</span>
+                <span class="ans-t">{s.long}</span>
+              </div>
+              <p class="ans-d">{s.does}.</p>
+              <div class="row" style="gap: 10px">
+                <div class="tile" style="flex: 1 1 150px"><div class="tile-k">Budget indicatif</div><div class="tile-v small">{s.budget}</div></div>
+                <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Délai</div><div class="tile-v small">{s.delay}</div></div>
+              </div>
+              <a class="btn btn-gold ans-cta" href={`/kits/${k.page}/`}>Le kit pour choisir votre {s.code}, {SITE.kitPrice} <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="btn btn-line ans-cta" href={bookHref}>Parler 30 min à un expert, gratuit</a>
+              <p class="ans-more"><a href={`/logiciels/${s.slug}/`}>Lire d'abord le guide gratuit</a>{s.status === 'complet' && <> ou <a href="/simulateur-wms/">estimer mon budget</a></>}</p>
+            </div>
+          );
+        })}
+        <div class="answer" data-for="autre" hidden>
+          <span class="ans-k">Commençons par en parler</span>
+          <p class="ans-big">Plusieurs problèmes à la fois, c'est le cas le plus courant.</p>
+          <p class="ans-d">En 30 minutes au téléphone, on identifie ce qui coûte le plus cher aujourd'hui et le premier chantier à lancer. Gratuit et sans engagement.</p>
+          <a class="btn btn-gold ans-cta" href={bookHref}>Réserver un appel gratuit de 30 min <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-line ans-cta" href="/conseil/">Voir le conseil à l'heure</a>
+        </div>
       </div>
     </div>
   </section>
@@ -97,42 +108,6 @@ const jsonLd = {
           {ticker.map((t) => <span class="tick">{t}<i class="dot"></i></span>)}
         </div>
       ))}
-    </div>
-  </section>
-
-  <section class="section" aria-labelledby="titre-portes">
-    <div class="wrap stack" style="gap: 40px">
-      <div class="stack center" style="gap: 14px">
-        <p class="eyebrow sr-down">Deux portes d'entrée</p>
-        <h2 id="titre-portes" class="h2 sr-up" style="max-width: 16em">Un logiciel à choisir, ou une transformation à conduire ?</h2>
-      </div>
-      <div class="row doors">
-        <div class="card door sr-left">
-          <span class="door-k">Porte 1</span>
-          <h3 class="door-t">Je cherche un logiciel</h3>
-          <p class="door-d">Le bon type de logiciel, son budget réel, la méthode pour le choisir et les documents pour consulter les éditeurs.</p>
-          <div class="sw-grid">
-            {SOFTWARE.map((s) => (
-              <a class="sw" href={`/logiciels/${s.slug}/`}>
-                <span class="code">{s.code}</span>
-                <span class="sw-n">{s.name}</span>
-              </a>
-            ))}
-          </div>
-          <a class="btn btn-gold" href="/logiciels/" style="align-self: flex-start">Comparer les logiciels <span class="arrow" aria-hidden="true">→</span></a>
-        </div>
-        <div class="card door door-2 sr-right">
-          <span class="door-k">Porte 2</span>
-          <h3 class="door-t">Je veux être conseillé</h3>
-          <p class="door-d">Un expert indépendant, à l'heure et au temps réellement passé, pour construire la feuille de route, choisir les outils et les déployer jusqu'à leur adoption.</p>
-          <ul class="svc-list">
-            {services.map((s, i) => (
-              <li><span class="svc-i">{String(i + 1).padStart(2, '0')}</span><span><strong>{s.t}</strong><br /><span class="dim">{s.d}</span></span></li>
-            ))}
-          </ul>
-          <a class="btn btn-amber" href="/conseil/" style="align-self: flex-start">Découvrir le conseil <span class="arrow" aria-hidden="true">→</span></a>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -166,56 +141,16 @@ const jsonLd = {
     </div>
   </section>
 
-  <section id="orientation" class="section section-alt" aria-labelledby="titre-orient">
-    <div class="wrap row orient-in">
-      <div class="stack sr-left" style="flex: 1 1 360px; gap: 18px">
-        <p class="eyebrow">Orientation en une minute</p>
-        <h2 id="titre-orient" class="h2">Que recherchez&#8209;vous ?</h2>
-        <p class="lead" style="font-size: 17px">Choisissez la situation qui vous ressemble le plus. Nous vous indiquons le type de logiciel, son budget, son délai et la suite à donner.</p>
-        <div class="card fact" id="facts" aria-live="polite">
-          <span class="fact-k">Le saviez-vous ?</span>
-          {facts.map((f, i) => (
-            <div class={`fact-item ${i === 0 ? 'is-on' : ''}`}>
-              <p class="fact-t">{f.t}</p>
-              <a class="fact-s" href={f.href}>Source : {f.s} <span class="arrow" aria-hidden="true">→</span></a>
-            </div>
-          ))}
-          <div class="fact-dots" role="tablist" aria-label="Changer de fait">
-            {facts.map((_, i) => <button type="button" class={`fdot ${i === 0 ? 'is-on' : ''}`} aria-label={`Fait ${i + 1}`} data-i={i}></button>)}
-          </div>
+  <section class="section" aria-labelledby="titre-conseil" style="padding-top: 0">
+    <div class="wrap">
+      <a class="card card-lift conseil-band sr-up" href="/conseil/">
+        <div class="stack" style="gap: 8px; flex: 1 1 420px; min-width: 0">
+          <span class="ans-k">Plutôt une transformation à conduire ?</span>
+          <h2 id="titre-conseil" class="h3" style="font-size: 24px">Diagnostic, schéma directeur, direction de projet : un expert à l'heure</h2>
+          <p class="ans-d">Pour les PME sans DSI étoffée. {SITE.hourlyRate} de l'heure, au temps réellement passé, estimation écrite avant de commencer.</p>
         </div>
-      </div>
-
-      <div class="card orient sr-right">
-        <fieldset class="opts-list">
-          <legend class="sr-only">Votre situation</legend>
-          {SOFTWARE.map((s, i) => (
-            <label class="opt">
-              <input type="radio" name="besoin" value={s.slug} checked={i === 0} />
-              <span>{s.problem}</span>
-            </label>
-          ))}
-        </fieldset>
-        {SOFTWARE.map((s, i) => (
-          <div class="answer" data-for={s.slug} hidden={i !== 0}>
-            <div class="row" style="align-items: center; gap: 10px">
-              <span class="code">{s.code}</span>
-              <span class="ans-t">{s.long}</span>
-            </div>
-            <p class="ans-d">{s.does}.</p>
-            <div class="row" style="gap: 10px">
-              <div class="tile" style="flex: 1 1 150px"><div class="tile-k">Budget indicatif</div><div class="tile-v small">{s.budget}</div></div>
-              <div class="tile" style="flex: 1 1 120px"><div class="tile-k">Délai</div><div class="tile-v small">{s.delay}</div></div>
-            </div>
-            <div class="row" style="gap: 10px">
-              <a class="btn btn-gold btn-sm" href={`/logiciels/${s.slug}/`}>Le guide de choix <span class="arrow" aria-hidden="true">→</span></a>
-              {s.status === 'complet'
-                ? <a class="btn btn-line btn-sm" href="/simulateur-wms/">Estimer mon budget</a>
-                : <a class="btn btn-line btn-sm" href={`/kits/${KITS.find((k) => k.sw === s.slug)!.page}/`}>Voir le kit {s.code}</a>}
-            </div>
-          </div>
-        ))}
-      </div>
+        <span class="btn btn-amber">Découvrir le conseil <span class="arrow" aria-hidden="true">→</span></span>
+      </a>
     </div>
   </section>
 
@@ -316,7 +251,7 @@ const jsonLd = {
         <h2 id="titre-final" class="h2" style="max-width: 15em">Votre projet supply chain démarre dans les 12 prochains mois ?</h2>
         <p style="margin: 0; font-size: 19px; max-width: 32em">Commencez par la bonne question. L'orientation prend une minute, l'appel de cadrage trente.</p>
         <div class="row" style="gap: 12px; justify-content: center">
-          <a class="btn btn-gold btn-lg" href="#orientation">Trouver mon logiciel <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-gold btn-lg" href="#orientation">Choisir mon problème <span class="arrow" aria-hidden="true">→</span></a>
           <a class="btn btn-line btn-lg" href="/conseil/">Être conseillé</a>
         </div>
       </div>
@@ -325,76 +260,53 @@ const jsonLd = {
 </Base>
 
 <script>
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Mot qui change dans le titre
-  const rots = Array.from(document.querySelectorAll<HTMLElement>('#rotator .rot'));
-  let r = 0;
-  if (!reduce && rots.length > 1) {
-    setInterval(() => {
-      rots[r].classList.remove('is-on');
-      rots[r].classList.add('is-off');
-      const prev = rots[r];
-      setTimeout(() => prev.classList.remove('is-off'), 700);
-      r = (r + 1) % rots.length;
-      rots[r].classList.add('is-on');
-    }, 2200);
-  }
-
-  // Faits qui tournent
-  const items = Array.from(document.querySelectorAll<HTMLElement>('.fact-item'));
-  const dots = Array.from(document.querySelectorAll<HTMLButtonElement>('.fdot'));
-  let f = 0;
-  const showFact = (i: number) => {
-    items.forEach((el, j) => el.classList.toggle('is-on', j === i));
-    dots.forEach((el, j) => el.classList.toggle('is-on', j === i));
-    f = i;
+  // Orientation directe : un clic sur un problème affiche la réponse
+  const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('.tile-btn'));
+  const answers = Array.from(document.querySelectorAll<HTMLElement>('.answer'));
+  const panel = document.getElementById('reponse');
+  const show = (slug: string, scroll: boolean) => {
+    answers.forEach((a) => { a.hidden = a.dataset.for !== slug; });
+    btns.forEach((b) => { const on = b.dataset.for === slug; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+    if (scroll && panel && window.matchMedia('(max-width: 900px)').matches) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-  dots.forEach((d) => d.addEventListener('click', () => showFact(Number(d.dataset.i))));
-  if (!reduce) setInterval(() => showFact((f + 1) % items.length), 6000);
-
-  // Orientation
-  const radios = document.querySelectorAll<HTMLInputElement>('input[name="besoin"]');
-  const answers = document.querySelectorAll<HTMLElement>('.answer');
-  radios.forEach((rd) => rd.addEventListener('change', () => answers.forEach((a) => { a.hidden = a.dataset.for !== rd.value; })));
+  btns.forEach((b) => b.addEventListener('click', () => { show(b.dataset.for!, true); history.replaceState(null, '', `#${b.dataset.for}`); }));
+  const initial = location.hash.slice(1);
+  if (initial && btns.some((b) => b.dataset.for === initial)) show(initial, false);
 </script>
 
 <style>
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .code { align-self: flex-start; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 3px 9px; }
 
-  /* Haut de page */
-  .hero { display: flex; flex-wrap: wrap; gap: 48px; align-items: center; padding-block: 96px 80px; }
-  .hero-text { flex: 1 1 520px; min-width: 0; gap: 26px; }
-  .hero-title { font-size: clamp(46px, 6vw, 86px); line-height: 1.0; }
-  .line { display: block; }
-  .rotator { display: inline-grid; vertical-align: bottom; }
-  .rot { grid-area: 1 / 1; opacity: 0; transform: translateY(40%); filter: blur(8px); transition: opacity .6s var(--ease), transform .6s var(--ease), filter .6s var(--ease); padding-bottom: .08em; }
-  .rot.is-on { opacity: 1; transform: none; filter: none; }
-  .rot.is-off { opacity: 0; transform: translateY(-40%); filter: blur(8px); }
-  .doors-cta { display: flex; flex-wrap: wrap; gap: 12px; }
-  .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--muted); font-size: 15px; }
+  /* Haut de page : orientation directe */
+  .hero { display: flex; flex-direction: column; gap: 30px; padding-block: 52px 72px; }
+  .hero-text { max-width: 820px; gap: 18px; }
+  .hero-title { font-size: clamp(42px, 5.6vw, 76px); line-height: 1.02; }
+  .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--muted); font-size: 14.5px; }
   .trust li { display: flex; align-items: center; gap: 8px; }
   .trust :global(svg) { color: var(--good); }
-
-  .floats { position: relative; flex: 1 1 420px; min-width: 0; height: 520px; }
-  .fl { position: absolute; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; animation: float 7s ease-in-out infinite; }
-  .fl-1 { top: 10px; left: 6%; width: 74%; animation-delay: 0s; }
-  .fl-2 { top: 210px; left: 0; width: 48%; animation-delay: -2s; }
-  .fl-3 { top: 250px; right: 0; width: 48%; animation-delay: -4s; }
-  .fl-4 { bottom: 10px; left: 20%; width: 60%; flex-direction: row; align-items: center; gap: 12px; animation-delay: -1s; }
-  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
-  .fl-k { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
-  .fl-big { font-family: var(--display); font-weight: 700; font-size: 40px; letter-spacing: -0.03em; color: var(--text-strong); }
-  .fl-mid { font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; color: var(--text-strong); }
-  .fl-s { font-size: 13.5px; color: var(--muted); }
-  .bar { display: flex; gap: 3px; height: 8px; }
-  .bar span { border-radius: 4px; }
-  .pill-on { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; color: var(--good); background: rgba(47,122,71,.1); border: 1px solid rgba(47,122,71,.25); }
-  @media (max-width: 900px) {
-    .floats { height: auto; display: flex; flex-direction: column; gap: 14px; }
-    .fl { position: static; width: auto !important; }
-  }
+  .pick { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .tiles { flex: 1 1 560px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 620px) { .tiles { grid-template-columns: 1fr; } }
+  .tile-btn { position: relative; display: flex; align-items: center; gap: 14px; text-align: left; padding: 18px 44px 18px 18px; min-height: 84px; cursor: pointer; font: inherit; color: var(--text-strong); transition: transform .25s var(--ease), border-color .25s, background-color .25s, box-shadow .25s; }
+  .tile-btn:hover { transform: translateY(-3px); border-color: rgba(201,162,75,.6); }
+  .tile-btn:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 3px; }
+  .tile-btn.is-on { border-color: rgba(201,144,46,.85); background: rgba(255,244,222,.9); box-shadow: 0 0 0 3px rgba(227,166,84,.25), var(--shadow); }
+  .tb-code { flex: none; min-width: 52px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 5px 8px; }
+  .tb-t { font-weight: 600; font-size: 16px; line-height: 1.35; }
+  .tb-go { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--gold-soft); font-weight: 700; transition: transform .25s var(--ease); }
+  .tile-btn:hover .tb-go, .tile-btn.is-on .tb-go { transform: translate(4px, -50%); }
+  .reponse { flex: 1 1 380px; min-width: 0; padding: 26px; position: sticky; top: 96px; scroll-margin-top: 90px; }
+  @media (max-width: 900px) { .reponse { position: static; } }
+  .ans-k { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-soft); }
+  .ans-big { margin: 0; font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-strong); }
+  .ans-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ans-steps li { display: flex; gap: 12px; align-items: baseline; font-size: 15px; color: var(--muted); }
+  .ans-steps strong { flex: none; min-width: 96px; font-family: var(--display); font-size: 18px; color: var(--gold-soft); }
+  .ans-cta { justify-content: center; text-align: center; }
+  .ans-more { margin: 0; font-size: 14.5px; color: var(--dim); }
+  .conseil-band { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; padding: 28px 32px; text-decoration: none; color: var(--text); background: rgba(255,247,234,.66); }
+  .code { align-self: flex-start; }
 
   /* Bandeau defilant */
   .ticker { position: relative; z-index: 1; overflow: hidden; padding-block: 18px; background: rgba(255,255,255,.4); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-block: 1px solid rgba(255,255,255,.8); }
@@ -405,49 +317,12 @@ const jsonLd = {
   @keyframes scroll { to { transform: translateX(-50%); } }
   .ticker:hover .ticker-track { animation-play-state: paused; }
 
-  /* Deux portes */
-  .doors { gap: 24px; align-items: stretch; }
-  .door { flex: 1 1 460px; padding: 36px; display: flex; flex-direction: column; gap: 18px; }
-  .door-2 { background: rgba(255,247,234,.66); }
-  .door-k { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-soft); }
-  .door-t { font-size: clamp(26px, 2.6vw, 34px); }
-  .door-d { margin: 0; color: var(--muted); font-size: 16px; }
-  .sw-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  @media (max-width: 480px) { .sw-grid { grid-template-columns: 1fr; } }
-  .sw { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.6); border: 1px solid rgba(17,19,23,.06); text-decoration: none; color: var(--text-strong); font-weight: 500; font-size: 14.5px; transition: transform .25s var(--ease), border-color .25s, background-color .25s; }
-  .sw:hover { transform: translateY(-2px); border-color: rgba(201,162,75,.5); background: rgba(255,255,255,.9); color: var(--text-strong); }
-  .sw .code { align-self: center; }
-  .svc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-  .svc-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 15px; }
-  .svc-list strong { color: var(--text-strong); }
-  .svc-i { font-family: var(--display); font-weight: 700; font-size: 15px; color: #fff; background: var(--ink); border-radius: 10px; padding: 6px 9px; flex: none; }
-
-  /* Orientation */
-  .orient-in { gap: 48px; align-items: flex-start; }
-  .orient { flex: 1 1 500px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-  .opts-list { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  .opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid rgba(17,19,23,.08); border-radius: 14px; background: rgba(255,255,255,.55); cursor: pointer; font-size: 15px; line-height: 1.4; transition: border-color .25s, background-color .25s, transform .25s var(--ease); }
-  .opt:hover { border-color: rgba(201,162,75,.5); transform: translateX(3px); }
-  .opt input { accent-color: #c9902e; margin-top: 3px; flex: none; }
-  .opt:has(input:checked) { border-color: rgba(201,144,46,.7); background: rgba(255,244,222,.85); }
-  .opt:has(input:focus-visible) { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
-  .answer { display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 18px; background: rgba(255,255,255,.75); border: 1px solid rgba(201,144,46,.35); animation: pop .45s var(--ease); }
+  .answer { display: flex; flex-direction: column; gap: 14px; animation: pop .45s var(--ease); }
   .answer[hidden] { display: none; }
   @keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .ans-t { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--text-strong); }
   .ans-d { margin: 0; color: var(--muted); font-size: 15px; }
   .tile-v.small { font-size: 15px; }
-  .fact { padding: 22px; display: flex; flex-direction: column; gap: 10px; min-height: 210px; }
-  .fact-k { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-soft); }
-  .fact-item { display: none; flex-direction: column; gap: 8px; animation: pop .5s var(--ease); }
-  .fact-item.is-on { display: flex; }
-  .fact-t { margin: 0; font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.35; letter-spacing: -0.01em; color: var(--text-strong); }
-  .fact-s { font-size: 13px; color: var(--dim); text-decoration: none; }
-  .fact-dots { display: flex; gap: 6px; margin-top: auto; }
-  .fdot { width: 26px; height: 26px; border: 0; background: transparent; padding: 0; cursor: pointer; position: relative; }
-  .fdot::after { content: ''; position: absolute; left: 7px; top: 11px; width: 12px; height: 4px; border-radius: 2px; background: rgba(17,19,23,.15); transition: width .3s, background-color .3s; }
-  .fdot.is-on::after { width: 20px; background: #d9a441; }
-
   /* Mosaique */
   .bento { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
   .bento > a { text-decoration: none; color: var(--text); padding: 28px; display: flex; flex-direction: column; gap: 12px; }
@@ -482,7 +357,7 @@ const jsonLd = {
   .faq-item[open] .plus::after { transform: rotate(0deg); }
   .final { padding-block: 80px 140px; }
   .final-in { padding: 72px 40px; gap: 22px; border-radius: 32px; background: linear-gradient(135deg, rgba(243,213,140,.7), rgba(246,185,141,.6), rgba(169,214,236,.55)); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid rgba(255,255,255,.85); box-shadow: var(--shadow); color: var(--text-strong); }
-  @media (prefers-reduced-motion: reduce) { .fl, .ticker-track { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none !important; } }
   .pme-c { flex: 1 1 260px; padding: 26px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
   .pme-n { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; font-size: 14px; }
   .pme-p { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--gold-soft); line-height: 1.1; margin-top: 6px; }
