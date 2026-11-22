@@ -1,10 +1,5 @@
 ---
-import '@fontsource/sora/latin-500.css';
-import '@fontsource/sora/latin-600.css';
-import '@fontsource/sora/latin-700.css';
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-500.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource-variable/archivo/wdth.css';
 import '../styles/global.css';
 import { SITE } from '../config';
 
@@ -40,7 +35,7 @@ const nav = [
   <meta property="og:title" content={fullTitle}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#eef1f4">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   <script is:inline>
@@ -53,11 +48,10 @@ const nav = [
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <div class="aura" aria-hidden="true"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
   <header class="topbar">
     <div class="wrap topbar-in">
       <a class="brand" href="/">
-        <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#c9a24b" stroke-width="2"><rect x="3" y="5" width="28" height="24" rx="3"></rect><line x1="3" y1="13" x2="31" y2="13"></line><line x1="3" y1="21" x2="31" y2="21"></line><line x1="17" y1="5" x2="17" y2="29"></line></svg>
+        <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="6" fill="#2448f5"></rect><g fill="#fff"><rect x="7" y="8" width="9" height="7" rx="1"></rect><rect x="18" y="8" width="9" height="7" rx="1"></rect><rect x="7" y="19" width="9" height="7" rx="1"></rect></g><rect x="18" y="19" width="9" height="7" rx="1" fill="none" stroke="#fff" stroke-width="1.6"></rect></svg>
         <span>{SITE.name}</span>
       </a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>

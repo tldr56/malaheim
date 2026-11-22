@@ -4,6 +4,18 @@ import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
 const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
 const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
+// Code-barres decoratif, deterministe pour chaque reference
+const bars = (ref: string) => {
+  let x = 0; let rects = '';
+  const seed = Array.from(`MALAHEIM-${ref}-KIT`).map((c) => c.charCodeAt(0));
+  for (let i = 0; i < 34; i++) {
+    const v = seed[i % seed.length] + i * 7;
+    const w = (v % 3) + 1; const gap = ((v >> 2) % 2) + 1;
+    rects += `<rect x="${x}" y="0" width="${w}" height="34"/>`;
+    x += w + gap;
+  }
+  return `<svg class="lbl-bars" viewBox="0 0 ${x} 34" preserveAspectRatio="none" aria-hidden="true" fill="currentColor">${rects}</svg>`;
+};
 const short: Record<string, string> = {
   wms: "Mon stock est faux et les erreurs de préparation s'accumulent",
   tms: 'Mes coûts de transport dérapent',
@@ -55,7 +67,11 @@ const jsonLd = {
         ))}
       </div>
 
-      <div class="card reponse rise d3" id="reponse" aria-live="polite">
+      <div class="reponse rise d3" id="reponse" aria-live="polite">
+        <div class="lbl-head" aria-hidden="true">
+          <div><span>Expéditeur</span><strong>Malaheim Consulting</strong></div>
+          <div><span>Destinataire</span><strong>Votre entreprise</strong></div>
+        </div>
         <div class="answer" data-for="none">
           <span class="ans-k">Votre réponse s'affiche ici</span>
           <p class="ans-big">Un clic sur votre problème, et vous savez quoi faire.</p>
@@ -73,11 +89,12 @@ const jsonLd = {
           const k = KITS.find((x) => x.sw === s.slug)!;
           return (
             <div class="answer" data-for={s.slug} hidden>
-              <span class="ans-k">Il vous faut</span>
-              <div class="row" style="align-items: center; gap: 10px">
-                <span class="code">{s.code}</span>
-                <span class="ans-t">{s.long}</span>
+              <div class="lbl-code">
+                <span class="lbl-big">{s.code}</span>
+                <span class="lbl-ref"><Fragment set:html={bars(s.slug)} /><span>Réf. KIT-{s.code.replace('&', '')}</span></span>
               </div>
+              <span class="ans-k">Il vous faut</span>
+              <span class="ans-t">{s.long}</span>
               <p class="ans-d">{s.does}.</p>
               <div class="row" style="gap: 10px">
                 <div class="tile" style="flex: 1 1 150px"><div class="tile-k">Budget indicatif</div><div class="tile-v small">{s.budget}</div></div>
@@ -90,6 +107,10 @@ const jsonLd = {
           );
         })}
         <div class="answer" data-for="autre" hidden>
+          <div class="lbl-code">
+            <span class="lbl-big">Appel</span>
+            <span class="lbl-ref"><Fragment set:html={bars('appel')} /><span>30 min, gratuit</span></span>
+          </div>
           <span class="ans-k">Commençons par en parler</span>
           <p class="ans-big">Plusieurs problèmes à la fois, c'est le cas le plus courant.</p>
           <p class="ans-d">En 30 minutes au téléphone, on identifie ce qui coûte le plus cher aujourd'hui et le premier chantier à lancer. Gratuit et sans engagement.</p>
@@ -111,7 +132,7 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="section pme" aria-labelledby="titre-pme" style="padding-top: 0">
+  <section class="section pme" aria-labelledby="titre-pme">
     <div class="wrap stack" style="gap: 32px">
       <div class="stack" style="gap: 12px; max-width: 760px">
         <p class="eyebrow sr-left">Un prix adapté à votre taille</p>
@@ -276,7 +297,7 @@ const jsonLd = {
 
 <style>
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .code { align-self: flex-start; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 3px 9px; }
+  .code { align-self: flex-start; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: 0; color: #fff; background: var(--ink); border-radius: 8px; padding: 3px 9px; }
 
   /* Haut de page : orientation directe */
   .hero { display: flex; flex-direction: column; gap: 30px; padding-block: 52px 72px; }
@@ -289,16 +310,16 @@ const jsonLd = {
   .tiles { flex: 1 1 560px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 620px) { .tiles { grid-template-columns: 1fr; } }
   .tile-btn { position: relative; display: flex; align-items: center; gap: 14px; text-align: left; padding: 18px 44px 18px 18px; min-height: 84px; cursor: pointer; font: inherit; color: var(--text-strong); transition: transform .25s var(--ease), border-color .25s, background-color .25s, box-shadow .25s; }
-  .tile-btn:hover { transform: translateY(-3px); border-color: rgba(201,162,75,.6); }
+  .tile-btn:hover { transform: translateY(-3px); border-color: var(--cobalt); }
   .tile-btn:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 3px; }
-  .tile-btn.is-on { border-color: rgba(201,144,46,.85); background: rgba(255,244,222,.9); box-shadow: 0 0 0 3px rgba(227,166,84,.25), var(--shadow); }
-  .tb-code { flex: none; min-width: 52px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #111317; background: linear-gradient(135deg, #f0cf7f, #e3a654); border-radius: 8px; padding: 5px 8px; }
+  .tile-btn.is-on { border-color: var(--cobalt); background: var(--cobalt-tint); box-shadow: 0 0 0 3px rgba(36,72,245,.15), var(--shadow); }
+  .tb-code { flex: none; min-width: 52px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: 0; color: #fff; background: var(--ink); border-radius: 8px; padding: 5px 8px; }
   .tb-t { font-weight: 600; font-size: 16px; line-height: 1.35; }
   .tb-go { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--gold-soft); font-weight: 700; transition: transform .25s var(--ease); }
   .tile-btn:hover .tb-go, .tile-btn.is-on .tb-go { transform: translate(4px, -50%); }
   .reponse { flex: 1 1 380px; min-width: 0; padding: 26px; position: sticky; top: 96px; scroll-margin-top: 90px; }
   @media (max-width: 900px) { .reponse { position: static; } }
-  .ans-k { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-soft); }
+  .ans-k { font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--gold-soft); }
   .ans-big { margin: 0; font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-strong); }
   .ans-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .ans-steps li { display: flex; gap: 12px; align-items: baseline; font-size: 15px; color: var(--muted); }
@@ -313,7 +334,7 @@ const jsonLd = {
   .ticker-track { display: flex; width: max-content; animation: scroll 40s linear infinite; }
   .ticker-row { display: flex; }
   .tick { display: inline-flex; align-items: center; gap: 28px; padding-right: 28px; font-family: var(--display); font-weight: 600; font-size: 18px; letter-spacing: -0.01em; color: var(--text-strong); white-space: nowrap; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #e3b553, #d9893f); display: inline-block; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #7f9bff; display: inline-block; }
   @keyframes scroll { to { transform: translateX(-50%); } }
   .ticker:hover .ticker-track { animation-play-state: paused; }
 
@@ -331,14 +352,14 @@ const jsonLd = {
   .b-guides { grid-column: span 2; }
   .b-call { grid-column: span 2; }
   @media (max-width: 900px) { .bento { grid-template-columns: 1fr; } .bento > a { grid-column: auto !important; grid-row: auto !important; } }
-  .b-k { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-soft); }
+  .b-k { font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--gold-soft); }
   .b-t { font-size: 22px; line-height: 1.2; }
   .b-d { margin: 0; color: var(--muted); font-size: 15px; }
   .b-go { margin-top: auto; font-weight: 600; color: var(--text-strong); font-size: 15px; }
   .b-meter { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
   .m-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: center; font-size: 13px; color: var(--dim); }
   .m-bar { height: 8px; border-radius: 4px; background: rgba(17,19,23,.06); overflow: hidden; }
-  .m-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #e3b553, #d9893f); }
+  .m-bar i { display: block; height: 100%; border-radius: 4px; background: var(--cobalt); }
   .b-list { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 15px; }
   .b-price { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; color: var(--text-strong); }
 
@@ -352,7 +373,7 @@ const jsonLd = {
   .faq-item summary::-webkit-details-marker { display: none; }
   .faq-item p { margin: 0 0 20px; color: var(--muted); max-width: 60ch; }
   .plus { position: relative; width: 16px; height: 16px; flex: none; }
-  .plus::before, .plus::after { content: ''; position: absolute; left: 0; top: 7px; width: 16px; height: 2px; background: #d9a441; transition: transform .3s var(--ease); }
+  .plus::before, .plus::after { content: ''; position: absolute; left: 0; top: 7px; width: 16px; height: 2px; background: var(--cobalt); transition: transform .3s var(--ease); }
   .plus::after { transform: rotate(90deg); }
   .faq-item[open] .plus::after { transform: rotate(0deg); }
   .final { padding-block: 80px 140px; }
@@ -363,4 +384,31 @@ const jsonLd = {
   .pme-p { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--gold-soft); line-height: 1.1; margin-top: 6px; }
   .pme-t { font-family: var(--body); font-size: 18px; font-weight: 600; color: var(--text-strong); }
   .pme-c p { margin: 0; color: var(--muted); font-size: 15px; }
+  /* La reponse est une etiquette d'expedition */
+  .reponse { padding: 0 !important; position: sticky; top: 96px; scroll-margin-top: 90px; flex: 1 1 380px; min-width: 0; background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; box-shadow: 10px 10px 0 var(--cobalt-tint); overflow: hidden; }
+  @media (max-width: 900px) { .reponse { position: static; } }
+  .lbl-head { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1.5px solid var(--ink); }
+  .lbl-head div { display: flex; flex-direction: column; gap: 2px; padding: 12px 18px; }
+  .lbl-head div + div { border-left: 1.5px solid var(--ink); }
+  .lbl-head span { font-size: 12.5px; color: var(--dim); }
+  .lbl-head strong { font-size: 14.5px; font-stretch: 90%; color: var(--ink); }
+  .reponse .answer { padding: 0 22px 22px; }
+  .lbl-code { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 -22px 4px; padding: 14px 22px; border-bottom: 1.5px dashed var(--ink); }
+  .lbl-big { font-family: var(--display); font-weight: 850; font-stretch: 125%; font-size: 46px; line-height: 1; letter-spacing: -0.04em; color: var(--ink); }
+  .lbl-ref { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; color: var(--ink); font-size: 12px; font-stretch: 80%; font-weight: 600; }
+  .lbl-ref :global(.lbl-bars) { width: 132px; height: 34px; }
+  .answer[data-for='none'] { padding-top: 20px; }
+  .answer:not([data-for='none']) { animation: print .6s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes print { from { clip-path: inset(0 0 100% 0); transform: translateY(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+  .ans-t { font-family: var(--display); font-stretch: 110%; font-weight: 700; font-size: 20px; line-height: 1.2; color: var(--ink); }
+
+  /* Bandeau defilant : un convoyeur */
+  .ticker { background: var(--ink) !important; border: 0 !important; }
+  .tick { color: #fff !important; font-stretch: 118%; }
+  .dot { background: #7f9bff !important; border-radius: 1px !important; }
+
+  .conseil-band { background: #fff !important; border: 1px solid var(--line); border-left: 4px solid var(--cobalt); }
+  .final-in { background: #fff !important; border: 1.5px solid var(--ink) !important; border-radius: 14px !important; box-shadow: 10px 10px 0 var(--cobalt-tint) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .tile-btn { border-radius: 8px; }
+  .tb-code { min-width: 58px; font-size: 14px !important; padding: 6px 8px !important; }
 </style>

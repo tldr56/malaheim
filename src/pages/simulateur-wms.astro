@@ -129,7 +129,7 @@ FIELDS.forEach(f => {
   if (f.type === 'range') f.value = Math.min(f.max, Math.max(f.min, n));
   else if (n >= 0 && n < f.options.length) f.value = Math.round(n);
 });
-const COLORS = ['#c9a24b','#8fa3b8','#7fb88a','#d98c5f','#b59ad0','#e3c886'];
+const COLORS = ['#2448f5','#13213a','#12a06a','#8fa3b8','#9db0ff','#5f6b80'];
 const nf = new Intl.NumberFormat('fr-FR');
 const k = v => nf.format(Math.round(v/1000)) + ' k€';
 const $ = id => document.getElementById(id);
@@ -232,9 +232,9 @@ render();
   .sim input[type=range] { width: 100%; accent-color: var(--gold); margin: 0; min-height: 28px; }
   .sim .opts { display: flex; flex-wrap: wrap; gap: 6px; }
   .sim .opts label { flex: 1 1 auto; text-align: center; padding: 10px 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 12px; background: var(--card-2); cursor: pointer; font-weight: 400; font-size: 14px; transition: background-color .25s, border-color .25s, color .25s; }
-  .sim .opts label:hover { border-color: rgba(201,162,75,.6); }
+  .sim .opts label:hover { border-color: var(--cobalt); }
   .sim .opts input { position: absolute; opacity: 0; pointer-events: none; }
-  .sim .opts label:has(input:checked) { background: var(--gold); border-color: var(--gold); color: #141619; font-weight: 600; }
+  .sim .opts label:has(input:checked) { background: var(--cobalt); border-color: var(--cobalt); color: #fff; font-weight: 600; }
   .sim .opts label:has(input:focus-visible) { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
   .sim-adv { border-top: 1px solid var(--line); padding-top: 14px; }
   .sim-adv summary { cursor: pointer; color: var(--gold-soft); font-weight: 500; min-height: 32px; }
@@ -259,7 +259,7 @@ render();
   .sim-s { color: var(--dim); font-size: 12px; }
   .sim .pill { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; align-self: flex-start; margin-top: 4px; }
   .sim .pill.good { background: rgba(127,184,138,.18); color: var(--good); }
-  .sim .pill.warn { background: rgba(217,140,95,.18); color: var(--warn); }
+  .sim .pill.warn { background: rgba(194,65,12,.1); color: var(--warn); }
   .sim-note { color: var(--dim); font-size: 13px; margin: 0; min-height: 1em; }
   .sim-next { display: flex; flex-direction: column; gap: 24px; padding-top: 32px; }
   .sim-offers { gap: 20px; align-items: stretch; }
