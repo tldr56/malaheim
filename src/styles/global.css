@@ -373,3 +373,85 @@ a:hover { color: var(--cobalt-dark); }
 @media (max-width: 420px) { .brand .logo { height: 36px; } }
 .foot-brand { display: flex; align-items: center; gap: 20px; }
 .foot-brand .logo-full { height: 64px; width: auto; color: var(--ink); flex: none; }
+
+/* =========================================================
+   Theme galerie : blanc absolu, noir profond, beaucoup d'air.
+   Plus de quadrillage ni d'ombres décalées. Les pages se lisent
+   comme une présentation de produit : grands titres centrés,
+   surfaces gris perle, scènes noires. Ce bloc prime sur tout ce qui précède.
+   ========================================================= */
+:root, .light, .dark {
+  --paper: #ffffff;
+  --pearl: #f5f5f7;
+  --ink: #1d1d1f;
+  --text: #1d1d1f;
+  --text-strong: #1d1d1f;
+  --muted: #6e6e73;
+  --dim: #86868b;
+  --nav: #1d1d1f;
+  --line: #d2d2d7;
+  --line-soft: #e8e8ed;
+  --line-btn: #d2d2d7;
+  --card: #f5f5f7;
+  --card-2: #f5f5f7;
+  --cobalt: #2448f5;
+  --cobalt-dark: #1a36c9;
+  --cobalt-tint: #eef1ff;
+  --bg: #ffffff;
+  --topbar: rgba(255,255,255,.72);
+  --shadow: none;
+  --shadow-hover: 0 30px 60px -30px rgba(0,0,0,.18);
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+body { background: #fff !important; background-image: none !important; color: var(--text); font-size: 17px; letter-spacing: -0.011em; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--ink); color: #fff; }
+
+h1, h2, h3 { font-weight: 700; font-stretch: 100%; letter-spacing: -0.035em; color: var(--ink); }
+.h1 { font-size: clamp(44px, 6.4vw, 96px); line-height: 1.02; letter-spacing: -0.045em; }
+.h2 { font-size: clamp(34px, 4.6vw, 60px); line-height: 1.06; letter-spacing: -0.04em; }
+.h3 { font-size: 22px; font-stretch: 100%; letter-spacing: -0.02em; }
+.eyebrow { color: var(--muted); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.lead { color: var(--muted); font-size: 21px; line-height: 1.45; letter-spacing: -0.015em; }
+a { color: var(--cobalt); text-decoration: none; }
+a:hover { color: var(--cobalt); text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 3px; border-radius: 6px; }
+
+.section-alt { background: var(--pearl); border: 0; }
+
+.card { background: var(--pearl); border: 0; border-radius: 28px; box-shadow: none; }
+.card-lift { transition: transform .6s var(--ease), box-shadow .6s var(--ease); }
+.card-lift:hover { transform: scale(1.012); border-color: transparent; box-shadow: var(--shadow-hover); }
+.card-hi { background: var(--pearl); border: 0; box-shadow: none; }
+.tile { background: #fff; border: 0; border-radius: 18px; }
+.chip { background: #fff; border: 1px solid var(--line-soft); border-radius: 999px; font-stretch: 100%; font-weight: 600; color: var(--ink); padding-inline: 12px; }
+
+.btn { border-radius: 999px; font-weight: 600; font-stretch: 100%; letter-spacing: -0.01em; box-shadow: none !important; transition: background-color .3s, color .3s, transform .4s var(--ease); }
+.btn-gold, .btn-ink, .btn-amber, .btn-dark { background: var(--ink); color: #fff; }
+.btn-gold:hover, .btn-ink:hover, .btn-amber:hover, .btn-dark:hover { background: #000; color: #fff; text-decoration: none; transform: scale(1.03); }
+.btn-line { background: transparent; border: 1px solid var(--ink); color: var(--ink); }
+.btn-line:hover { background: var(--ink); color: #fff; text-decoration: none; transform: none; }
+
+.topbar { background: var(--topbar); -webkit-backdrop-filter: saturate(180%) blur(20px) !important; backdrop-filter: saturate(180%) blur(20px) !important; border-bottom: 1px solid rgba(0,0,0,.08); }
+.navlink { font-weight: 500; font-size: 14px; color: var(--ink); opacity: .8; }
+.navlink:hover, .navlink[aria-current='page'] { color: var(--ink); opacity: 1; text-decoration: none; }
+.topbar .btn-sm { padding: 8px 16px; font-size: 14px; }
+@media (max-width: 900px) { .nav.open { background: rgba(255,255,255,.97); } }
+.brand .logo { height: 38px; }
+
+.footer { border-top: 0; background: var(--pearl); color: var(--dim); font-size: 13px; }
+.footer a { color: var(--muted); }
+.foot-brand .logo-full { height: 52px; }
+.dock { background: rgba(255,255,255,.82); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border: 1px solid rgba(0,0,0,.08); border-radius: 999px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.25); }
+
+.code, .tb-code { background: var(--ink) !important; color: #fff !important; font-stretch: 100%; font-weight: 650; letter-spacing: 0; border-radius: 6px !important; }
+.sim-big, .sim-tier-name, .pme-p, .b-price, .kit-price, .kit-p, .step-price, .ans-steps strong, .meth-n, .tier-price, .svc-t, .ans-big, .kit-t, .kit-n, .door-t, [style*="--display"] {
+  font-weight: 700 !important; font-stretch: 100% !important; letter-spacing: -0.035em !important;
+}
+.prose table { background: #fff; border: 1px solid var(--line-soft); border-radius: 18px; }
+.prose blockquote { background: var(--pearl); border-left: 0; border-radius: 18px; padding: 18px 22px; }
+
+/* Apparitions : lentes, nettes, sans rebond */
+@keyframes rise { from { opacity: 0; transform: translateY(28px); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes up { from { opacity: 0; transform: translateY(60px); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes zoom { from { opacity: 0; transform: scale(.94); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.rise { animation: rise 1.4s var(--ease) both; }
