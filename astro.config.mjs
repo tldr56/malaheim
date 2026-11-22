@@ -7,4 +7,5 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { assets: 'assets' },
   integrations: [sitemap()],
+  redirects: { '/simulateur-wms/': '/simulateurs/wms/' },
 });

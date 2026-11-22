@@ -41,4 +41,4 @@ Pour les sites à fort volume, mécanisés ou multi-sites. Ces solutions optimis
 - **Sous-dimensionner.** Un outil léger face à des processus complexes finit en développements spécifiques, donc plus cher que la gamme supérieure.
 - **Oublier la trajectoire.** Si une mécanisation ou un second site est prévu à trois ans, choisissez la gamme qui les supporte dès aujourd'hui.
 
-Le [simulateur](/simulateur-wms/) détermine votre gamme à partir de vos propres chiffres. Le détail des budgets par poste est dans le guide [combien coûte un WMS](/guides/prix-wms/).
+Le [simulateur](/simulateurs/wms/) détermine votre gamme à partir de vos propres chiffres. Le détail des budgets par poste est dans le guide [combien coûte un WMS](/guides/prix-wms/).

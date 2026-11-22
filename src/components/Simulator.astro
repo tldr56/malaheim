@@ -1,0 +1,521 @@
+---
+// Moteur commun des simulateurs : rendu des questions côté serveur, calcul et graphique côté navigateur.
+import { SIMS, SIM_LIST, defaults, simulate, money } from '../lib/sims.js';
+import { SITE, KITS } from '../config';
+import Logo from './Logo.astro';
+
+interface Props { slug: string }
+const { slug } = Astro.props;
+const model = SIMS[slug];
+const kit = KITS.find((k) => k.sw === model.sw)!;
+const groups = [...new Set(model.fields.map((f) => f.group))];
+const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
+const kitHref = `/kits/${kit.page}/`;
+const brevo = SITE.brevoFormAction;
+const others = SIM_LIST.filter((m) => m.slug !== slug);
+const preview = (m) => { const d = defaults(m); return simulate(m, d.i, d.a); };
+const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math.log(f.max / f.min)) : f.value);
+---
+<div class="simx" data-slug={slug}>
+  <header class="sx-hero wrap">
+    <p class="sx-k rise">Simulateur {model.code}, gratuit et sans inscription</p>
+    <h1 class="sx-title rise d1">{model.title}</h1>
+    <p class="sx-lead rise d2">{model.lead}</p>
+  </header>
+
+  <div class="wrap sx-grid">
+    <form class="sx-form rise d3" aria-label="Vos données" onsubmit="return false">
+      {groups.map((g) => (
+        <fieldset class="sx-group">
+          <legend>{g}</legend>
+          {model.fields.filter((f) => f.group === g).map((f) => f.type === 'range' ? (
+            <div class="sx-field">
+              <div class="sx-fh"><label for={`f-${f.id}`}>{f.label}</label><output id={`o-${f.id}`} for={`f-${f.id}`}></output></div>
+              <input type="range" id={`f-${f.id}`} data-id={f.id}
+                min={f.log ? 0 : f.min} max={f.log ? 1000 : f.max} step={f.log ? 1 : f.step} value={pos(f)} />
+            </div>
+          ) : (
+            <div class="sx-field" role="radiogroup" aria-label={f.label}>
+              <span class="sx-lab">{f.label}</span>
+              <div class={`sx-opts ${f.options.length > 3 ? 'sx-opts-4' : ''}`}>
+                {f.options.map((o, n) => (
+                  <label><input type="radio" name={`f-${f.id}`} data-id={f.id} value={n} checked={n === f.value} /><span>{o}</span></label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </fieldset>
+      ))}
+      <details class="sx-adv">
+        <summary>Hypothèses de calcul, modifiables</summary>
+        <div class="sx-adv-grid">
+          {model.assumptions.map((h) => (
+            <div class="sx-af">
+              <label for={`a-${h.id}`}>{h.label}</label>
+              <div class="sx-ai"><input type="number" id={`a-${h.id}`} data-a={h.id} min={h.min} max={h.max} step={h.step} value={h.value} /><span>{h.unit}</span></div>
+            </div>
+          ))}
+        </div>
+        <button type="button" class="sx-reset" id="sx-reset">Revenir aux valeurs par défaut</button>
+      </details>
+    </form>
+
+    <section class="sx-res" aria-label="Votre estimation" aria-live="polite">
+      <div class="sx-tier">
+        <span class="sx-rk">Solution adaptée</span>
+        <strong id="r-tier"></strong>
+        <span id="r-tierdesc" class="sx-tdesc"></span>
+      </div>
+      <div class="sx-budget">
+        <span class="sx-rk">Budget de mise en place</span>
+        <span class="sx-big" id="r-budget"></span>
+        <span class="sx-small" id="r-central"></span>
+      </div>
+      <div class="sx-bar" id="r-bar" role="img" aria-label="Répartition du budget"></div>
+      <dl class="sx-legend" id="r-legend"></dl>
+      <div class="sx-kpis">
+        <div class="sx-kpi"><span class="sx-rk">Coût annuel</span><span class="sx-v" id="r-rec"></span><span class="sx-s" id="r-recs"></span></div>
+        <div class="sx-kpi"><span class="sx-rk" id="r-totk"></span><span class="sx-v" id="r-tot"></span><span class="sx-s">Projet et coûts annuels cumulés</span></div>
+        <div class="sx-kpi"><span class="sx-rk">Délai de mise en service</span><span class="sx-v" id="r-delay"></span><span class="sx-s">Du cadrage au démarrage</span></div>
+        <div class="sx-kpi"><span class="sx-rk">Gains annuels mesurables</span><span class="sx-v" id="r-gain"></span><span class="sx-s" id="r-gains"></span></div>
+        <div class="sx-kpi sx-kpi-x" id="r-x" hidden><span class="sx-rk" id="r-xk"></span><span class="sx-v" id="r-xv"></span><span class="sx-s" id="r-xs"></span></div>
+        <div class="sx-kpi sx-kpi-x" id="r-o" hidden><span class="sx-rk" id="r-ok"></span><span class="sx-v" id="r-ov"></span><span class="sx-s">Gain ponctuel, non compté dans le retour sur investissement</span></div>
+      </div>
+      <div class="sx-pay">
+        <span class="sx-rk">Retour sur investissement</span>
+        <span class="sx-payv" id="r-pay"></span>
+        <span class="sx-pill" id="r-pill"></span>
+      </div>
+      <figure class="sx-chart">
+        <svg id="r-chart" viewBox="0 0 560 200" role="img" aria-label="Coûts et gains cumulés"></svg>
+        <figcaption><span class="lg lg-c"></span>Coûts cumulés <span class="lg lg-g"></span>Gains cumulés</figcaption>
+      </figure>
+      <div class="sx-actions">
+        <button type="button" class="sx-btn" id="sx-print">Imprimer ou enregistrer en PDF</button>
+        <button type="button" class="sx-btn sx-btn-ghost" id="sx-link">Copier le lien de cette simulation</button>
+      </div>
+      <p class="sx-status" id="sx-status" role="status"></p>
+    </section>
+  </div>
+
+  <section class="wrap sx-watch" aria-labelledby="t-watch">
+    <h2 id="t-watch" class="sx-h2 sr-up">Points de vigilance pour votre profil</h2>
+    <ol id="r-watch" class="sx-wlist"></ol>
+  </section>
+
+  <section class="sx-next" aria-labelledby="t-next">
+    <div class="wrap">
+      <h2 id="t-next" class="sx-h2 sr-up">Passer de l’estimation au projet</h2>
+      <div class="sx-cards">
+        <a class="sx-card sx-card-dark sr-up" href={kitHref}>
+          <span class="sx-ck">{SITE.kitPrice}</span>
+          <h3>Le kit de consultation {model.code}</h3>
+          <p>{kit.reqs} exigences commentées, scénarios de démonstration imposés, grille de dépouillement, check-list contractuelle et plan de recette.</p>
+          <span class="sx-go">Voir le kit</span>
+        </a>
+        <a class="sx-card sr-up lag1" href="/accompagnement/">
+          <span class="sx-ck">{SITE.reviewPrice}</span>
+          <h3>La relecture experte</h3>
+          <p>Votre cahier des charges annoté et une heure de visio avant l’envoi aux éditeurs.</p>
+          <span class="sx-go">En savoir plus</span>
+        </a>
+        <a class="sx-card sr-up lag2" href={bookHref}>
+          <span class="sx-ck">Gratuit</span>
+          <h3>30 minutes avec un expert</h3>
+          <p>Pour challenger cette estimation sur vos chiffres réels et identifier le premier chantier.</p>
+          <span class="sx-go">Réserver l’appel</span>
+        </a>
+      </div>
+      <form class="sx-lead sr-up" id="lead" method="post" action={brevo || undefined} data-brevo={brevo} novalidate>
+        <div>
+          <h3>Recevez cette simulation par e-mail</h3>
+          <p>Le détail poste par poste et les points de vigilance, pour la partager en interne.</p>
+        </div>
+        <div class="sx-lead-f">
+          <label class="sr-only" for="lead-email">Adresse e-mail professionnelle</label>
+          <input id="lead-email" name="EMAIL" type="email" autocomplete="email" placeholder="prenom.nom@entreprise.fr" />
+          <input id="lead-summary" name="RESUME" type="hidden" value="" />
+          <button type="submit" class="btn btn-gold">Recevoir</button>
+          <label class="sx-consent" for="lead-ok"><input id="lead-ok" name="OPT_IN" value="1" type="checkbox" /><span>J’accepte de recevoir cette simulation et les conseils du site. Désinscription en un clic. <a href="/confidentialite/">Confidentialité</a></span></label>
+          <p class="sx-status" id="lead-msg" role="status"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="wrap sx-method" aria-labelledby="t-method">
+    <h2 id="t-method" class="sx-h2 sr-up">Méthode et sources</h2>
+    <div class="sx-mtext sr-up">
+      <p>Le modèle détermine d’abord la gamme de solution adaptée à votre profil, puis chiffre chaque poste à partir de valeurs publiées. La fourchette va de 20 % sous à 30 % au-dessus du scénario central, parce que les dépassements sont plus fréquents que les économies.</p>
+      <p>Le retour sur investissement est calculé mois par mois : le budget est réparti sur la durée du projet, les coûts annuels et les gains commencent à la mise en service, et les gains montent en charge sur {model.ramp} mois. Seuls les gains mesurables sont comptés, avec des hypothèses prudentes que vous pouvez modifier.</p>
+    </div>
+    <div class="sx-scroll sr-up">
+      <table>
+        <thead><tr><th>Paramètre</th><th>Valeur retenue</th><th>Repère publié</th><th>Source</th></tr></thead>
+        <tbody>
+          {model.sources.map((s) => (
+            <tr><td>{s[0]}</td><td>{s[1]}</td><td>{s[2]}</td><td>{s[4] ? <a href={s[4]}>{s[3]}</a> : s[3]}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="sx-foot">Ordres de grandeur indicatifs en euros hors taxes, modèle version 2 de novembre 2026. Les réponses sont calculées dans votre navigateur et ne sont transmises à personne. Un chiffrage ferme demande un cadrage de vos flux et des offres d’éditeurs.</p>
+  </section>
+
+  <section class="sx-others" aria-labelledby="t-others">
+    <div class="wrap">
+      <h2 id="t-others" class="sx-h2 sr-up">Les autres simulateurs</h2>
+      <div class="sx-orow">
+        {others.map((m, n) => { const p = preview(m); return (
+          <a class={`sx-oc sr-up lag${(n % 5) + 1}`} href={`/simulateurs/${m.slug}/`}>
+            <span class="sx-ocode">{m.code}</span>
+            <strong>{m.name}</strong>
+            <span>{m.card}</span>
+            <span class="sx-oex">Exemple : {money(p.low)} à {money(p.high)}</span>
+          </a>
+        ); })}
+      </div>
+    </div>
+  </section>
+
+  <div class="sx-report" id="sx-report" aria-hidden="true">
+    <div class="rp-head"><Logo variant="full" /><div><strong>Simulation {model.code}</strong><span id="rp-date"></span></div></div>
+    <div id="rp-body"></div>
+  </div>
+</div>
+
+<script>
+  import { SIMS, defaults, simulate, money } from '../lib/sims.js';
+
+  const root = document.querySelector<HTMLElement>('.simx')!;
+  const model = SIMS[root.dataset.slug!];
+  const nf = new Intl.NumberFormat('fr-FR');
+  const $ = (id: string) => document.getElementById(id)!;
+  const fields = model.fields;
+
+  // Curseurs logarithmiques : une position de 0 à 1000 convertie en valeur arrondie au pas
+  const fromPos = (f: any, p: number) => {
+    if (!f.log) return p;
+    const v = f.min * Math.pow(f.max / f.min, p / 1000);
+    const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1));
+    const st = Math.max(f.step, mag);
+    return Math.min(f.max, Math.max(f.min, Math.round(v / st) * st));
+  };
+  const toPos = (f: any, v: number) => (f.log ? Math.round((1000 * Math.log(v / f.min)) / Math.log(f.max / f.min)) : v);
+
+  // Lecture des paramètres d'URL pour retrouver une simulation partagée
+  const params = new URLSearchParams(location.search);
+  fields.forEach((f: any) => {
+    const raw = params.get(f.id); if (raw === null) return;
+    const n = Number(raw); if (!Number.isFinite(n)) return;
+    if (f.type === 'range') { const v = Math.min(f.max, Math.max(f.min, n)); (document.getElementById(`f-${f.id}`) as HTMLInputElement).value = String(toPos(f, v)); }
+    else { const el = document.querySelector<HTMLInputElement>(`input[name="f-${f.id}"][value="${Math.round(n)}"]`); if (el) el.checked = true; }
+  });
+  model.assumptions.forEach((h: any) => {
+    const raw = params.get(`h_${h.id}`); if (raw === null) return;
+    const n = Number(raw); if (Number.isFinite(n)) (document.getElementById(`a-${h.id}`) as HTMLInputElement).value = String(n);
+  });
+
+  const read = () => {
+    const i: Record<string, number> = {}; const a: Record<string, number> = {};
+    fields.forEach((f: any) => {
+      if (f.type === 'range') {
+        const v = fromPos(f, Number((document.getElementById(`f-${f.id}`) as HTMLInputElement).value));
+        i[f.id] = v; $(`o-${f.id}`).textContent = `${nf.format(v)} ${f.unit}`;
+      } else i[f.id] = Number(document.querySelector<HTMLInputElement>(`input[name="f-${f.id}"]:checked`)!.value);
+    });
+    model.assumptions.forEach((h: any) => {
+      const el = document.getElementById(`a-${h.id}`) as HTMLInputElement; const n = Number(el.value);
+      a[h.id] = Number.isFinite(n) ? Math.min(h.max, Math.max(h.min, n)) : h.value;
+    });
+    return { i, a };
+  };
+
+  const COLORS = ['#2448f5', '#6f8bff', '#a9b8ff', '#d7defd', '#8e8e93', '#48484a', '#c7c7cc'];
+  const months = (n: number) => `${Math.round(n)} mois`;
+  let last: any = null; let state: any = null;
+
+  const chart = (r: any) => {
+    const W = 560, H = 200, P = { l: 8, r: 8, t: 12, b: 26 };
+    const n = r.cumCost.length; const max = Math.max(r.cumCost[n - 1], r.cumGain[n - 1], 1);
+    const x = (m: number) => P.l + (m / (n - 1)) * (W - P.l - P.r);
+    const y = (v: number) => H - P.b - (v / max) * (H - P.t - P.b);
+    const line = (arr: number[]) => arr.map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    let ticks = '';
+    for (let yr = 1; yr <= r.horizon; yr++) { const xx = x(yr * 12 - 1); ticks += `<line x1="${xx}" x2="${xx}" y1="${H - P.b}" y2="${H - P.b + 4}" class="tk"/>`; if (r.horizon <= 5 || yr % 2 === 0) ticks += `<text x="${xx}" y="${H - 6}" class="tx" text-anchor="${yr === r.horizon ? 'end' : 'middle'}">An ${yr}</text>`; }
+    const gl = x(r.goLive - 1);
+    let be = '';
+    if (r.breakEven) { const bx = x(r.breakEven - 1), by = y(r.cumGain[r.breakEven - 1]); be = `<circle cx="${bx}" cy="${by}" r="5" class="be"/><text x="${Math.min(bx + 8, W - 90)}" y="${by - 10}" class="bt">Point mort</text>`; }
+    $('r-chart').innerHTML = `<line x1="${P.l}" x2="${W - P.r}" y1="${H - P.b}" y2="${H - P.b}" class="ax"/>${ticks}
+      <line x1="${gl}" x2="${gl}" y1="${P.t}" y2="${H - P.b}" class="gl"/><text x="${gl + 6}" y="${P.t + 10}" class="tx">Mise en service</text>
+      <path d="${line(r.cumCost)}" class="lc"/><path d="${line(r.cumGain)}" class="lg"/>${be}`;
+  };
+
+  const render = () => {
+    const { i, a } = read(); state = { i, a };
+    const r = simulate(model, i, a); last = r;
+    $('r-tier').textContent = r.tier.name;
+    $('r-tierdesc').textContent = r.tier.desc;
+    $('r-budget').textContent = `${money(r.low)} à ${money(r.high)}`;
+    $('r-central').textContent = `Scénario central : ${money(r.initial)}`;
+    $('r-bar').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<span style="width:${((p[1] / r.initial) * 100).toFixed(2)}%;background:${COLORS[n % COLORS.length]}"></span>`).join('');
+    $('r-legend').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<dt><i style="background:${COLORS[n % COLORS.length]}"></i>${p[0]}</dt><dd>${money(p[1])}</dd>`).join('');
+    $('r-rec').textContent = r.recurring > 0 ? `${money(r.recurring)} par an` : 'Aucun';
+    $('r-recs').textContent = r.recurringNote;
+    $('r-totk').textContent = `Coût total sur ${r.horizon} ans`;
+    $('r-tot').textContent = money(r.total);
+    $('r-delay').textContent = `${months(r.months[0])} à ${months(r.months[1])}`;
+    $('r-gain').textContent = `${money(r.gainsTotal)} par an`;
+    $('r-gains').textContent = r.gains.map((g: any) => `${g[0]} : ${money(g[1])}`).join(' ; ');
+    const x = $('r-x'); if (r.kpi) { x.hidden = false; $('r-xk').textContent = r.kpi[0]; $('r-xv').textContent = r.kpi[1]; $('r-xs').textContent = r.kpi[2]; } else x.hidden = true;
+    const o = $('r-o'); if (r.oneOff && r.oneOff[1] > 0) { o.hidden = false; $('r-ok').textContent = r.oneOff[0]; $('r-ov').textContent = money(r.oneOff[1]); } else o.hidden = true;
+    const pill = $('r-pill');
+    if (r.breakEven) {
+      $('r-pay').textContent = `Rentabilisé ${r.breakEven} mois après le lancement`;
+      pill.textContent = `${r.roi >= 0 ? '+' : ''}${Math.round(r.roi * 100)} % sur ${r.horizon} ans, soit ${r.breakEven - r.goLive} mois après la mise en service`;
+      pill.className = `sx-pill ${r.breakEven <= r.horizon * 12 * 0.6 ? 'ok' : 'mid'}`;
+    } else {
+      $('r-pay').textContent = r.netAnnual > 0 ? `Au-delà de ${r.horizon} ans` : 'Non rentable sur les seuls gains mesurables';
+      pill.textContent = `${Math.round(r.roi * 100)} % sur ${r.horizon} ans`;
+      pill.className = 'sx-pill ko';
+    }
+    chart(r);
+    $('r-watch').innerHTML = r.watch.map((w: string) => `<li>${w}</li>`).join('');
+  };
+
+  const shareUrl = () => {
+    const q = new URLSearchParams();
+    fields.forEach((f: any) => q.set(f.id, String(state.i[f.id])));
+    model.assumptions.forEach((h: any) => { if (state.a[h.id] !== h.value) q.set(`h_${h.id}`, String(state.a[h.id])); });
+    return `${location.origin}${location.pathname}?${q.toString()}`;
+  };
+
+  const summary = () => {
+    const r = last; const lines = [
+      `Simulation ${model.code}, Malaheim Consulting`,
+      `Solution adaptée : ${r.tier.name}`,
+      `Budget de mise en place : ${money(r.low)} à ${money(r.high)} (central ${money(r.initial)})`,
+      ...r.parts.map((p: any) => `  ${p[0]} : ${money(p[1])}`),
+      `Coût annuel : ${money(r.recurring)}`,
+      `Coût total sur ${r.horizon} ans : ${money(r.total)}`,
+      `Délai : ${months(r.months[0])} à ${months(r.months[1])}`,
+      `Gains annuels mesurables : ${money(r.gainsTotal)}`,
+      `Retour sur investissement : ${$('r-pay').textContent}`,
+      `Lien : ${shareUrl()}`,
+    ];
+    return lines.join('\n');
+  };
+
+  const buildReport = () => {
+    const r = last; const esc = (s: string) => s.replace(/</g, '&lt;');
+    $('rp-date').textContent = `Établie le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    const inputs = fields.map((f: any) => `<tr><td>${esc(f.label)}</td><td>${f.type === 'range' ? `${nf.format(state.i[f.id])} ${f.unit}` : esc(f.options[state.i[f.id]])}</td></tr>`).join('');
+    const hyp = model.assumptions.map((h: any) => `<tr><td>${esc(h.label)}</td><td>${nf.format(state.a[h.id])} ${esc(h.unit)}</td></tr>`).join('');
+    $('rp-body').innerHTML = `
+      <h1>${esc(model.title)}</h1>
+      <div class="rp-cols">
+        <div><h2>Vos données</h2><table>${inputs}</table></div>
+        <div><h2>Résultat</h2><table>
+          <tr><td>Solution adaptée</td><td>${esc(r.tier.name)}</td></tr>
+          <tr><td>Budget de mise en place</td><td><strong>${money(r.low)} à ${money(r.high)}</strong></td></tr>
+          <tr><td>Coût annuel</td><td>${money(r.recurring)}</td></tr>
+          <tr><td>Coût total sur ${r.horizon} ans</td><td>${money(r.total)}</td></tr>
+          <tr><td>Délai de mise en service</td><td>${months(r.months[0])} à ${months(r.months[1])}</td></tr>
+          <tr><td>Gains annuels mesurables</td><td>${money(r.gainsTotal)}</td></tr>
+          <tr><td>Retour sur investissement</td><td>${esc($('r-pay').textContent || '')}</td></tr>
+          ${r.oneOff ? `<tr><td>${esc(r.oneOff[0])}</td><td>${money(r.oneOff[1])}</td></tr>` : ''}
+        </table></div>
+      </div>
+      <h2>Budget poste par poste (scénario central)</h2>
+      <table>${r.parts.map((p: any) => `<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td></tr>`).join('')}<tr><td><strong>Total</strong></td><td><strong>${money(r.initial)}</strong></td></tr></table>
+      <h2>Gains annuels</h2>
+      <table>${r.gains.map((g: any) => `<tr><td>${esc(g[0])}</td><td>${money(g[1])}</td></tr>`).join('')}</table>
+      <h2>Points de vigilance</h2>
+      <ol>${r.watch.map((w: string) => `<li>${esc(w)}</li>`).join('')}</ol>
+      <h2>Hypothèses retenues</h2>
+      <table>${hyp}</table>
+      <p class="rp-foot">Ordres de grandeur indicatifs en euros hors taxes, établis par le simulateur Malaheim (modèle version 2). Ils ne remplacent pas un chiffrage ferme. Retrouvez cette simulation : ${esc(shareUrl())}</p>`;
+  };
+
+  root.addEventListener('input', render);
+  root.addEventListener('change', render);
+  $('sx-reset').addEventListener('click', () => { const d = defaults(model); model.assumptions.forEach((h: any) => { (document.getElementById(`a-${h.id}`) as HTMLInputElement).value = String(d.a[h.id]); }); render(); });
+  $('sx-print').addEventListener('click', () => { buildReport(); window.print(); });
+  $('sx-link').addEventListener('click', () => {
+    const url = shareUrl(); history.replaceState(null, '', url);
+    const done = (ok: boolean) => { $('sx-status').textContent = ok ? 'Lien copié. Il rouvre cette simulation avec vos réponses.' : 'Copie impossible ici : le lien est dans la barre d’adresse.'; };
+    try { navigator.clipboard.writeText(url).then(() => done(true), () => done(false)); } catch { done(false); }
+  });
+  window.addEventListener('beforeprint', buildReport);
+
+  const form = document.getElementById('lead') as HTMLFormElement; const msg = $('lead-msg');
+  form.addEventListener('submit', (e) => {
+    const mail = (document.getElementById('lead-email') as HTMLInputElement).value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { e.preventDefault(); msg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
+    if (!(document.getElementById('lead-ok') as HTMLInputElement).checked) { e.preventDefault(); msg.textContent = 'Cochez la case pour recevoir la simulation.'; return; }
+    (document.getElementById('lead-summary') as HTMLInputElement).value = summary();
+    if (!form.dataset.brevo) { e.preventDefault(); msg.textContent = 'Merci. L’envoi par e-mail sera actif très prochainement : en attendant, utilisez « Imprimer ou enregistrer en PDF ».'; }
+  });
+
+  render();
+</script>
+
+<style is:global>
+  .simx { padding-bottom: 0; }
+  .sx-hero { padding-block: 72px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+  .sx-k { margin: 0; font-size: 17px; font-weight: 600; color: var(--muted); }
+  .sx-title { margin: 0; max-width: 15em; font-size: clamp(38px, 5.6vw, 76px); line-height: 1.04; letter-spacing: -0.05em; }
+  .sx-lead { margin: 4px 0 0; max-width: 36em; font-size: clamp(18px, 1.8vw, 22px); line-height: 1.4; color: var(--muted); letter-spacing: -0.015em; }
+
+  .sx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 24px; align-items: start; padding-bottom: 72px; }
+  @media (max-width: 980px) { .sx-grid { grid-template-columns: 1fr; } }
+
+  .sx-form { background: var(--pearl); border-radius: 32px; padding: 32px; display: flex; flex-direction: column; gap: 28px; }
+  .sx-group { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+  .sx-group legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 600; color: var(--dim); }
+  .sx-field { display: flex; flex-direction: column; gap: 10px; }
+  .sx-fh { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .sx-fh label, .sx-lab { font-weight: 600; font-size: 15.5px; letter-spacing: -0.01em; color: var(--ink); }
+  .sx-fh output { font-weight: 700; font-size: 15.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sx-field input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: pointer; }
+  .sx-field input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: #d2d2d7; }
+  .sx-field input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: #d2d2d7; }
+  .sx-field input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -10px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3), 0 0 0 .5px rgba(0,0,0,.08); transition: transform .2s; }
+  .sx-field input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+  .sx-field input[type=range]:active::-webkit-slider-thumb { transform: scale(1.12); }
+  .sx-field input[type=range]:focus-visible { outline: none; }
+  .sx-field input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(36,72,245,.35); }
+  .sx-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px; padding: 4px; background: #e8e8ed; border-radius: 14px; }
+  .sx-opts-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sx-opts label { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 44px; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 500; line-height: 1.25; color: var(--muted); cursor: pointer; transition: background-color .25s, color .25s, box-shadow .25s; }
+  .sx-opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .sx-opts label:has(input:checked) { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .sx-opts label:has(input:focus-visible) { outline: 2px solid var(--cobalt); outline-offset: 1px; }
+  .sx-adv { border-top: 1px solid #d2d2d7; padding-top: 18px; }
+  .sx-adv summary { cursor: pointer; font-weight: 600; font-size: 15px; color: var(--cobalt); }
+  .sx-adv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  @media (max-width: 560px) { .sx-adv-grid { grid-template-columns: 1fr; } }
+  .sx-af { display: flex; flex-direction: column; gap: 6px; }
+  .sx-af label { font-size: 13px; color: var(--muted); line-height: 1.3; }
+  .sx-ai { display: flex; align-items: center; gap: 8px; }
+  .sx-ai input { width: 96px; padding: 10px 12px; border: 1px solid #d2d2d7; border-radius: 10px; background: #fff; font: inherit; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sx-ai span { font-size: 13px; color: var(--dim); }
+  .sx-reset { margin-top: 14px; font: inherit; font-size: 14px; color: var(--cobalt); background: none; border: 0; padding: 0; cursor: pointer; }
+
+  .sx-res { position: sticky; top: 88px; background: #000; color: #fff; border-radius: 32px; padding: 32px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+  @media (max-width: 980px) { .sx-res { position: static; } }
+  .sx-rk { display: block; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55); }
+  .sx-tier strong { display: block; margin-top: 4px; font-size: 21px; letter-spacing: -0.025em; }
+  .sx-tdesc { display: block; margin-top: 2px; font-size: 14px; color: rgba(255,255,255,.6); }
+  .sx-big { display: block; margin-top: 2px; font-family: var(--display); font-weight: 700; font-size: clamp(38px, 4.4vw, 56px); line-height: 1.02; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .sx-small { font-size: 13px; color: rgba(255,255,255,.55); }
+  .sx-bar { display: flex; height: 10px; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,.08); gap: 2px; }
+  .sx-bar span { display: block; height: 100%; transition: width .6s var(--ease); }
+  .sx-legend { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 0; font-size: 14px; }
+  .sx-legend dt { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8); }
+  .sx-legend dt i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .sx-legend dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sx-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sx-kpi { background: rgba(255,255,255,.07); border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+  .sx-kpi[hidden] { display: none; }
+  .sx-v { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .sx-s { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.35; }
+  .sx-pay { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+  .sx-payv { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
+  .sx-pill { align-self: flex-start; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .sx-pill.ok { background: rgba(48,209,88,.16); color: #30d158; }
+  .sx-pill.mid { background: rgba(255,214,10,.14); color: #ffd60a; }
+  .sx-pill.ko { background: rgba(255,69,58,.16); color: #ff6961; }
+  .sx-chart { margin: 0; }
+  .sx-chart svg { display: block; width: 100%; height: auto; }
+  .sx-chart .ax { stroke: rgba(255,255,255,.2); }
+  .sx-chart .tk { stroke: rgba(255,255,255,.25); }
+  .sx-chart .tx { fill: rgba(255,255,255,.45); font-size: 11px; font-family: var(--body); }
+  .sx-chart .gl { stroke: rgba(255,255,255,.25); stroke-dasharray: 3 4; }
+  .sx-chart .lc { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 2; }
+  .sx-chart .lg { fill: none; stroke: #4f74ff; stroke-width: 2.5; }
+  .sx-chart .be { fill: #30d158; stroke: #000; stroke-width: 2; }
+  .sx-chart .bt { fill: #30d158; font-size: 12px; font-weight: 600; font-family: var(--body); }
+  .sx-chart figcaption { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: rgba(255,255,255,.55); }
+  .sx-chart .lg-c, .sx-chart .lg-g { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+  .sx-chart .lg-c { background: rgba(255,255,255,.75); }
+  .sx-chart .lg-g { background: #4f74ff; margin-left: 10px; }
+  .sx-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .sx-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 999px; border: 0; cursor: pointer; background: #fff; color: #000; transition: transform .3s var(--ease); }
+  .sx-btn:hover { transform: scale(1.03); }
+  .sx-btn-ghost { background: rgba(255,255,255,.1); color: #fff; }
+  .sx-status { margin: 0; min-height: 1.2em; font-size: 13px; color: rgba(255,255,255,.6); }
+
+  .sx-h2 { margin: 0 0 28px; font-size: clamp(28px, 3.6vw, 44px); letter-spacing: -0.04em; text-align: center; }
+  .sx-watch { padding-block: 24px 96px; max-width: 900px; }
+  .sx-wlist { margin: 0; padding: 0; list-style: none; counter-reset: w; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+  .sx-wlist li { counter-increment: w; display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); font-size: 17px; line-height: 1.5; color: var(--text); }
+  .sx-wlist li::before { content: counter(w); font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  .sx-next { background: var(--pearl); padding-block: 96px; }
+  .sx-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  @media (max-width: 900px) { .sx-cards { grid-template-columns: 1fr; } }
+  .sx-card { display: flex; flex-direction: column; gap: 10px; padding: 32px; border-radius: 28px; background: #fff; color: var(--text); text-decoration: none !important; transition: transform .6s var(--ease), box-shadow .6s var(--ease); }
+  .sx-card:hover { transform: scale(1.015); box-shadow: var(--shadow-hover); color: var(--text); }
+  .sx-card h3 { margin: 0; font-size: 21px; }
+  .sx-card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .sx-ck { font-size: 14px; font-weight: 600; color: var(--dim); }
+  .sx-go { margin-top: auto; padding-top: 10px; color: var(--cobalt); font-weight: 500; }
+  .sx-card-dark { background: #000; color: #fff; }
+  .sx-card-dark:hover { color: #fff; }
+  .sx-card-dark h3 { color: #fff; }
+  .sx-card-dark p, .sx-card-dark .sx-ck { color: rgba(255,255,255,.6); }
+  .sx-card-dark .sx-go { color: #9db0ff; }
+  .sx-lead { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px 40px; align-items: center; padding: 32px; border-radius: 28px; background: #fff; }
+  @media (max-width: 900px) { .sx-lead { grid-template-columns: 1fr; } }
+  .sx-lead h3 { margin: 0 0 6px; font-size: 21px; }
+  .sx-lead p { margin: 0; color: var(--muted); font-size: 15px; }
+  .sx-lead-f { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+  .sx-lead-f input[type=email] { padding: 13px 16px; border: 1px solid #d2d2d7; border-radius: 999px; font: inherit; }
+  .sx-consent { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--dim); }
+  .sx-consent input { margin-top: 3px; }
+  .sx-lead .sx-status { grid-column: 1 / -1; color: var(--muted); }
+
+  .sx-method { padding-block: 96px 64px; max-width: 1000px; }
+  .sx-mtext { max-width: 760px; margin: 0 auto 32px; color: var(--muted); font-size: 16.5px; line-height: 1.55; }
+  .sx-mtext p { margin: 0 0 12px; }
+  .sx-scroll { overflow-x: auto; border-radius: 18px; border: 1px solid var(--line-soft); }
+  .sx-method table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 680px; }
+  .sx-method th, .sx-method td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .sx-method th { font-size: 13px; font-weight: 600; color: var(--dim); background: var(--pearl); }
+  .sx-method tr:last-child td { border-bottom: 0; }
+  .sx-foot { margin: 20px auto 0; max-width: 760px; text-align: center; font-size: 13px; color: var(--dim); }
+
+  .sx-others { padding-block: 64px 120px; }
+  .sx-orow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 900px) { .sx-orow { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .sx-orow { grid-template-columns: 1fr; } }
+  .sx-oc { display: flex; flex-direction: column; gap: 6px; padding: 24px; border-radius: 24px; background: var(--pearl); color: var(--text); text-decoration: none !important; transition: transform .6s var(--ease); }
+  .sx-oc:hover { transform: scale(1.02); color: var(--text); }
+  .sx-ocode { align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: #000; color: #fff; font-size: 12px; font-weight: 700; }
+  .sx-oc strong { font-size: 18px; letter-spacing: -0.02em; margin-top: 6px; }
+  .sx-oc span { color: var(--muted); font-size: 14.5px; }
+  .sx-oc .sx-oex { margin-top: 6px; color: var(--ink); font-weight: 600; }
+
+  .sx-report { display: none; }
+  @media print {
+    @page { size: A4; margin: 16mm 14mm; }
+    .topbar, .footer, .dock, .skip { display: none !important; }
+    .simx > *:not(.sx-report) { display: none !important; }
+    .sx-report { display: block; color: #000; font-size: 11pt; }
+    body { background: #fff !important; }
+    .rp-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 10px; border-bottom: 1.5pt solid #000; }
+    .rp-head .logo-full { height: 52px; width: auto; color: #000; }
+    .rp-head div { display: flex; flex-direction: column; align-items: flex-end; font-size: 10pt; }
+    .sx-report h1 { font-size: 20pt; margin: 16px 0 10px; letter-spacing: -0.02em; color: #000; }
+    .sx-report h2 { font-size: 12.5pt; margin: 16px 0 6px; color: #000; }
+    .sx-report table { width: 100%; border-collapse: collapse; }
+    .sx-report td { padding: 4px 6px; border-bottom: .5pt solid #ccc; vertical-align: top; }
+    .sx-report td:last-child { text-align: right; }
+    .sx-report td:first-child { width: 58%; }
+    .rp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .sx-report ol { margin: 0; padding-left: 18px; }
+    .sx-report li { margin-bottom: 4px; }
+    .rp-foot { margin-top: 18px; font-size: 8.5pt; color: #555; }
+  }
+</style>

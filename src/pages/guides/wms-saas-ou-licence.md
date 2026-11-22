@@ -49,4 +49,4 @@ Le point d'équilibre se situe autour de 5 ans. Ce calcul ne compte ni l'exploit
 4. Où sont hébergées les données ?
 5. Que se passe-t-il pour mes données et mon paramétrage si je résilie ?
 
-Le [simulateur](/simulateur-wms/) compare les deux modes sur votre propre entrepôt : basculez le mode de déploiement pour voir l'écart.
+Le [simulateur](/simulateurs/wms/) compare les deux modes sur votre propre entrepôt : basculez le mode de déploiement pour voir l'écart.

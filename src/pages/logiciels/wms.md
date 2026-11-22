@@ -23,7 +23,7 @@ Un WMS gère le stock à l'emplacement près, optimise les parcours et contrôle
 
 ## Budget et délai
 
-Un projet WMS coûte de 60 000 € pour une PME aux flux simples à plus d'un million d'euros pour un site automatisé multi-sites. Le logiciel représente rarement plus d'un tiers de la facture. Les fourchettes détaillées par taille et les six postes de budget sont dans le guide [combien coûte un WMS](/guides/prix-wms/), et le [simulateur](/simulateur-wms/) les applique à votre entrepôt.
+Un projet WMS coûte de 60 000 € pour une PME aux flux simples à plus d'un million d'euros pour un site automatisé multi-sites. Le logiciel représente rarement plus d'un tiers de la facture. Les fourchettes détaillées par taille et les six postes de budget sont dans le guide [combien coûte un WMS](/guides/prix-wms/), et le [simulateur](/simulateurs/wms/) les applique à votre entrepôt.
 
 ## Comment bien le choisir
 

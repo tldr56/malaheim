@@ -51,4 +51,4 @@ Testez les cas d'exception autant que les cas nominaux : rupture, colis abîmé,
 
 Démarrez en période creuse, avec l'intégrateur sur site les deux premières semaines. Attendez-vous à une baisse de productivité de quelques semaines avant le retour au niveau initial, puis au gain.
 
-Pour estimer la durée de votre propre projet, utilisez le [simulateur](/simulateur-wms/). Pour éviter les pièges de chaque étape, lisez [les 8 erreurs qui font déraper un projet WMS](/guides/erreurs-projet-wms/).
+Pour estimer la durée de votre propre projet, utilisez le [simulateur](/simulateurs/wms/). Pour éviter les pièges de chaque étape, lisez [les 8 erreurs qui font déraper un projet WMS](/guides/erreurs-projet-wms/).

@@ -1,0 +1,96 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SIM_LIST, defaults, simulate, money } from '../../lib/sims.js';
+const cards = SIM_LIST.map((m) => { const d = defaults(m); return { m, r: simulate(m, d.i, d.a) }; });
+const lags = ['', 'lag1', 'lag2'];
+---
+<Base title="Simulateurs de budget supply chain" description="Sept simulateurs gratuits pour estimer le budget, le délai et le retour sur investissement d’un projet WMS, TMS, ERP, automatisation, OMS, S&OP ou données. Sans inscription, sources affichées." dock={false}>
+  <section class="wrap sh-hero">
+    <p class="sh-k rise">Simulateurs gratuits</p>
+    <h1 class="sh-title rise d1">Votre budget, en deux minutes.</h1>
+    <p class="sh-lead rise d2">Sept simulateurs, un par famille de logiciels. Budget poste par poste, délai, coût sur la durée et point mort, calculés à partir de sources publiées et d’hypothèses que vous pouvez modifier.</p>
+  </section>
+
+  <section class="wrap sh-grid" aria-label="Les simulateurs">
+    {cards.map(({ m, r }, n) => (
+      <a class={`sh-card ${n === 0 ? 'sh-feat' : ''} sr-up ${lags[n % 3]}`} href={`/simulateurs/${m.slug}/`}>
+        <span class="sh-code">{m.code}</span>
+        <h2 class="sh-t">{m.title}</h2>
+        <p class="sh-d">{m.card}</p>
+        <div class="sh-ex">
+          <span class="sh-exk">Exemple avec les réponses par défaut</span>
+          <span class="sh-exv">{money(r.low)} à {money(r.high)}</span>
+          <span class="sh-exs">{r.breakEven ? `Rentabilisé en ${r.breakEven} mois` : `Délai ${Math.round(r.months[0])} à ${Math.round(r.months[1])} mois`}</span>
+        </div>
+        <span class="sh-go">Lancer le simulateur</span>
+      </a>
+    ))}
+  </section>
+
+  <section class="sh-how" aria-labelledby="t-how">
+    <div class="wrap">
+      <h2 id="t-how" class="sh-h2 sr-up">Comment ça marche</h2>
+      <ol class="sh-steps">
+        <li class="sr-up"><strong>Répondez</strong><span>Six à neuf questions sur votre activité, en curseurs et en choix. Le résultat se met à jour à chaque réponse.</span></li>
+        <li class="sr-up lag1"><strong>Ajustez</strong><span>Coût horaire, gains attendus, taux d’erreur : toutes les hypothèses sont affichées et modifiables.</span></li>
+        <li class="sr-up lag2"><strong>Partagez</strong><span>Copiez le lien de votre simulation ou enregistrez un rapport PDF pour votre direction.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap sh-trust" aria-labelledby="t-trust">
+    <h2 id="t-trust" class="sh-h2 sr-up">Des chiffres que l’on peut vérifier</h2>
+    <div class="sh-tgrid">
+      <div class="sr-up"><h3>Sources affichées</h3><p>Chaque paramètre est relié à une fourchette publiée, citée sous le simulateur.</p></div>
+      <div class="sr-up lag1"><h3>Hypothèses prudentes</h3><p>La fourchette monte à 30 % au-dessus du scénario central. Seuls les gains mesurables sont comptés.</p></div>
+      <div class="sr-up lag2"><h3>Rien ne sort de votre navigateur</h3><p>Le calcul se fait sur votre écran. Aucune donnée n’est transmise sans votre demande.</p></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sh-hero { padding-block: 80px 56px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+  .sh-k { margin: 0; font-size: 17px; font-weight: 600; color: var(--muted); }
+  .sh-title { margin: 0; font-size: clamp(46px, 7.4vw, 104px); line-height: 1; letter-spacing: -0.055em; }
+  .sh-lead { margin: 6px 0 0; max-width: 34em; font-size: clamp(18px, 1.8vw, 22px); color: var(--muted); line-height: 1.4; }
+  .sh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding-bottom: 120px; }
+  @media (max-width: 980px) { .sh-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .sh-grid { grid-template-columns: 1fr; } }
+  .sh-card { display: flex; flex-direction: column; gap: 12px; padding: 36px; border-radius: 32px; background: var(--pearl); color: var(--text); text-decoration: none !important; min-height: 380px; transition: transform .6s var(--ease), box-shadow .6s var(--ease); }
+  .sh-card:hover { transform: scale(1.015); box-shadow: var(--shadow-hover); color: var(--text); }
+  .sh-feat { grid-column: 1 / -1; background: #000; color: #fff; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; column-gap: 48px; padding: 48px; }
+  .sh-feat:hover { color: #fff; }
+  .sh-feat .sh-code, .sh-feat .sh-t, .sh-feat .sh-d, .sh-feat .sh-go { grid-column: 1; }
+  .sh-feat .sh-ex { grid-column: 2; grid-row: 1 / 5; align-self: center; border-top: 0; border-left: 1px solid rgba(255,255,255,.16); padding: 0 0 0 40px; margin: 0; }
+  @media (max-width: 760px) { .sh-feat { grid-template-columns: 1fr; padding: 36px; } .sh-feat .sh-ex { grid-column: 1; grid-row: auto; border-left: 0; border-top: 1px solid rgba(255,255,255,.16); padding: 18px 0 0; } }
+  .sh-code { align-self: flex-start; padding: 5px 12px; border-radius: 999px; background: #000; color: #fff; font-size: 13px; font-weight: 700; }
+  .sh-feat .sh-code { background: #fff; color: #000; }
+  .sh-t { margin: 4px 0 0; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.12; letter-spacing: -0.035em; }
+  .sh-feat .sh-t { color: #fff; font-size: clamp(28px, 3.4vw, 46px); max-width: 14em; }
+  .sh-d { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .sh-feat .sh-d { color: rgba(255,255,255,.6); }
+  .sh-ex { margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .sh-feat .sh-ex { border-color: rgba(255,255,255,.16); }
+  .sh-exk { font-size: 12.5px; color: var(--dim); }
+  .sh-feat .sh-exk { color: rgba(255,255,255,.5); }
+  .sh-exv { font-family: var(--display); font-weight: 700; font-size: 28px; letter-spacing: -0.04em; }
+  .sh-feat .sh-exv { font-size: clamp(34px, 3.8vw, 54px); line-height: 1.05; white-space: nowrap; }
+  .sh-feat .sh-code { justify-self: start; }
+  .sh-exs { font-size: 14px; color: var(--muted); }
+  .sh-feat .sh-exs { color: #30d158; font-weight: 600; }
+  .sh-go { color: var(--cobalt); font-weight: 500; }
+  .sh-feat .sh-go { color: #9db0ff; }
+  .sh-how { background: var(--pearl); padding-block: 100px; }
+  .sh-h2 { margin: 0 0 40px; text-align: center; font-size: clamp(30px, 4vw, 52px); letter-spacing: -0.045em; }
+  .sh-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; counter-reset: s; }
+  @media (max-width: 900px) { .sh-steps { grid-template-columns: 1fr; } }
+  .sh-steps li { counter-increment: s; display: flex; flex-direction: column; gap: 8px; padding: 32px; border-radius: 28px; background: #fff; }
+  .sh-steps li::before { content: counter(s); font-family: var(--display); font-weight: 700; font-size: 44px; letter-spacing: -0.05em; color: var(--ink); line-height: 1; }
+  .sh-steps strong { font-size: 21px; letter-spacing: -0.02em; }
+  .sh-steps span { color: var(--muted); font-size: 15.5px; }
+  .sh-trust { padding-block: 100px 140px; }
+  .sh-tgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; border-top: 1px solid var(--line); padding-top: 36px; }
+  @media (max-width: 900px) { .sh-tgrid { grid-template-columns: 1fr; } }
+  .sh-tgrid h3 { margin: 0 0 8px; font-size: 21px; }
+  .sh-tgrid p { margin: 0; color: var(--muted); font-size: 16px; }
+</style>

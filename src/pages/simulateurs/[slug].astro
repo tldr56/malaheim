@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import Simulator from '../../components/Simulator.astro';
+import { SIM_LIST } from '../../lib/sims.js';
+import { SITE } from '../../config';
+
+export function getStaticPaths() {
+  return SIM_LIST.map((m) => ({ params: { slug: m.slug } }));
+}
+const { slug } = Astro.params;
+const m = SIM_LIST.find((x) => x.slug === slug)!;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: `Simulateur ${m.code} Malaheim`,
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Navigateur web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  provider: { '@type': 'Organization', name: SITE.company, url: SITE.url },
+  description: m.lead,
+};
+---
+<Base title={`Simulateur ${m.code} : ${m.card.toLowerCase()}`} description={`${m.lead} Gratuit, sans inscription, résultat immédiat.`} jsonLd={jsonLd} dock={false}>
+  <Simulator slug={slug} />
+</Base>

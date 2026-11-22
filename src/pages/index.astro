@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
+import { SIM_LIST } from '../lib/sims.js';
 const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg>';
 const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
@@ -68,7 +69,7 @@ const why = [
 ];
 
 const faq = [
-  { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateur, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
+  { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateurs, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
   { q: 'Quels kits de consultation proposez-vous ?', a: "Sept kits, un par famille de logiciels : WMS, TMS, ERP, S&OP et planification, automatisation et WCS, OMS, données et pilotage. Chacun contient un cahier des charges de 130 à 268 exigences, des scénarios de démonstration, une grille de dépouillement, une check-list contractuelle en 30 points et un plan de recette." },
   { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Cliquez en haut de cette page sur le problème qui vous ressemble le plus. Si plusieurs vous ressemblent, choisissez la dernière case : un appel gratuit de 30 minutes suffit pour trouver le premier chantier." },
   { q: 'Malaheim peut-il accompagner mon entreprise ?', a: "Oui, de la TPE au grand groupe, partout en France et à distance, en français ou en anglais. L'offre s'adapte à votre taille : le kit si vous avancez seul, la relecture pour un second avis, l'accompagnement à l'heure pour un besoin précis ou un projet complet." },
@@ -166,7 +167,7 @@ const jsonLd = {
                     <div><dt>Délai</dt><dd>{s.delay}</dd></div>
                   </dl>
                   <a class="btn btn-gold ans-cta" href={`/kits/${k.page}/`}>Le kit {s.code}, {SITE.kitPrice}</a>
-                  <p class="ans-more"><a href={bookHref}>Parler 30 min à un expert</a> ou <a href={`/logiciels/${s.slug}/`}>lire le guide gratuit</a></p>
+                  <p class="ans-more"><a href={`/simulateurs/${SIM_LIST.find((m) => m.sw === s.slug)!.slug}/`}>Simuler mon budget</a> ou <a href={bookHref}>parler 30 min à un expert</a></p>
                 </div>
               );
             })}
@@ -183,6 +184,35 @@ const jsonLd = {
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="simshow" aria-labelledby="titre-simus">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="titre-simus" class="h2 sr-up">Sept simulateurs. Votre budget en deux minutes.</h2>
+        <p class="lead sr-up lag1">Budget poste par poste, délai et point mort, calculés sur des sources publiées. Essayez ici, affinez ensuite.</p>
+      </div>
+      <div class="ms-pills sr-up" role="tablist" aria-label="Choisir un simulateur">
+        {SIM_LIST.map((m, n) => <button type="button" role="tab" class={`ms-pill ${n === 0 ? 'is-on' : ''}`} data-sim={m.slug} aria-selected={n === 0 ? 'true' : 'false'}>{m.code}</button>)}
+      </div>
+      <div class="ms-card sr-zoom">
+        <div class="ms-in">
+          <p class="ms-name" id="ms-name"></p>
+          <div id="ms-fields" class="ms-fields"></div>
+        </div>
+        <div class="ms-out" aria-live="polite">
+          <span class="ms-k">Budget de mise en place</span>
+          <span class="ms-big" id="ms-budget"></span>
+          <span class="ms-tier" id="ms-tier"></span>
+          <div class="ms-row">
+            <div><span class="ms-k">Délai</span><strong id="ms-delay"></strong></div>
+            <div><span class="ms-k">Retour sur investissement</span><strong id="ms-pay"></strong></div>
+          </div>
+          <a class="btn ms-cta" id="ms-cta" href="/simulateurs/wms/">Affiner dans le simulateur complet</a>
+        </div>
+      </div>
+      <p class="ms-all sr-up"><a href="/simulateurs/">Voir les 7 simulateurs</a></p>
     </div>
   </section>
 
@@ -250,16 +280,16 @@ const jsonLd = {
           <span class="b-price">{SITE.kitPrice}</span>
           <span class="b-go">Voir les 7 kits</span>
         </a>
-        <a class="card card-lift b-sim sr-up lag1" href="/simulateur-wms/">
-          <span class="b-k">Simulateur gratuit</span>
-          <h3 class="b-t">Combien va coûter votre WMS ?</h3>
+        <a class="card card-lift b-sim sr-up lag1" href="/simulateurs/">
+          <span class="b-k">7 simulateurs gratuits</span>
+          <h3 class="b-t">Combien va coûter votre projet ?</h3>
           <div class="b-meter" aria-hidden="true">
             <div class="m-row"><span>Intégration</span><span class="m-bar"><i style="--w: 86%"></i></span></div>
             <div class="m-row"><span>Matériel</span><span class="m-bar"><i style="--w: 44%"></i></span></div>
             <div class="m-row"><span>Interfaces</span><span class="m-bar"><i style="--w: 38%"></i></span></div>
             <div class="m-row"><span>Formation</span><span class="m-bar"><i style="--w: 18%"></i></span></div>
           </div>
-          <span class="b-go">Lancer le simulateur</span>
+          <span class="b-go">Voir les simulateurs</span>
         </a>
         <a class="card card-lift b-guides sr-up lag2" href="/guides/">
           <span class="b-k">Guides gratuits</span>
@@ -324,6 +354,39 @@ const jsonLd = {
 </Base>
 
 <script>
+  import { SIMS, defaults, simulate, money } from '../lib/sims.js';
+  // Démonstration des simulateurs : deux curseurs par modèle, résultat en direct
+  const msFields = document.getElementById('ms-fields');
+  if (msFields) {
+    const nf = new Intl.NumberFormat('fr-FR');
+    let cur = 'wms'; let vals: Record<string, number> = {};
+    const fromPos = (f: any, p: number) => { if (!f.log) return p; const v = f.min * Math.pow(f.max / f.min, p / 1000); const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1)); const st = Math.max(f.step, mag); return Math.min(f.max, Math.max(f.min, Math.round(v / st) * st)); };
+    const toPos = (f: any, v: number) => (f.log ? Math.round((1000 * Math.log(v / f.min)) / Math.log(f.max / f.min)) : v);
+    const draw = () => {
+      const m = SIMS[cur]; const d = defaults(m); const i = { ...d.i, ...vals };
+      const r = simulate(m, i, d.a);
+      document.getElementById('ms-budget')!.textContent = `${money(r.low)} à ${money(r.high)}`;
+      document.getElementById('ms-tier')!.textContent = r.tier.name;
+      document.getElementById('ms-delay')!.textContent = `${Math.round(r.months[0])} à ${Math.round(r.months[1])} mois`;
+      document.getElementById('ms-pay')!.textContent = r.breakEven ? `${r.breakEven} mois` : `Au-delà de ${m.horizon} ans`;
+      const q = new URLSearchParams(); Object.entries(vals).forEach(([k, v]) => q.set(k, String(v)));
+      (document.getElementById('ms-cta') as HTMLAnchorElement).href = `/simulateurs/${m.slug}/?${q.toString()}`;
+    };
+    const build = () => {
+      const m = SIMS[cur]; vals = {};
+      document.getElementById('ms-name')!.textContent = m.title;
+      const fs = m.fields.filter((f: any) => f.type === 'range').slice(0, 2);
+      msFields.innerHTML = fs.map((f: any) => `<div class="ms-f"><div class="ms-fh"><label for="ms-${f.id}">${f.label}</label><output id="mo-${f.id}"></output></div><input type="range" id="ms-${f.id}" data-id="${f.id}" min="${f.log ? 0 : f.min}" max="${f.log ? 1000 : f.max}" step="${f.log ? 1 : f.step}" value="${toPos(f, f.value)}"></div>`).join('');
+      const upd = () => { fs.forEach((f: any) => { const v = fromPos(f, Number((document.getElementById(`ms-${f.id}`) as HTMLInputElement).value)); vals[f.id] = v; document.getElementById(`mo-${f.id}`)!.textContent = `${nf.format(v)} ${f.unit}`; }); draw(); };
+      msFields.oninput = upd; upd();
+    };
+    document.querySelectorAll<HTMLButtonElement>('.ms-pill').forEach((b) => b.addEventListener('click', () => {
+      document.querySelectorAll('.ms-pill').forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+      cur = b.dataset.sim!; build();
+    }));
+    build();
+  }
+
   // Orientation : un clic sur un problème allume l'étape de la chaîne et imprime l'étiquette
   const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('.tile-btn'));
   const answers = Array.from(document.querySelectorAll<HTMLElement>('.answer'));
@@ -462,6 +525,35 @@ const jsonLd = {
     .scene { grid-template-columns: 1fr; }
     .reponse { width: 100%; }
   }
+
+  /* Démonstration des simulateurs */
+  .simshow { background: var(--pearl); padding-block: 120px; }
+  .ms-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; width: fit-content; max-width: 100%; margin: 0 auto 28px; padding: 5px; border-radius: 999px; background: #e8e8ed; }
+  .ms-pill { font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; transition: background-color .3s, color .3s; }
+  .ms-pill.is-on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .ms-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-radius: 36px; overflow: hidden; background: #fff; box-shadow: 0 40px 80px -40px rgba(0,0,0,.2); }
+  @media (max-width: 860px) { .ms-card { grid-template-columns: 1fr; } }
+  .ms-in { padding: 44px; display: flex; flex-direction: column; gap: 28px; }
+  .ms-name { margin: 0; font-size: clamp(24px, 2.6vw, 34px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; color: var(--ink); }
+  .ms-fields { display: flex; flex-direction: column; gap: 26px; }
+  .ms-fields :global(.ms-fh) { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 8px; }
+  .ms-fields :global(label) { font-weight: 600; font-size: 15px; color: var(--ink); }
+  .ms-fields :global(output) { font-weight: 700; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ms-fields :global(input[type=range]) { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: pointer; }
+  .ms-fields :global(input[type=range]::-webkit-slider-runnable-track) { height: 4px; border-radius: 4px; background: #d2d2d7; }
+  .ms-fields :global(input[type=range]::-moz-range-track) { height: 4px; border-radius: 4px; background: #d2d2d7; }
+  .ms-fields :global(input[type=range]::-webkit-slider-thumb) { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -11px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3), 0 0 0 .5px rgba(0,0,0,.08); }
+  .ms-fields :global(input[type=range]::-moz-range-thumb) { width: 26px; height: 26px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+  .ms-out { background: #000; color: #fff; padding: 44px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+  .ms-k { display: block; font-size: 13px; color: rgba(255,255,255,.55); }
+  .ms-big { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 5vw, 68px); line-height: 1; letter-spacing: -0.055em; font-variant-numeric: tabular-nums; }
+  .ms-tier { font-size: 15px; color: rgba(255,255,255,.7); }
+  .ms-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 10px; }
+  .ms-row div { background: rgba(255,255,255,.08); border-radius: 18px; padding: 14px 16px; }
+  .ms-row strong { display: block; margin-top: 2px; font-size: 20px; letter-spacing: -0.02em; }
+  .ms-cta { align-self: flex-start; background: #fff !important; color: #000 !important; }
+  .ms-cta:hover { background: #fff !important; color: #000 !important; }
+  .ms-all { margin: 28px 0 0; text-align: center; font-size: 17px; font-weight: 500; }
 
   /* Promesse et chiffres */
   .statement { padding-block: 140px 120px; text-align: center; }

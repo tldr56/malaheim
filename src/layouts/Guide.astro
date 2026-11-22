@@ -1,16 +1,20 @@
 ---
 import Base from './Base.astro';
 import { SITE, GUIDES, KITS, SOFTWARE } from '../config';
+import { SIM_LIST } from '../lib/sims.js';
 
 const { frontmatter } = Astro.props;
 const { title, description, slug, updated, readingTime, cta, sw = 'wms' } = frontmatter;
 const transverse = sw === 'transverse';
 const soft = SOFTWARE.find((x) => x.slug === sw) ?? { code: 'Technique', slug: 'transverse', name: 'Socle technique' };
 const kit = KITS.find((k) => k.sw === sw);
+const sim = SIM_LIST.find((m) => m.sw === sw);
+const me = GUIDES.find((g) => g.slug === slug);
 const family = GUIDES.filter((g) => g.sw === sw && g.slug !== slug);
 const others = transverse ? GUIDES.filter((g) => g.kind === 'Technique' && g.sw !== 'transverse').slice(0, 4) : [...family, ...GUIDES.filter((g) => g.slug === 'exigences-techniques-communes'), ...GUIDES.filter((g) => g.sw !== sw && g.kind === 'Prix')].slice(0, 4);
-const c = cta === 'simulateur' && sw === 'wms'
-  ? { title: 'Passez des moyennes à votre entrepôt', text: 'Le simulateur calcule votre budget, votre délai et votre retour sur investissement en 8 questions.', href: '/simulateur-wms/', label: 'Estimer mon budget' }
+const useSim = sim && (cta === 'simulateur' || me?.kind === 'Prix' || me?.kind === 'Choix');
+const c = useSim
+  ? { title: sim.card, text: `${sim.lead}`, href: `/simulateurs/${sim.slug}/`, label: `Lancer le simulateur ${sim.code}` }
   : !kit ? { title: 'Les 7 kits de consultation', text: 'Chaque kit contient un cahier des charges complet, exigences techniques comprises, les scénarios de démonstration, la grille de dépouillement et la check-list contractuelle.', href: '/kits/', label: `Voir les kits, ${SITE.kitPrice}` }
   : { title: `Le kit de consultation ${soft.code}`, text: `${kit.reqs} exigences commentées, scénarios de démonstration imposés, grille de dépouillement, check-list contractuelle et plan de recette.`, href: `/kits/${kit.page}/`, label: `Voir le kit, ${SITE.kitPrice}` };
 const jsonLd = {
@@ -42,7 +46,8 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
           <h2 class="h3">{c.title}</h2>
           <p>{c.text}</p>
           <a class="btn btn-gold btn-sm" href={c.href}>{c.label}</a>
-          {!transverse && <a class="side-more" href={`/logiciels/${sw}/`}>Lire le guide complet {soft.code}</a>}
+          {useSim && kit && <a class="side-more" href={`/kits/${kit.page}/`}>Le kit de consultation {soft.code}, {SITE.kitPrice}</a>}
+          {!useSim && sim && <a class="side-more" href={`/simulateurs/${sim.slug}/`}>Estimer votre budget avec le simulateur {soft.code}</a>}
         </div>
       </aside>
     </div>

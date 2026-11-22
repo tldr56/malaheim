@@ -1,7 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { GUIDES, SOFTWARE, KITS, SITE } from '../../config';
-const families = SOFTWARE.map((s) => ({ ...s, kit: KITS.find((k) => k.sw === s.slug)!, guides: GUIDES.filter((g) => g.sw === s.slug) }));
+import { SIM_LIST } from '../../lib/sims.js';
+const families = SOFTWARE.map((s) => ({ ...s, kit: KITS.find((k) => k.sw === s.slug)!, sim: SIM_LIST.find((m) => m.sw === s.slug)!, guides: GUIDES.filter((g) => g.sw === s.slug) }));
 const lags = ['', 'lag1', 'lag2'];
 const socle = GUIDES.find((g) => g.sw === 'transverse')!;
 ---
@@ -50,15 +51,13 @@ const socle = GUIDES.find((g) => g.sw === 'transverse')!;
               <span class="g-go">Lire le guide</span>
             </a>
           ))}
-          {f.slug === 'wms' && (
-            <a class="card card-lift g-card g-sim sr-up lag2" href="/simulateur-wms/">
-              <span class="g-kind">Outil gratuit</span>
-              <span class="g-fig">Votre chiffrage</span>
-              <h3 class="g-t">Le simulateur de budget WMS</h3>
-              <span class="g-sum">Passez des moyennes à votre entrepôt en 3 minutes.</span>
-              <span class="g-go">Lancer le simulateur</span>
-            </a>
-          )}
+          <a class="card card-lift g-card g-sim sr-up lag2" href={`/simulateurs/${f.sim.slug}/`}>
+            <span class="g-kind">Simulateur gratuit</span>
+            <span class="g-fig">Votre chiffrage</span>
+            <h3 class="g-t">{f.sim.title}</h3>
+            <span class="g-sum">{f.sim.card}, en deux minutes.</span>
+            <span class="g-go">Lancer le simulateur</span>
+          </a>
         </div>
       </section>
     ))}
