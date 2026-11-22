@@ -15,7 +15,7 @@ const jsonLd = {
   description,
   inLanguage: 'fr-FR',
   dateModified: updated,
-  author: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+  author: { '@type': 'Organization', name: SITE.company, url: SITE.url },
   publisher: { '@type': 'Organization', name: SITE.company },
 };
 const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -35,7 +35,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
         <div class="tile" style="flex: 0 1 200px"><div class="tile-k">Délai de mise en œuvre</div><div class="tile-v">{sw.delay}</div></div>
         <div class="tile" style="flex: 0 1 260px"><div class="tile-k">Outils disponibles</div><div class="tile-v">{full ? 'Simulateur, guides et kit' : 'Guide et kit de consultation'}</div></div>
       </div>
-      <p class="byline rise d5">Par {SITE.author}, consultant supply chain. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
+      <p class="byline rise d5">Par {SITE.company}. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
     </div>
   </section>
 

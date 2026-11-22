@@ -17,7 +17,7 @@ const jsonLd = {
   description,
   inLanguage: 'fr-FR',
   dateModified: updated,
-  author: { '@type': 'Person', name: SITE.author, jobTitle: 'Consultant supply chain indépendant' },
+  author: { '@type': 'Organization', name: SITE.company, url: SITE.url },
   publisher: { '@type': 'Organization', name: SITE.name },
 };
 const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -29,7 +29,7 @@ const updatedLabel = new Date(updated).toLocaleDateString('fr-FR', { day: 'numer
       <p class="eyebrow rise d1">Guide</p>
       <h1 class="h2 rise d2">{title}</h1>
       <p class="lead rise d3">{description}</p>
-      <p class="byline rise d4">Par {SITE.author}, consultant WMS. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
+      <p class="byline rise d4">Par {SITE.company}. Mis à jour le {updatedLabel}. Lecture : {readingTime} min.</p>
     </header>
     <div class="guide-body">
       <div class="prose rise d4"><slot /></div>

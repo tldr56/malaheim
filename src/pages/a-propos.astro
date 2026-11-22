@@ -1,25 +1,37 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE } from '../config';
+import { SITE, KITS, SOFTWARE } from '../config';
+const kitTotal = KITS.reduce((n, k) => n + k.reqs, 0);
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: SITE.author,
-  jobTitle: 'Consultant supply chain indépendant',
+  '@type': 'ProfessionalService',
+  name: SITE.company,
+  url: SITE.url,
+  description: 'Cabinet de conseil indépendant en logiciels supply chain et transformation digitale.',
   address: { '@type': 'PostalAddress', addressLocality: 'Rennes', addressCountry: 'FR' },
-  knowsAbout: ['WMS', 'WCS', 'TMS', 'ERP', 'Automatisation logistique', 'Intégration d\'usines', 'Données de référence', 'Recette', 'Conduite du changement'],
-  worksFor: { '@type': 'Organization', name: SITE.company },
+  areaServed: 'FR',
+  knowsAbout: ['WMS', 'WCS', 'TMS', 'ERP', 'OMS', 'S&OP', 'Automatisation logistique', "Intégration d'usines", 'Données de référence', 'Recette', 'Conduite du changement'],
 };
+const facts = [
+  { n: String(SOFTWARE.length), t: 'familles de logiciels' },
+  { n: kitTotal.toLocaleString('fr-FR'), t: 'exigences rédigées' },
+  { n: '0 €', t: 'de commission éditeur' },
+  { n: '48 h', t: 'pour vous répondre' },
+];
 ---
-<Base title="À propos" description="Robin Thomas-Le Déoré, fondateur de MALAHEIM Consulting, consultant supply chain indépendant à Rennes : sélection de logiciels, WMS et WCS, intégration d'usines, pilotage de projets SI." jsonLd={jsonLd}>
+<Base title="Le cabinet" description="MALAHEIM Consulting, cabinet de conseil indépendant en logiciels supply chain : sélection et déploiement de WMS, TMS, ERP, OMS, S&OP, automatisation et données, pour toutes les entreprises, à un prix adapté." jsonLd={jsonLd}>
   <section class="wrap row" style="gap: 64px; align-items: center; padding-block: 88px">
-    <div class="photo slide-in" role="img" aria-label="Emplacement de la photo de Robin Thomas-Le Déoré">[Votre photo]</div>
-    <div class="stack" style="flex: 1 1 480px; min-width: 0; gap: 20px">
-      <p class="eyebrow rise">À propos</p>
-      <h1 class="h2 rise d1">{SITE.author}</h1>
-      <p class="lead rise d2">Consultant supply chain indépendant à Rennes, fondateur de {SITE.company}. Je dirige des projets de systèmes d'information logistiques et industriels : sélection et déploiement de WMS et de WCS, intégration d'usines, montées de version, pilotage d'équipes, données de référence et campagnes de recette.</p>
-      <p class="lead rise d3">Passé par GEODIS et KPMG, j'ai aussi mené des projets de maintenance prédictive et de direction de projets digitaux dans l'industrie. J'enseigne la logistique en master.</p>
-      <p class="lead rise d4">Malaheim rassemble ce que j'aurais aimé trouver au début de chaque projet : des ordres de grandeur honnêtes, une méthode, et des outils prêts à servir, pour tous les logiciels de la supply chain.</p>
+    <div class="stack" style="flex: 1 1 520px; min-width: 0; gap: 20px">
+      <p class="eyebrow rise">Le cabinet</p>
+      <h1 class="h1 rise d1" style="font-size: clamp(40px, 5vw, 68px)">La méthode des grands projets, à la taille du vôtre</h1>
+      <p class="lead rise d2">{SITE.company} est un cabinet de conseil indépendant en systèmes d'information supply chain. Il accompagne les entreprises dans le choix et le déploiement de leurs logiciels : gestion d'entrepôt, transport, gestion, commandes, planification, automatismes et données de référence.</p>
+      <p class="lead rise d3">Son expertise s'est forgée dans le conseil, la logistique, l'industrie et la banque, sur des projets de sélection de WMS et de WCS, d'intégration d'usines, de montées de version, de données de référence et de recette.</p>
+      <p class="lead rise d4">Malaheim rassemble ce qui manque au début de chaque projet : des ordres de grandeur honnêtes, une méthode éprouvée et des outils prêts à servir, vendus au juste prix.</p>
+    </div>
+    <div class="facts sr-right" aria-label="Le cabinet en chiffres">
+      {facts.map((f) => (
+        <div class="fact"><span class="fact-n">{f.n}</span><span class="fact-t">{f.t}</span></div>
+      ))}
     </div>
   </section>
 
@@ -37,7 +49,7 @@ const jsonLd = {
         </div>
         <div class="card sr-up lag2" style="flex: 1 1 300px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
           <h3 class="h3 gold">Confidentialité</h3>
-          <p style="margin: 0; color: var(--muted)">Les documents que vous me confiez ne servent qu'à votre projet. Aucun livrable client n'est réutilisé sans anonymisation complète.</p>
+          <p style="margin: 0; color: var(--muted)">Les documents que vous nous confiez ne servent qu'à votre projet. Aucun livrable client n'est réutilisé sans anonymisation complète.</p>
         </div>
       </div>
     </div>
@@ -45,13 +57,16 @@ const jsonLd = {
 
   <section id="contact" aria-labelledby="titre-contact" class="section">
     <div class="wrap stack center" style="gap: 18px">
-      <h2 id="titre-contact" class="h2 sr-up">Me contacter</h2>
-      <p class="lead sr-up lag1" style="text-align: center">Une question sur un projet, un retour sur le simulateur, une proposition de partenariat : écrivez-moi à {SITE.contactEmail}.</p>
+      <h2 id="titre-contact" class="h2 sr-up">Nous contacter</h2>
+      <p class="lead sr-up lag1" style="text-align: center">Une question sur un projet, un retour sur le simulateur, une proposition de partenariat : écrivez-nous à {SITE.contactEmail}.</p>
       <a class="btn btn-gold sr-up lag2" href="/accompagnement/#contact">Réserver un appel de 30 min</a>
     </div>
   </section>
 </Base>
 
 <style>
-  .photo { flex: 0 1 340px; aspect-ratio: 4 / 5; background: var(--card); border: 1px dashed var(--line-btn); border-radius: 24px; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+  .facts { flex: 0 1 400px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(157,176,255,.18); border-radius: 16px; overflow: hidden; box-shadow: 0 40px 80px -40px rgba(19,33,58,.7); }
+  .fact { display: flex; flex-direction: column; gap: 6px; padding: 30px 26px; background: radial-gradient(140% 120% at 0% 0%, #1d3266 0%, #13213a 70%); }
+  .fact-n { font-family: var(--display); font-weight: 850; font-stretch: 122%; letter-spacing: -0.04em; font-size: 40px; line-height: 1; color: #fff; }
+  .fact-t { color: #9db0ff; font-size: 14.5px; }
 </style>
