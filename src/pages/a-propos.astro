@@ -58,7 +58,7 @@ const facts = [
   <section id="contact" aria-labelledby="titre-contact" class="section">
     <div class="wrap stack center" style="gap: 18px">
       <h2 id="titre-contact" class="h2 sr-up">Nous contacter</h2>
-      <p class="lead sr-up lag1" style="text-align: center">Une question sur un projet, un retour sur le simulateur, une proposition de partenariat : écrivez-nous à {SITE.contactEmail}.</p>
+      <p class="lead sr-up lag1" style="text-align: center">Une question sur un projet, un retour sur le simulateur, une proposition de partenariat : écrivez-nous à <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.</p>
       <a class="btn btn-gold sr-up lag2" href="/accompagnement/#contact">Réserver un appel de 30 min</a>
     </div>
   </section>

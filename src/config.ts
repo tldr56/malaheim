@@ -12,7 +12,7 @@ export const SITE = {
   // Adresse d'action du formulaire Brevo (copiee depuis le formulaire cree dans Brevo).
   brevoFormAction: '',
   // Adresse e-mail de contact affichee sur le site.
-  contactEmail: '[adresse e-mail de contact]',
+  contactEmail: 'contact@malaheim.com',
   kitName: 'Kit Consultation WMS',
   // Offre en trois marches, adaptée à toutes les tailles d'entreprise : le kit, la relecture, puis l'accompagnement à l'heure au réel.
   kitPrice: '149 € HT',

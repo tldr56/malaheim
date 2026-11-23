@@ -2,14 +2,14 @@
 layout: ../layouts/Legal.astro
 title: Conditions générales de vente
 description: Conditions de vente des kits de consultation, de la relecture et de l'accompagnement à l'heure.
-updated: 12 novembre 2026
+updated: 23 novembre 2026
 ---
 
 *Projet à faire valider par un professionnel du droit avant l'ouverture des ventes.*
 
 ## 1. Objet
 
-Les présentes conditions régissent la vente, par [raison sociale], des produits numériques (kits de consultation) et des prestations de conseil (relecture de cahier des charges, accompagnement et conseil facturés à l'heure) proposés sur le site.
+Les présentes conditions régissent la vente, par Robin Thomas-Le Déoré, entrepreneur individuel (EI) exerçant sous le nom commercial MALAHEIM Consulting, SIREN 883 396 285, 4 Lot de Mane Vechen, 56680 Plouhinec (ci-après « MALAHEIM Consulting »), des produits numériques (kits de consultation) et des prestations de conseil (relecture de cahier des charges, accompagnement et conseil facturés à l'heure) proposés sur le site.
 
 ## 2. Clients
 
@@ -33,7 +33,7 @@ Pour les clients consommateurs, le droit de rétractation ne s'applique pas au c
 
 ## 6 bis. Garantie satisfait ou remboursé
 
-Indépendamment du droit de rétractation, le kit bénéficie d'une garantie commerciale : tout client, professionnel ou consommateur, peut en demander le remboursement intégral dans les 14 jours suivant l'achat, sans justification, par simple message à [adresse e-mail de contact].
+Indépendamment du droit de rétractation, le kit bénéficie d'une garantie commerciale : tout client, professionnel ou consommateur, peut en demander le remboursement intégral dans les 14 jours suivant l'achat, sans justification, par simple message à [contact@malaheim.com](mailto:contact@malaheim.com).
 
 ## 7. Licence d'utilisation
 
@@ -53,4 +53,4 @@ Le kit et les chiffrages sont des outils d'aide à la décision. Le choix final 
 
 ## 10. Droit applicable
 
-Les présentes conditions sont soumises au droit français. En cas de litige entre professionnels, les tribunaux de [ville du siège] sont seuls compétents.
+Les présentes conditions sont soumises au droit français. En cas de litige entre professionnels, les tribunaux de Lorient sont seuls compétents.

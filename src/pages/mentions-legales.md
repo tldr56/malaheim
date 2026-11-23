@@ -2,17 +2,20 @@
 layout: ../layouts/Legal.astro
 title: Mentions légales
 description: Mentions légales du site Malaheim.
-updated: 12 novembre 2026
+updated: 23 novembre 2026
 ---
 
 ## Éditeur du site
 
-Le site est édité par **[raison sociale]**, [forme juridique] au capital de [montant] €, immatriculée au registre du commerce et des sociétés de [ville] sous le numéro [SIREN].
+Le site est édité par **Robin Thomas-Le Déoré, entrepreneur individuel (EI)**, exerçant sous le nom commercial MALAHEIM Consulting.
 
-- Siège social : [adresse]
-- Numéro de TVA intracommunautaire : [numéro]
+- Adresse : 4 Lot de Mane Vechen, 56680 Plouhinec, France
+- SIREN : 883 396 285
+- SIRET : 883 396 285 00024
+- Immatriculation : Registre national des entreprises (RNE)
+- Code APE : 7022Z, conseil pour les affaires et autres conseils de gestion
 - Directeur de la publication : Robin Thomas-Le Déoré
-- Contact : [adresse e-mail de contact]
+- Contact : [contact@malaheim.com](mailto:contact@malaheim.com)
 
 ## Hébergement
 
