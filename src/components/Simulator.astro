@@ -11,7 +11,6 @@ const kit = KITS.find((k) => k.sw === model.sw)!;
 const groups = [...new Set(model.fields.map((f) => f.group))];
 const bookHref = SITE.bookingUrl || '/accompagnement/#contact';
 const kitHref = `/kits/${kit.page}/`;
-const brevo = SITE.brevoFormAction;
 const others = SIM_LIST.filter((m) => m.slug !== slug);
 const preview = (m) => { const d = defaults(m); return simulate(m, d.i, d.a); };
 const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math.log(f.max / f.min)) : f.value);
@@ -20,7 +19,7 @@ const H = model.horizon;
 ---
 <div class="simx" data-slug={slug}>
   <header class="sx-hero wrap">
-    <p class="sx-k rise">Simulateur {model.code}, gratuit et sans inscription</p>
+    <p class="sx-k rise">Simulateur {model.code} gratuit, aperçu immédiat</p>
     <h1 class="sx-title rise d1">{model.title}</h1>
     <p class="sx-lead rise d2">{model.lead}</p>
   </header>
@@ -78,6 +77,43 @@ const H = model.horizon;
         <span class="sx-rk">Budget de mise en place</span>
         <span class="sx-big" id="r-budget"></span>
         <span class="sx-small" id="r-central"></span>
+      </div>
+      <div class="sx-gate" id="gate">
+        <strong class="sx-gt">Débloquez l’analyse complète, gratuitement</strong>
+        <ul class="sx-gl">
+          <li>Le budget poste par poste et le coût total sur {H} ans</li>
+          <li>Le verdict détaillé et le coût de chaque mois d’attente</li>
+          <li>Le risque chiffré sur 1 000 simulations</li>
+          <li>Les facteurs qui font bouger votre rentabilité</li>
+          <li>Votre position face au marché, sources à l’appui</li>
+          <li>Le comparateur de scénarios</li>
+          <li>Le rapport PDF et le lien partageable</li>
+          <li>Les 7 simulateurs débloqués d’un coup</li>
+        </ul>
+        <form id="gate-form" class="sx-gf" novalidate>
+          <div class="sx-gfi"><label for="g-name">Nom et prénom</label><input id="g-name" name="name" autocomplete="name" required maxlength="80" /></div>
+          <div class="sx-gfi"><label for="g-email">E-mail professionnel</label><input id="g-email" name="email" type="email" autocomplete="email" required maxlength="120" placeholder="prenom.nom@entreprise.fr" /></div>
+          <div class="sx-gfi"><label for="g-company">Entreprise</label><input id="g-company" name="company" autocomplete="organization" required maxlength="100" /></div>
+          <div class="sx-gfi"><label for="g-role">Fonction</label>
+            <select id="g-role" name="role" required>
+              <option value="">Choisir</option>
+              <option>Direction générale</option>
+              <option>Direction supply chain ou logistique</option>
+              <option>Responsable d’entrepôt ou d’exploitation</option>
+              <option>Achats</option>
+              <option>Finance</option>
+              <option>Informatique</option>
+              <option>Consultant ou intégrateur</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="sx-gfi"><label for="g-phone">Téléphone <span>facultatif</span></label><input id="g-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" /></div>
+          <div class="sx-hp" aria-hidden="true"><label for="g-web">Site web</label><input id="g-web" name="website" tabindex="-1" autocomplete="off" /></div>
+          <label class="sx-gopt"><input id="g-optin" type="checkbox" /><span>Recevoir les nouveaux guides et simulateurs, une à deux fois par mois</span></label>
+          <button type="submit" class="sx-btn sx-gbtn" id="g-btn">Débloquer l’analyse</button>
+          <p class="sx-gn">Vous recevez le récapitulatif de votre simulation par e-mail. Nous pouvons vous recontacter au sujet de votre projet ; vous pouvez vous y opposer à tout moment. Vos données ne sont ni vendues ni cédées. <a href="/confidentialite/">Confidentialité</a></p>
+          <p class="sx-gmsg" id="gate-msg" role="status"></p>
+        </form>
       </div>
       <div class="sx-bar" id="r-bar" role="img" aria-label="Répartition du budget"></div>
       <dl class="sx-legend" id="r-legend"></dl>
@@ -196,20 +232,6 @@ const H = model.horizon;
           <span class="sx-go">Réserver l’appel</span>
         </a>
       </div>
-      <form class="sx-lead sr-up" id="lead" method="post" action={brevo || undefined} data-brevo={brevo} novalidate>
-        <div>
-          <h3>Recevez cette simulation par e-mail</h3>
-          <p>Le détail poste par poste et les points de vigilance, pour la partager en interne.</p>
-        </div>
-        <div class="sx-lead-f">
-          <label class="sr-only" for="lead-email">Adresse e-mail professionnelle</label>
-          <input id="lead-email" name="EMAIL" type="email" autocomplete="email" placeholder="prenom.nom@entreprise.fr" />
-          <input id="lead-summary" name="RESUME" type="hidden" value="" />
-          <button type="submit" class="btn btn-gold">Recevoir</button>
-          <label class="sx-consent" for="lead-ok"><input id="lead-ok" name="OPT_IN" value="1" type="checkbox" /><span>J’accepte de recevoir cette simulation et les conseils du site. Désinscription en un clic. <a href="/confidentialite/">Confidentialité</a></span></label>
-          <p class="sx-status" id="lead-msg" role="status"></p>
-        </div>
-      </form>
     </div>
   </section>
 
@@ -251,6 +273,11 @@ const H = model.horizon;
       </div>
     </div>
   </section>
+
+  <div class="sx-lockbar" id="lockbar" hidden>
+    <span>Analyse complète réservée aux inscrits : risque, marché, scénarios et PDF.</span>
+    <button type="button" class="sx-btn" id="lockbar-go">Débloquer gratuitement</button>
+  </div>
 
   <div class="sx-report" id="sx-report" aria-hidden="true">
     <div class="rp-head"><Logo variant="full" /><div><strong>Simulation {model.code}</strong><span id="rp-date"></span></div></div>
@@ -420,7 +447,7 @@ const H = model.horizon;
     }).join('') + `<p class="tbase">Scénario central : ${sMoney(base)}</p>`;
   };
 
-  const fmtB = (v: number, f: string) => f === 'money' ? money(v) : f === 'months' ? `${Math.round(v)} mois` : f === 'pct' ? `${String(Math.round(v * 100) / 100).replace('.', ',')} %` : `${Math.round(v)} €`;
+  const fmtB = (v: number, f: string) => f === 'money' ? money(v) : f === 'months' ? `${Math.round(v)} mois` : f === 'pct' ? `${String(Math.round(v * 100) / 100).replace('.', ',')} %` : `${v < 10 ? String(Math.round(v * 10) / 10).replace('.', ',') : Math.round(v)} €`;
   const bench = (list: any[]) => {
     $('g-bench').innerHTML = list.map((b) => {
       let L: number, R: number, X: (v: number) => number;
@@ -429,14 +456,15 @@ const H = model.horizon;
         X = (v) => (Math.log(v / L) / Math.log(R / L)) * 100;
       } else { L = b.lo; R = b.hi; X = (v) => ((Math.min(R, Math.max(L, v)) - L) / (R - L)) * 100; }
       const xm = X(b.value);
-      const lanes = b.bands.map((x: any, k: number) => `<span class="bl${x.mine ? ' mine' : ''}" style="top:${k * 12}px;left:${X(x.lo)}%;width:${Math.max(1, X(x.hi) - X(x.lo))}%" title="${esc(x.label)} : ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}"></span>`).join('');
-      const chips = b.bands.map((x: any) => `<span class="bc${x.mine ? ' mine' : ''}"><i></i>${esc(x.label)} : ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}</span>`).join('');
+      const rng = (x: any) => (x.lo === x.hi ? fmtB(x.lo, b.fmt) : `${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`);
+      const lanes = b.bands.map((x: any, k: number) => `<span class="bl${x.mine ? ' mine' : ''}${x.lo === x.hi ? ' pt' : ''}" style="top:${k * 12}px;left:${X(x.lo)}%;${x.lo === x.hi ? '' : `width:${Math.max(1, X(x.hi) - X(x.lo))}%`}" title="${esc(x.label)} : ${rng(x)}"></span>`).join('');
+      const chips = b.bands.map((x: any) => `<span class="bc${x.mine ? ' mine' : ''}"><i></i>${esc(x.label)} : ${rng(x)}</span>`).join('');
       const al = xm > 82 ? 'r' : xm < 18 ? 'l' : 'c';
       return `<div class="br-row">
         <div class="br-h"><strong>${esc(b.label)}</strong><span>${esc(b.sub)}</span></div>
         <div class="br-t" style="height:${b.bands.length * 12 + 34}px">
           <div class="br-l" style="height:${b.bands.length * 12}px">${lanes}</div>
-          <span class="br-m br-${al}" style="left:${xm}%;height:${b.bands.length * 12 + 12}px"><b>${fmtB(b.value, b.fmt)}</b></span>
+          <span class="br-m br-${al}" style="left:${xm}%;height:${b.bands.length * 12 + 12}px"><b>${b.display ?? fmtB(b.value, b.fmt)}</b></span>
         </div>
         <div class="br-c">${chips}</div>
         <p class="br-n">${esc(b.note)} <span>Source : ${b.url ? `<a href="${b.url}">${esc(b.src)}</a>` : esc(b.src)}</span></p>
@@ -490,6 +518,11 @@ const H = model.horizon;
       <tr><th scope="row">Valeur nette sur ${HZ} ans</th><td>${sMoney(mc.net.p90)}</td><td>${sMoney(mc.net.p50)}</td><td>${sMoney(mc.net.p10)}</td></tr></tbody>`;
     const bl = model.benchmarks(i, a, r); bench(bl);
     const list = compare(i, a, r);
+    const nets = list.map((x: any) => x.r.mc.net.p50); const bi = nets.indexOf(Math.max(...nets));
+    if (bi > 0 && !list[bi].pinned) {
+      const msg = `Dans le comparateur, le scénario « ${list[bi].label} » ressort plus rentable : regardez-le avant de décider.`;
+      v.reasons.push(msg); $('v-reasons').insertAdjacentHTML('beforeend', `<li>${esc(msg)}</li>`);
+    }
     slow = { sens, v, w, bl, list };
   };
 
@@ -521,6 +554,11 @@ const H = model.horizon;
   const buildReport = () => {
     if (V3) { clearTimeout(tmr); renderSlow(state.i, state.a, last); }
     const r = last;
+    if (root.classList.contains('locked')) {
+      $('rp-date').textContent = '';
+      $('rp-body').innerHTML = `<h1>${esc(model.title)}</h1><p>Budget de mise en place : <strong>${money(r.low)} à ${money(r.high)}</strong>. L’analyse complète et le rapport détaillé sont réservés aux inscrits, gratuitement, sur malaheim.com.</p>`;
+      return;
+    }
     $('rp-date').textContent = `Établie le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     const inputs = fields.map((f: any) => `<tr><td>${esc(f.label)}</td><td>${f.type === 'range' ? `${nf.format(state.i[f.id])} ${f.unit}` : esc(f.options[state.i[f.id]])}</td></tr>`).join('');
     const hyp = model.assumptions.map((h: any) => `<tr><td>${esc(h.label)}</td><td>${nf.format(state.a[h.id])} ${esc(h.unit)}</td></tr>`).join('');
@@ -545,7 +583,7 @@ const H = model.horizon;
       <table>${r.parts.map((p: any) => `<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td></tr>`).join('')}<tr><td><strong>Total</strong></td><td><strong>${money(r.initial)}</strong></td></tr></table>
       <h2>Gains annuels</h2>
       <table>${r.gains.map((g: any) => `<tr><td>${esc(g[0])}</td><td>${money(g[1])}</td></tr>`).join('')}</table>
-      ${V3 && slow ? `<h2>Face au marché</h2><table>${slow.bl.map((b: any) => `<tr><td>${esc(b.label)}</td><td>${fmtB(b.value, b.fmt)} ; ${b.bands.map((x: any) => `${esc(x.label)} ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`).join(' ; ')}</td></tr>`).join('')}</table>
+      ${V3 && slow ? `<h2>Face au marché</h2><table>${slow.bl.map((b: any) => `<tr><td>${esc(b.label)}</td><td>${b.display ?? fmtB(b.value, b.fmt)} ; ${b.bands.map((x: any) => `${esc(x.label)} ${x.lo === x.hi ? fmtB(x.lo, b.fmt) : `${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`}`).join(' ; ')}</td></tr>`).join('')}</table>
       <h2>Scénarios comparés</h2><table>${slow.list.map((s: any) => `<tr><td>${esc(s.label)}</td><td>${money(s.r.initial)} ; ${money(s.r.recurring)} par an ; rentabilisé ${pc(s.r.mc.pWithin)} des cas ; valeur nette ${sMoney(s.r.mc.net.p50)}</td></tr>`).join('')}</table>
       <h2>Facteurs de risque principaux</h2><table>${slow.sens.slice(0, 5).map((x: any) => `<tr><td>${esc(x.label)} (${esc(x.range)})</td><td>${sMoney(x.lo)} à ${sMoney(x.hi)}</td></tr>`).join('')}</table>` : ''}
       <h2>Points de vigilance</h2>
@@ -558,9 +596,9 @@ const H = model.horizon;
   root.addEventListener('input', render);
   root.addEventListener('change', render);
   $('sx-reset').addEventListener('click', () => { const d = defaults(model); model.assumptions.forEach((h: any) => { (document.getElementById(`a-${h.id}`) as HTMLInputElement).value = String(d.a[h.id]); }); render(); });
-  $('sx-print').addEventListener('click', () => { buildReport(); window.print(); });
+  $('sx-print').addEventListener('click', () => { if (!lead) { goGate(); return; } sendUsage('pdf'); buildReport(); window.print(); });
   $('sx-link').addEventListener('click', () => {
-    const url = shareUrl(); history.replaceState(null, '', url);
+    sendUsage('lien'); const url = shareUrl(); history.replaceState(null, '', url);
     const done = (ok: boolean) => { $('sx-status').textContent = ok ? 'Lien copié. Il rouvre cette simulation avec vos réponses.' : 'Copie impossible ici : le lien est dans la barre d’adresse.'; };
     try { navigator.clipboard.writeText(url).then(() => done(true), () => done(false)); } catch { done(false); }
   });
@@ -580,13 +618,66 @@ const H = model.horizon;
     });
   }
 
-  const form = document.getElementById('lead') as HTMLFormElement; const msg = $('lead-msg');
-  form.addEventListener('submit', (e) => {
-    const mail = (document.getElementById('lead-email') as HTMLInputElement).value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { e.preventDefault(); msg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
-    if (!(document.getElementById('lead-ok') as HTMLInputElement).checked) { e.preventDefault(); msg.textContent = 'Cochez la case pour recevoir la simulation.'; return; }
-    (document.getElementById('lead-summary') as HTMLInputElement).value = summary();
-    if (!form.dataset.brevo) { e.preventDefault(); msg.textContent = 'Merci. L’envoi par e-mail sera actif très prochainement : en attendant, utilisez « Imprimer ou enregistrer en PDF ».'; }
+  // Accès sur inscription : aperçu libre (verdict et fourchette), analyse complète après inscription, valable pour les 7 simulateurs
+  const LKEY = 'mlh-lead';
+  const getLead = () => { try { return JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch { return null; } };
+  let lead: any = getLead();
+  const t0 = Date.now();
+  const GATED = '.sx-bar,.sx-legend,.sx-kpis,.sx-pay,.sx-chart,.sx-actions,.sx-vsec,.sx-risk,.sx-mkt,.sx-cmp,.sx-watch';
+  const lockbar = $('lockbar');
+  const setLocked = (on: boolean) => {
+    root.classList.toggle('locked', on);
+    root.querySelectorAll(GATED).forEach((el) => { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); });
+    if (!on) lockbar.hidden = true;
+  };
+  setLocked(!lead);
+  const gate = $('gate');
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((en) => { lockbar.hidden = !root.classList.contains('locked') || en[0].isIntersecting; }).observe(gate);
+  }
+  const goGate = () => { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => (document.getElementById('g-name') as HTMLInputElement)?.focus({ preventScroll: true }), 500); };
+  $('lockbar-go').addEventListener('click', goGate);
+
+  const post = (payload: any) => fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
+  const context = () => ({
+    sim: model.slug, code: model.code, verdict: slow ? slow.v.title : '', budget: last ? `${money(last.low)} à ${money(last.high)}` : '',
+    tier: last ? last.tier.name : '', summary: last ? summary() : '', link: shareUrl(),
+  });
+  let usageSent = 0; let utmr: any = 0;
+  const sendUsage = (ev: string) => {
+    if (!lead || usageSent >= 4) return; usageSent++;
+    try { post({ type: 'usage', event: ev, email: lead.email, name: lead.name, company: lead.company, ...context() }).catch(() => {}); } catch { /* rien */ }
+  };
+  root.addEventListener('change', () => { if (!lead) return; clearTimeout(utmr); utmr = setTimeout(() => sendUsage('simulation'), 25000); });
+  if (lead) utmr = setTimeout(() => sendUsage('ouverture'), 8000);
+
+  const gform = document.getElementById('gate-form') as HTMLFormElement; const gmsg = $('gate-msg');
+  const val = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
+  gform.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = val('g-name'), email = val('g-email'), company = val('g-company'), role = val('g-role'), phone = val('g-phone');
+    if (name.length < 2) { gmsg.textContent = 'Indiquez votre nom et votre prénom.'; return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { gmsg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
+    if (company.length < 2) { gmsg.textContent = 'Indiquez votre entreprise.'; return; }
+    if (!role) { gmsg.textContent = 'Choisissez votre fonction.'; return; }
+    const btn = $('g-btn') as HTMLButtonElement; btn.disabled = true; gmsg.textContent = 'Un instant…';
+    clearTimeout(tmr); renderSlow(state.i, state.a, last);
+    let res: any = null;
+    try {
+      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 9000);
+      const rr = await fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal, body: JSON.stringify({
+        type: 'unlock', name, email, company, role, phone, optin: (document.getElementById('g-optin') as HTMLInputElement).checked,
+        website: val('g-web'), elapsed: Date.now() - t0, ...context(),
+      }) });
+      clearTimeout(to);
+      if (rr.status === 400) { const j = await rr.json().catch(() => ({})); gmsg.textContent = j.error || 'Vérifiez vos informations.'; btn.disabled = false; return; }
+      res = await rr.json().catch(() => null);
+    } catch { /* le visiteur n'est pas pénalisé par une panne réseau */ }
+    lead = { name, email, company, role, ts: Date.now() };
+    try { localStorage.setItem(LKEY, JSON.stringify(lead)); } catch { /* navigation privée */ }
+    setLocked(false); btn.disabled = false; gmsg.textContent = '';
+    $('sx-status').textContent = res && res.mailed ? 'Analyse débloquée sur les 7 simulateurs. Le récapitulatif part dans votre boîte e-mail.' : 'Analyse débloquée sur les 7 simulateurs.';
+    if (V3) setTimeout(() => $('t-verdict').scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   });
 
   render();
@@ -699,15 +790,6 @@ const H = model.horizon;
   .sx-card-dark h3 { color: #fff; }
   .sx-card-dark p, .sx-card-dark .sx-ck { color: rgba(255,255,255,.6); }
   .sx-card-dark .sx-go { color: #9db0ff; }
-  form.sx-lead { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px 40px; align-items: center; padding: 32px; border-radius: 28px; background: #fff; }
-  @media (max-width: 900px) { form.sx-lead { grid-template-columns: 1fr; } }
-  form.sx-lead h3 { margin: 0 0 6px; font-size: 21px; }
-  form.sx-lead p { margin: 0; color: var(--muted); font-size: 15px; }
-  .sx-lead-f { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
-  .sx-lead-f input[type=email] { padding: 13px 16px; border: 1px solid #d2d2d7; border-radius: 999px; font: inherit; }
-  .sx-consent { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--dim); }
-  .sx-consent input { margin-top: 3px; }
-  form.sx-lead .sx-status { grid-column: 1 / -1; color: var(--muted); }
 
   .sx-method { padding-block: 96px 64px; max-width: 1000px; }
   .sx-mtext { max-width: 760px; margin: 0 auto 32px; color: var(--muted); font-size: 16.5px; line-height: 1.55; }
@@ -822,6 +904,8 @@ const H = model.horizon;
   .br-l { position: relative; border-radius: 4px; background: #f5f5f7; }
   .br-l .bl { position: absolute; height: 10px; border-radius: 4px; background: #c7c7cc; }
   .br-l .bl.mine { background: #9db0ff; }
+  .br-l .bl.pt { width: 6px; margin-left: -3px; background: #6e6e73; }
+  .br-l .bl.pt.mine { background: #2448f5; }
   .br-m { position: absolute; top: -6px; width: 2px; margin-left: -1px; background: #1d1d1f; }
   .br-m::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #1d1d1f; box-shadow: 0 0 0 2px #fff; }
   .br-m b { position: absolute; bottom: 100%; margin-bottom: 4px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -847,6 +931,34 @@ const H = model.horizon;
   #g-cmp .best { color: #2448f5 !important; }
   #g-cmp .tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #2448f5; color: #fff; font-size: 11.5px; font-weight: 600; }
   .sx-unpin { display: block; margin-top: 4px; padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--cobalt); cursor: pointer; }
+
+
+  /* Accès sur inscription */
+  .simx:not(.locked) .sx-gate { display: none; }
+  .simx.locked :is(.sx-bar, .sx-legend, .sx-kpis, .sx-pay, .sx-chart, .sx-actions, .sx-vsec, .sx-risk, .sx-mkt, .sx-cmp, .sx-watch) { filter: blur(7px); opacity: .55; pointer-events: none; user-select: none; transition: filter .5s, opacity .5s; }
+  .sx-gate { background: #fff; color: var(--ink); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .sx-gt { font-size: 21px; letter-spacing: -0.03em; line-height: 1.2; }
+  .sx-gl { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 560px) { .sx-gl { grid-template-columns: 1fr; } }
+  .sx-gl li { position: relative; padding-left: 22px; font-size: 13.5px; line-height: 1.35; color: var(--text); }
+  .sx-gl li::before { content: ''; position: absolute; left: 2px; top: 3px; width: 5px; height: 9px; border: solid #2448f5; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .sx-gf { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  @media (max-width: 560px) { .sx-gf { grid-template-columns: 1fr; } }
+  .sx-gfi { display: flex; flex-direction: column; gap: 5px; }
+  .sx-gfi label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .sx-gfi label span { font-weight: 400; color: var(--dim); }
+  .sx-gfi input, .sx-gfi select { width: 100%; padding: 11px 13px; border: 1px solid #d2d2d7; border-radius: 12px; background: #fff; font: inherit; font-size: 15px; color: var(--ink); }
+  .sx-gfi input:focus-visible, .sx-gfi select:focus-visible { outline: 2px solid #2448f5; outline-offset: 0; border-color: transparent; }
+  .sx-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .sx-gopt { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); }
+  .sx-gopt input { margin-top: 2px; }
+  .sx-gbtn { grid-column: 1 / -1; background: #000; color: #fff; padding: 14px 20px; font-size: 15px; }
+  .sx-gbtn:disabled { opacity: .5; cursor: default; }
+  .sx-gn { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.45; color: var(--dim); }
+  .sx-gmsg { grid-column: 1 / -1; margin: 0; min-height: 1.2em; font-size: 13.5px; font-weight: 600; color: #c4321f; }
+  .sx-lockbar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 16px; padding: 10px 10px 10px 22px; border-radius: 999px; background: #000; color: #fff; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); width: max-content; max-width: calc(100vw - 24px); }
+  .sx-lockbar[hidden] { display: none; }
+  @media (max-width: 640px) { .sx-lockbar { border-radius: 20px; flex-direction: column; align-items: stretch; text-align: center; padding: 12px; gap: 8px; } }
 
   .sx-report { display: none; }
   @media print {

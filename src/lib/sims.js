@@ -1,4 +1,4 @@
-// Modèles de chiffrage des simulateurs Malaheim (novembre 2026). Le WMS passe en version 3.
+// Modèles de chiffrage des simulateurs Malaheim, version 3 (novembre 2026).
 // Chaque modèle décrit ses questions, ses hypothèses modifiables, ses sources,
 // et une fonction compute(i, a) qui renvoie un résultat au format commun.
 // Le moteur simulate() en déduit l'échéancier, le point mort et le ROI.
@@ -190,12 +190,41 @@ const wms = {
     ['Marché mondial du WMS', 'Contexte', '4,6 milliards de dollars en 2025, 17 % de croissance annuelle prévue', 'MarketsandMarkets', 'https://www.marketsandmarkets.com/market-reports/warehouse-management-system-market-41614951.html'],
   ],
 };
-// ---------------------------------------------------------------- TMS
+// ---------------------------------------------------------------- Outils communs aux modèles version 3
+// Gamme imposée en dessous du besoin : adaptations spécifiques (coûts) et gains amputés ; au-dessus : un peu plus de gains.
+const fitAdj = (fit, t) => {
+  const under = Math.max(0, fit - t); const above = Math.max(0, t - fit);
+  return { under, above, gf: Math.pow(0.7, under) * Math.pow(1.05, above), cf: 1 + 0.3 * under };
+};
+const nearTiers = (model, i, t) => {
+  const out = [];
+  if (t > 0) out.push({ label: `Gamme inférieure : ${model.tiers[t - 1].name}`, i: { ...i, _tier: t - 1 } });
+  if (t < model.tiers.length - 1) out.push({ label: `Gamme supérieure : ${model.tiers[t + 1].name}`, i: { ...i, _tier: t + 1 } });
+  return out;
+};
+// Mois entre la mise en service et le point mort, en valeur médiane simulée
+const payback = (r) => {
+  const be = r.mc ? r.mc.breakEven.p50 : r.breakEven; const go = r.mc ? r.mc.months.p50 : r.goLive;
+  return Number.isFinite(be) && be ? { v: Math.max(0, be - go), d: null } : { v: 1e9, d: 'Au-delà de l’horizon' };
+};
+const GROWTH = (group) => ({ group, id: 'growth', label: 'Croissance annuelle attendue de l’activité', type: 'range', min: 0, max: 40, step: 1, value: 5, unit: '% par an' });
+const LEAD3 = 'Vous obtenez un verdict, le budget probable et son risque, votre position face au marché et le coût de chaque mois d’attente.';
+const methodV3 = (ramp, what) => [
+  `Le modèle détermine d’abord ${what}, puis chiffre chaque poste à partir de valeurs publiées sur les marchés européen et nord-américain. Ce scénario central suppose que tout se passe comme prévu.`,
+  'Il rejoue ensuite votre projet 1 000 fois en faisant varier les dépassements, les retards, la montée en charge et la part des gains réellement obtenue. Les dépassements suivent une loi à queue épaisse : la plupart des projets dérivent un peu, quelques-uns beaucoup, comme l’ont montré les travaux de l’université d’Oxford sur plus de 5 000 projets informatiques. La fourchette affichée contient 8 tirages sur 10.',
+  `Le retour sur investissement est calculé mois par mois : le budget est réparti sur la durée du projet, la perturbation du démarrage est comptée lorsqu’elle existe, les coûts annuels et les gains commencent à la mise en service, montent en charge sur ${ramp} mois et suivent la croissance de votre activité. Seuls les gains mesurables sont comptés.`,
+];
+const SRC_TAIL = [
+  ['Queue de risque', 'Part de tirages à fort dépassement selon la gamme', 'Un projet informatique sur six dépasse de 200 % en moyenne', 'Flyvbjerg et Budzier, Harvard Business Review', 'https://arxiv.org/abs/1304.0265'],
+  ['Distribution des dépassements', 'Loi à queue épaisse', 'Loi de puissance sur 5 392 projets', 'Flyvbjerg et al., université d’Oxford', 'https://arxiv.org/abs/2210.01573'],
+];
+
+// ---------------------------------------------------------------- TMS (modèle version 3)
 const tms = {
-  slug: 'tms', code: 'TMS', sw: 'tms', name: 'Gestion du transport',
+  slug: 'tms', code: 'TMS', sw: 'tms', name: 'Gestion du transport', version: 3,
   title: 'Combien coûte votre TMS, et combien rapporte-t-il ?',
-  lead: 'Décrivez vos flux de transport en 8 questions. Vous obtenez le type de TMS adapté, le budget de mise en place, l’abonnement et les économies sur votre dépense transport.',
-  card: 'Budget, abonnement et économies transport', horizon: 5, ramp: 4,
+  lead: `Décrivez vos flux de transport en deux minutes. ${LEAD3}`,
+  card: 'Budget, risque et économies transport', horizon: 5, ramp: 4, tail: [0.04, 0.08, 0.15],
   fields: [
     { group: 'Vos flux', id: 'shipments', label: 'Envois par an', type: 'range', min: 1000, max: 500000, step: 500, value: 20000, unit: 'envois', log: true },
     { group: 'Vos flux', id: 'spend', label: 'Dépense transport annuelle', type: 'range', min: 50, max: 30000, step: 10, value: 800, unit: 'k€', log: true },
@@ -205,40 +234,45 @@ const tms = {
     { group: 'Votre organisation', id: 'sites', label: 'Sites expéditeurs', type: 'range', min: 1, max: 15, step: 1, value: 1, unit: 'site(s)' },
     { group: 'Votre organisation', id: 'erp', label: 'ERP en place', type: 'seg', value: 1, options: ['Connecteur TMS existant', 'ERP standard sans connecteur', 'ERP spécifique'] },
     { group: 'Votre organisation', id: 'audit', label: 'Contrôle des factures transport aujourd’hui', type: 'seg', value: 1, options: ['Aucun', 'Par sondage', 'Systématique, à la main'] },
+    GROWTH('Votre organisation'),
   ],
   assumptions: [
     { id: 'inv', label: 'Écarts de facturation non détectés sans contrôle', value: 2, min: 0, max: 8, step: 0.5, unit: '% de la dépense' },
     { id: 'opt', label: 'Économie par le choix systématique du transporteur', value: 3, min: 0, max: 12, step: 0.5, unit: '% de la dépense' },
     { id: 'prod', label: 'Gain de productivité des exploitants', value: 15, min: 0, max: 50, step: 1, unit: '%' },
     { id: 'cost', label: 'Coût horaire chargé d’un exploitant', value: 32, min: 15, max: 90, step: 1, unit: '€' },
+    { id: 'dip', label: 'Baisse de productivité des exploitants au démarrage', value: 15, min: 0, max: 50, step: 1, unit: '% pendant 4 semaines' },
   ],
   tiers: [
     { name: 'TMS SaaS d’entrée de gamme', desc: 'Réservation, étiquettes et suivi chez les principaux transporteurs.', incl: 5, setup: 3000, months: 1 },
     { name: 'TMS SaaS complet', desc: 'Choix du transporteur, grilles tarifaires, contrôle des factures, indicateurs.', incl: 15, setup: 15000, months: 2.5 },
     { name: 'TMS avancé', desc: 'Planification, affrètement, optimisation, multimodal et réseau multi-sites.', incl: 30, setup: 60000, months: 7 },
   ],
-  compute(i, a) {
+  tierOf(i) {
     const s = (i.shipments > 50000 ? 1 : 0) + (i.shipments > 200000 ? 1 : 0) + i.modes + (i.carriers > 15 ? 1 : 0) + (i.sites > 2 ? 1 : 0) + (i.users > 10 ? 1 : 0);
-    const t = s === 0 && i.users <= 3 ? 0 : s <= 3 ? 1 : 2;
-    const T = this.tiers[t];
+    return s === 0 && i.users <= 3 ? 0 : s <= 3 ? 1 : 2;
+  },
+  compute(i, a) {
+    const fit = this.tierOf(i); const t = i._tier ?? fit; const T = this.tiers[t];
+    const { under, gf, cf } = fitAdj(fit, t);
     const extra = Math.max(0, i.carriers - T.incl);
     const spend = i.spend * 1000;
     const base = [
-      ['Mise en place et paramétrage', T.setup * (1 + 0.35 * (i.sites - 1)) * pick([1, 1.2, 1.5], i.modes)],
-      ['Connecteurs transporteurs', i.carriers * 300 + extra * pick([1500, 3000, 5000], t)],
-      ['Saisie des grilles tarifaires', i.carriers * pick([250, 600, 1200], i.modes)],
-      ['Interfaces ERP et WMS', pick([3000, 10000, 25000], i.erp) * pick([0.6, 1, 1.6], t)],
-      ['Formation des exploitants', 1500 + i.users * 400],
+      ['Mise en place et paramétrage', T.setup * (1 + 0.35 * (i.sites - 1)) * pick([1, 1.2, 1.5], i.modes) * cf, 1],
+      ['Connecteurs transporteurs', i.carriers * 300 + extra * pick([1500, 3000, 5000], t), 1.2],
+      ['Saisie des grilles tarifaires', i.carriers * pick([250, 600, 1200], i.modes), 0.8],
+      ['Interfaces ERP et WMS', pick([3000, 10000, 25000], i.erp) * pick([0.6, 1, 1.6], t), 1.3],
+      ['Formation des exploitants', 1500 + i.users * 400, 0.6],
     ];
-    const parts = [...base, ['Pilotage du projet', sum(base) * pick([0.05, 0.12, 0.15], t)]];
+    const parts = [...base, ['Pilotage du projet', sum(base) * pick([0.05, 0.12, 0.15], t), 0.8]];
     const recurring = t === 0 ? 12 * (89 + i.shipments * 0.009)
       : t === 1 ? i.users * 85 * 12 + i.sites * 1800 + i.shipments * 0.04
       : 30000 + i.shipments * 0.12 + i.sites * 6000 + i.users * 600;
     const m = T.months + i.carriers / 15 + (i.sites - 1) * 0.7 + i.erp * 0.7 + i.modes * 0.8;
     const gains = [
-      ['Écarts de facturation récupérés', spend * (a.inv / 100) * pick([1, 0.6, 0.2], i.audit) * pick([0.5, 0.9, 1], t)],
-      ['Choix du transporteur le moins cher', spend * (a.opt / 100) * pick([0.5, 1, 1.3], t)],
-      ['Productivité des exploitants', i.users * HOURS_FTE * a.cost * (a.prod / 100)],
+      ['Écarts de facturation récupérés', spend * (a.inv / 100) * pick([1, 0.6, 0.2], i.audit) * pick([0.5, 0.9, 1], t) * gf],
+      ['Choix du transporteur le moins cher', spend * (a.opt / 100) * pick([0.5, 1, 1.3], t) * gf],
+      ['Productivité des exploitants', i.users * HOURS_FTE * a.cost * (a.prod / 100) * gf],
     ];
     const watch = ['Vérifiez la qualité des poids et dimensions transmis par l’ERP ou le WMS : tout le calcul des prix en dépend.',
       'Depuis septembre 2026, les factures des transporteurs arrivent par plateforme agréée : exigez leur rapprochement automatique avec les coûts calculés.'];
@@ -246,31 +280,71 @@ const tms = {
     if (i.audit === 0) watch.push('Aucun contrôle des factures aujourd’hui : c’est le gain le plus rapide, activez-le dès le démarrage.');
     if (i.erp === 2) watch.push('ERP spécifique : spécifiez l’interface commandes et coûts de transport avant de consulter.');
     if (i.modes === 2) watch.push('Multimodal et international : faites démontrer la gestion des documents douaniers et des incoterms.');
+    if (under) watch.push('Gamme en dessous de votre besoin : une partie des flux restera gérée à la main, les gains seront réduits.');
     return {
-      tier: T, parts, recurring, months: [m, m * 1.4 + 0.5], gains, watch,
+      tier: T, tierIndex: t, tailAdd: 0.06 * under, parts, recurring, months: [m, m * 1.4 + 0.5], gains, watch,
+      dip: ['Baisse de productivité au démarrage', i.users * (HOURS_FTE / 52) * 4 * (a.dip / 100) * a.cost],
       recurringNote: t === 0 ? 'Abonnement au volume d’envois' : t === 1 ? 'Abonnement par exploitant, par site et au volume' : 'Abonnement annuel négocié',
     };
   },
+  verdictHook(i) {
+    if (i.shipments < 3000 && i.carriers <= 3 && i.modes === 0) return { level: 'wait', title: 'Un TMS est probablement prématuré', text: `Avec ${i.shipments.toLocaleString('fr-FR')} envois par an et ${i.carriers} transporteurs, un portail d’expédition multi-transporteurs à quelques dizaines d’euros par mois couvre l’essentiel.` };
+    return null;
+  },
+  scenarios(i, r) { return [{ label: 'Votre scénario', i }, ...nearTiers(this, i, r.tierIndex)]; },
+  benchmarks(i, a, r) {
+    const spend = i.spend * 1000; const pb = payback(r);
+    return [
+      {
+        label: 'Économies sur la dépense transport', sub: 'Écarts récupérés et meilleur choix du transporteur', value: ((r.gains[0][1] + r.gains[1][1]) / spend) * 100, fmt: 'pct', lo: 0, hi: 15,
+        bands: [
+          { label: 'Réduction observée chez les utilisateurs', lo: 2, hi: 5, mine: r.tierIndex < 2 },
+          { label: 'Économies annoncées par les éditeurs', lo: 5, hi: 10, mine: r.tierIndex === 2 },
+        ],
+        note: 'Les fourchettes hautes supposent un TMS complet, alimenté par des données fiables et utilisé sur tous les flux.',
+        src: 'Infios ; Supply Chain Research, guide des TMS', url: 'https://www.supplychainresearch.com/research-library/buyers-guide-transportation-management-systems',
+      },
+      {
+        label: 'Erreurs de facturation des transporteurs', sub: 'Part de la dépense que vous estimez perdre sans contrôle', value: a.inv, fmt: 'pct', lo: 0, hi: 10,
+        bands: [{ label: 'Récupérable selon les études', lo: 3, hi: 7, mine: false }],
+        note: 'Sans contrôle automatique, 5 à 8 % des factures comportent une erreur ; avec un TMS, moins de 1 à 2 %.',
+        src: 'nShift ; Nuvocargo', url: 'https://nshift.com/content-library/freight-invoice-audit-guide',
+      },
+      {
+        label: 'Délai de retour sur investissement', sub: 'De la mise en service au point mort, valeur médiane simulée', value: pb.v, display: pb.d, fmt: 'months', lo: 0, hi: 36,
+        bands: [{ label: 'Repère publié', lo: 12, hi: 18, mine: true }],
+        note: 'Repère donné pour des entreprises qui déploient un TMS complet.',
+        src: 'DreamzTech, guide des TMS 2026', url: 'https://www.dreamztech.com/blog/transportation-management-system-tms-complete-guide-logistics-2026/',
+      },
+    ];
+  },
+  method: methodV3(4, 'le type de TMS adapté à vos flux'),
   sources: [
     ['Abonnement d’entrée de gamme', 'À partir de 89 € par mois, puis au volume', 'Offres publiques dès 89 € par mois, 199 $ par mois', 'Hackceleration, comparatif 2026', 'https://hackceleration.com/fr/labs/meilleur/tms-logiciel-transport'],
     ['Abonnement TMS complet', '85 € par exploitant et par mois, plus site et volume', '40 à 120 € par utilisateur et par mois', 'Guide Malaheim, grilles éditeurs', '/guides/prix-tms/'],
     ['TMS avancé', '30 k€ par an et plus', '30 à plus de 250 k€ par an pour un grand chargeur', 'Cargoson, guide des prix TMS', 'https://www.cargoson.com/fr/blog/logiciel-gestion-transports-tms-prix-cout'],
-    ['Écarts de facturation', '2 % de la dépense sans contrôle', 'Hypothèse Malaheim, modifiable', 'Retours de projets', ''],
-    ['Économie par le choix du transporteur', '3 % de la dépense', 'Hypothèse prudente, modifiable', 'Retours de projets', ''],
+    ['Économies sur le fret', '3 % par le choix du transporteur, plus les écarts récupérés', '2 à 5 % chez les utilisateurs ; 5 à 10 % annoncés par les éditeurs', 'Infios ; Descartes, cités par Supply Chain Research', 'https://www.supplychainresearch.com/research-library/buyers-guide-transportation-management-systems'],
+    ['Écarts de facturation', '2 % de la dépense sans contrôle', '3 à 7 % récupérables par le contrôle des factures', 'nShift', 'https://nshift.com/content-library/freight-invoice-audit-guide'],
+    ['Factures en erreur', 'Contexte', '5 à 8 % sans contrôle automatique, 1 à 2 % avec un TMS', 'Nuvocargo', 'https://www.nuvocargo.com/blog-posts/freight-invoice-errors-hidden-costs'],
+    ['Retour sur investissement', 'Résultat du modèle', '12 à 18 mois', 'DreamzTech, guide des TMS 2026', 'https://www.dreamztech.com/blog/transportation-management-system-tms-complete-guide-logistics-2026/'],
+    ...SRC_TAIL,
   ],
 };
 
-// ---------------------------------------------------------------- ERP
+// ---------------------------------------------------------------- ERP (modèle version 3)
 const erp = {
-  slug: 'erp', code: 'ERP', sw: 'erp', name: 'Gestion intégrée',
+  slug: 'erp', code: 'ERP', sw: 'erp', name: 'Gestion intégrée', version: 3,
   title: 'Combien coûte votre projet ERP ?',
-  lead: 'Décrivez votre entreprise en 9 questions. Vous obtenez le type d’ERP adapté, le budget poste par poste, la durée du projet et les gains sur vos stocks et votre administration.',
-  card: 'Budget, durée et gains de votre projet ERP', horizon: 5, ramp: 9,
+  lead: `Décrivez votre entreprise en deux minutes. ${LEAD3}`,
+  card: 'Budget, risque, durée et gains de votre ERP', horizon: 5, ramp: 9,
+  // Le rapport Panorama 2026 donne la moitié des projets dans le budget : distribution moins décalée que pour le WMS.
+  tail: [0.05, 0.07, 0.10], risk: [-0.25, -0.02, 0.35],
   fields: [
     { group: 'Votre entreprise', id: 'users', label: 'Utilisateurs de l’ERP', type: 'range', min: 5, max: 600, step: 1, value: 30, unit: 'utilisateurs', log: true },
     { group: 'Votre entreprise', id: 'companies', label: 'Sociétés juridiques', type: 'range', min: 1, max: 10, step: 1, value: 1, unit: 'société(s)' },
     { group: 'Votre entreprise', id: 'sites', label: 'Sites (usines, entrepôts, agences)', type: 'range', min: 1, max: 20, step: 1, value: 2, unit: 'site(s)' },
     { group: 'Votre entreprise', id: 'stock', label: 'Valeur du stock', type: 'range', min: 50, max: 100000, step: 50, value: 2000, unit: 'k€', log: true },
+    GROWTH('Votre entreprise'),
     { group: 'Votre projet', id: 'sector', label: 'Activité', type: 'seg', value: 0, options: ['Négoce et distribution', 'Industrie de fabrication', 'Industrie à lots ou process'] },
     { group: 'Votre projet', id: 'spec', label: 'Adaptations attendues', type: 'seg', value: 1, options: ['Standard', 'Quelques adaptations', 'Nombreuses adaptations'] },
     { group: 'Votre projet', id: 'data', label: 'État des données actuelles', type: 'seg', value: 1, options: ['Propres', 'À nettoyer', 'Dispersées dans des fichiers'] },
@@ -282,32 +356,36 @@ const erp = {
     { id: 'prod', label: 'Gain de productivité administrative', value: 5, min: 0, max: 25, step: 1, unit: '%' },
     { id: 'red', label: 'Réduction de stock atteignable', value: 5, min: 0, max: 30, step: 1, unit: '%' },
     { id: 'carry', label: 'Coût annuel de possession du stock', value: 20, min: 5, max: 35, step: 1, unit: '% de sa valeur' },
+    { id: 'dip', label: 'Baisse de productivité des utilisateurs au démarrage', value: 15, min: 0, max: 50, step: 1, unit: '% pendant 6 semaines' },
   ],
   tiers: [
     { name: 'ERP SaaS pour TPE et petite PME', desc: 'Processus standard, paramétrage rapide, peu d’interfaces.', sub: 45, lic: 1200, integ: 25000, months: 4, itf: 5000 },
     { name: 'ERP de gestion intermédiaire', desc: 'Progiciel complet, intégrateur dédié, quelques adaptations.', sub: 95, lic: 2500, integ: 50000, months: 7, itf: 8000 },
     { name: 'ERP pour ETI et groupes', desc: 'Multi-sociétés, multi-sites, production avancée, gouvernance forte.', sub: 160, lic: 4000, integ: 140000, months: 11, itf: 18000 },
   ],
-  compute(i, a) {
+  tierOf(i) {
     const s = (i.users > 15 ? 1 : 0) + (i.users > 80 ? 1 : 0) + (i.sector > 0 ? 1 : 0) + (i.spec === 2 ? 1 : 0) + (i.companies > 1 ? 1 : 0);
-    const t = s === 0 ? 0 : s <= 2 ? 1 : 2;
-    const T = this.tiers[t];
-    const integ = T.integ * pick([1, 1.2, 1.35], i.sector) * pick([1, 1.3, 1.7], i.spec) * (1 + 0.25 * (i.companies - 1)) * (1 + 0.12 * (i.sites - 1)) * (1 + Math.max(0, i.users - 50) / 500);
+    return s === 0 ? 0 : s <= 2 ? 1 : 2;
+  },
+  compute(i, a) {
+    const fit = this.tierOf(i); const t = i._tier ?? fit; const T = this.tiers[t];
+    const { under, gf, cf } = fitAdj(fit, t);
+    const integ = T.integ * pick([1, 1.2, 1.35], i.sector) * pick([1, 1.3, 1.7], i.spec) * (1 + 0.25 * (i.companies - 1)) * (1 + 0.12 * (i.sites - 1)) * (1 + Math.max(0, i.users - 50) / 500) * cf;
     const itf = i.itf * T.itf;
     const parts = [
-      ['Intégration et paramétrage', integ],
-      ['Reprise des données', integ * pick([0.10, 0.15, 0.25], i.data)],
-      ['Interfaces', itf],
-      ['Formation et conduite du changement', integ * 0.15 + i.users * 150],
-      ['Pilotage et assistance projet', (integ + itf) * 0.10],
+      ['Intégration et paramétrage', integ, 1],
+      ['Reprise des données', integ * pick([0.10, 0.15, 0.25], i.data), 1.3],
+      ['Interfaces', itf, 1.3],
+      ['Formation et conduite du changement', integ * 0.15 + i.users * 150, 0.8],
+      ['Pilotage et assistance projet', (integ + itf) * 0.10, 0.8],
     ];
-    if (i.mode === 1) parts.unshift(['Licences', i.users * T.lic]);
+    if (i.mode === 1) parts.unshift(['Licences', i.users * T.lic, 0.1]);
     const recurring = i.mode === 1 ? i.users * T.lic * 0.18 + 4000 : i.users * T.sub * 12;
     const m = T.months + i.spec * 1.5 + i.sector + (i.companies - 1) + i.data + i.itf / 5;
     const stock = i.stock * 1000;
     const gains = [
-      ['Productivité administrative', i.users * HOURS_FTE * a.cost * (a.prod / 100)],
-      ['Coût de possession du stock évité', stock * (a.red / 100) * (a.carry / 100)],
+      ['Productivité administrative', i.users * HOURS_FTE * a.cost * (a.prod / 100) * gf],
+      ['Coût de possession du stock évité', stock * (a.red / 100) * (a.carry / 100) * gf],
     ];
     const watch = ['Les gains d’un ERP sont aussi qualitatifs (conformité, fiabilité, capacité à grandir) : ce modèle ne compte que le mesurable.', 'Facturation électronique : depuis septembre 2026, toutes les entreprises reçoivent leurs factures par plateforme agréée. Exigez la connexion native de l’ERP.',
       'Conduite du changement : ne la coupez pas pour tenir le budget, c’est le poste le plus souvent regretté.'];
@@ -315,33 +393,74 @@ const erp = {
     if (i.spec === 2) watch.push('Nombreuses adaptations : chaque spécifique alourdit les montées de version. Adaptez-vous au standard partout où vous ne faites pas la différence.');
     if (i.companies > 1) watch.push('Plusieurs sociétés : faites démontrer les flux intersociétés et la consolidation.');
     if (i.itf > 5) watch.push('Plus de 5 interfaces : une plateforme d’intégration centralise la supervision et évite les connexions point à point.');
+    if (under) watch.push('Gamme en dessous de votre besoin : attendez-vous à des développements spécifiques et à des processus contournés.');
+    watch.push('Les dépassements viennent d’abord d’achats technologiques imprévus et d’un périmètre qui s’élargit : figez le périmètre avant de signer.');
     return {
-      tier: T, parts, recurring, months: [m, m * 1.35], gains, watch,
-      oneOff: ['Trésorerie libérée par la baisse du stock', stock * (a.red / 100)],
+      tier: T, tierIndex: t, tailAdd: 0.06 * under, parts, recurring, months: [m, m * 1.35], gains, watch,
+      dip: ['Baisse de productivité au démarrage', i.users * (HOURS_FTE / 52) * 6 * (a.dip / 100) * a.cost],
+      oneOff: ['Trésorerie libérée par la baisse du stock', stock * (a.red / 100) * gf],
       recurringNote: i.mode === 1 ? 'Maintenance 18 % des licences, plus hébergement' : `Abonnement, ${T.sub} € par utilisateur et par mois`,
     };
   },
+  verdictHook() { return { extra: 'Un ERP se justifie aussi par la conformité, notamment la facture électronique, et par la capacité à grandir : ces bénéfices ne sont pas comptés ici.' }; },
+  scenarios(i, r) {
+    const out = [{ label: 'Votre scénario', i }];
+    out.push(i.mode === 0 ? { label: 'Le même en licence', i: { ...i, mode: 1 } } : { label: 'Le même en SaaS', i: { ...i, mode: 0 } });
+    const n = nearTiers(this, i, r.tierIndex); out.push(n[0]);
+    return out;
+  },
+  benchmarks(i, a, r) {
+    const list = [
+      {
+        label: 'Coût du projet par utilisateur', sub: 'Budget de mise en place divisé par le nombre d’utilisateurs', value: r.initial / i.users, fmt: 'money', log: true,
+        bands: [{ label: 'Moyenne publiée', lo: 8100, hi: 8100, mine: true }],
+        note: 'Environ 9 000 $ par utilisateur selon Panorama Consulting, sur un échantillon surtout composé d’entreprises de taille intermédiaire et de grands groupes.',
+        src: 'Panorama Consulting, cité par Kreative Core Tech', url: 'https://kreativecoretech.com/erp-statistics/',
+      },
+      {
+        label: 'Durée du projet', sub: 'Du cadrage au démarrage, valeur médiane simulée', value: r.mc.months.p50, fmt: 'months', lo: 0, hi: 24,
+        bands: [
+          { label: 'Petites entreprises', lo: 2, hi: 4, mine: i.users <= 15 },
+          { label: 'Médiane mondiale 2026', lo: 9, hi: 9, mine: i.users > 15 },
+        ],
+        note: 'Médiane mesurée sur 170 entreprises au chiffre d’affaires médian de 200 millions de dollars.',
+        src: 'Panorama Consulting, rapport ERP 2026', url: 'https://erp-software.org/en/erp-statistics/',
+      },
+    ];
+    if (i.mode === 0) list.push({
+      label: 'Abonnement par utilisateur', sub: 'Par mois, gamme recommandée', value: r.tier.sub, fmt: 'eur', lo: 0, hi: 250,
+      bands: [{ label: 'Fourchette du marché', lo: 25, hi: 200, mine: true }],
+      note: 'Les licences complètes et les licences limitées (consultation, saisie simple) ont souvent des prix très différents.',
+      src: 'Ecosire, guide des coûts ERP', url: 'https://ecosire.com/fr/blog/erp-cost-guide',
+    });
+    return list;
+  },
+  method: methodV3(9, 'la gamme d’ERP adaptée à votre entreprise'),
   sources: [
     ['Abonnement par utilisateur', '45, 95 ou 160 € par mois selon la gamme', 'Environ 25 à plus de 200 € par utilisateur et par mois selon les éditeurs', 'Ecosire, Houseblend', 'https://ecosire.com/fr/blog/erp-cost-guide'],
     ['Taux journaliers d’intégration', 'Inclus dans la base d’intégration', '600 à 900 € par jour', 'Absys Cyborg', 'https://absyscyborg.com/fr/actualites/quel-est-le-prix-d-un-erp-pour-pme'],
     ['Reprise des données', '10 à 25 % de l’intégration selon l’état des données', 'Au moins 10 à 15 %, près de 20 % si données désordonnées', 'Ecosire', 'https://ecosire.com/fr/blog/erp-cost-guide'],
     ['Maintenance en licence', '18 % par an', '15 à 22 %', 'Ecosire', 'https://ecosire.com/fr/blog/erp-cost-guide'],
-    ['Dépassements de budget', 'Fourchette haute à +35 %', '74 % des projets dépassent leur budget initial', 'Panorama Consulting, cité par Ecosire', 'https://ecosire.com/fr/blog/erp-cost-guide'],
+    ['Respect du budget', 'Distribution centrée sur le budget, queue de 5 à 10 %', '50,6 % dans le budget, 19,4 % en dessous, 22,9 % un peu au-dessus, 7,1 % nettement au-dessus', 'Panorama Consulting, rapport ERP 2026', 'https://xorosoft.com/mid-market-erp-total-cost-of-ownership-2026/'],
+    ['Durée médiane', 'Comparaison au marché', '9 mois sur 170 entreprises', 'Panorama Consulting, rapport ERP 2026', 'https://erp-software.org/en/erp-statistics/'],
+    ['Coût par utilisateur', 'Comparaison au marché', 'Environ 9 000 $ par utilisateur', 'Panorama Consulting, cité par Kreative Core Tech', 'https://kreativecoretech.com/erp-statistics/'],
     ['Gains sur stock et productivité', '5 % de stock en moins, 5 % de temps administratif', 'Hypothèses prudentes, modifiables', 'Retours de projets', ''],
+    ...SRC_TAIL,
   ],
 };
 
-// ---------------------------------------------------------------- Automatisation
+// ---------------------------------------------------------------- Automatisation (modèle version 3)
 const auto = {
-  slug: 'automatisation', code: 'WCS', sw: 'automatisation-wcs', name: 'Automatisation d’entrepôt',
+  slug: 'automatisation', code: 'WCS', sw: 'automatisation-wcs', name: 'Automatisation d’entrepôt', version: 3,
   title: 'Votre automatisation est-elle rentable ?',
-  lead: 'Choisissez une technologie et décrivez vos volumes en 7 questions. Vous obtenez l’investissement, le nombre de robots s’il y a lieu, le délai et le retour sur investissement sur 10 ans.',
-  card: 'Investissement et retour sur 10 ans', horizon: 10, ramp: 6,
+  lead: `Choisissez une technologie et décrivez vos volumes en deux minutes. ${LEAD3}`,
+  card: 'Investissement, risque et retour sur 10 ans', horizon: 10, ramp: 6, tail: [0.08, 0.12, 0.15, 0.15],
   fields: [
     { group: 'La technologie', id: 'tech', label: 'Technologie envisagée', type: 'seg', value: 0, options: ['Robots mobiles de préparation', 'Convoyeurs et tri', 'Stockage automatisé en bacs', 'Transstockeurs palettes'] },
     { group: 'Vos volumes', id: 'volume', label: 'Lignes ou unités traitées par jour', type: 'range', min: 500, max: 80000, step: 100, value: 8000, unit: 'par jour', log: true },
     { group: 'Vos volumes', id: 'shifts', label: 'Équipes par jour', type: 'seg', value: 1, options: ['1 équipe', '2 équipes', '3 équipes'] },
     { group: 'Vos volumes', id: 'fte', label: 'Personnes affectées aujourd’hui à ces flux', type: 'range', min: 3, max: 300, step: 1, value: 30, unit: 'ETP', log: true },
+    GROWTH('Vos volumes'),
     { group: 'Votre site', id: 'building', label: 'Bâtiment', type: 'seg', value: 0, options: ['Adapté', 'Travaux à prévoir', 'Neuf ou extension'] },
     { group: 'Votre site', id: 'wms', label: 'WMS', type: 'seg', value: 0, options: ['Compatible', 'À adapter', 'À remplacer'] },
     { group: 'Votre site', id: 'days', label: 'Jours d’activité par an', type: 'range', min: 200, max: 360, step: 5, value: 250, unit: 'jours' },
@@ -353,6 +472,7 @@ const auto = {
     { id: 'manual', label: 'Productivité manuelle actuelle en préparation', value: 80, min: 20, max: 300, step: 5, unit: 'lignes par heure' },
     { id: 'maint', label: 'Maintenance et logiciels, systèmes fixes', value: 3, min: 1, max: 10, step: 0.5, unit: '% de l’investissement par an' },
     { id: 'err', label: 'Taux d’erreur actuel', value: 0.3, min: 0, max: 3, step: 0.1, unit: '%' },
+    { id: 'dip', label: 'Baisse de productivité pendant la montée en cadence', value: 25, min: 0, max: 60, step: 1, unit: '% pendant 8 semaines' },
   ],
   tiers: [
     { name: 'Robots mobiles de préparation', desc: 'Flotte modulable, installation rapide, extensible en pointe.', months: 6, redF: 1.0, picking: true },
@@ -373,12 +493,12 @@ const auto = {
       integ = machines * 0.15 + machines * 0.12;
     }
     const parts = [
-      [t === 0 ? `Robots (${robots})` : 'Équipements', machines],
-      [t === 0 ? 'Intégration, logiciels et informatique' : 'Intégration, ingénierie et WCS', integ],
-      ['Adaptation du WMS', pick([20000, 60000, 150000], i.wms)],
-      ['Bâtiment et infrastructures', machines * pick([0, 0.06, 0.03], i.building)],
-      ['Pilotage et assistance projet', (machines + integ) * 0.05],
-      ['Formation et montée en cadence', (machines + integ) * 0.03],
+      [t === 0 ? `Robots (${robots})` : 'Équipements', machines, 0.3],
+      [t === 0 ? 'Intégration, logiciels et informatique' : 'Intégration, ingénierie et WCS', integ, 1.2],
+      ['Adaptation du WMS', pick([20000, 60000, 150000], i.wms), 1.3],
+      ['Bâtiment et infrastructures', machines * pick([0, 0.06, 0.03], i.building), 1],
+      ['Pilotage et assistance projet', (machines + integ) * 0.05, 0.8],
+      ['Formation et montée en cadence', (machines + integ) * 0.03, 0.8],
     ];
     // Les robots mobiles demandent plus de support logiciel et de maintenance que les systèmes fixes
     const maintRate = (a.maint / 100) * (t === 0 ? 2 : 1);
@@ -391,38 +511,87 @@ const auto = {
     if (T.picking) gains.push(['Erreurs de préparation évitées', i.volume * i.days * (a.err / 100) * 0.5 * 25]);
     const watch = ['Dimensionnez sur deux à trois ans d’historique et vos hypothèses de croissance, pas sur une seule année.',
       'Cybersécurité industrielle : séparez le réseau des automatismes du réseau bureautique et encadrez la télémaintenance.'];
-    if (i.shifts === 0) watch.push('Une seule équipe : la machine tourne peu d’heures par jour, le retour sur investissement s’allonge. Comparez avec un scénario sans automatisation lourde.');
+    if (i.shifts === 0) watch.push('Une seule équipe : la machine tourne peu d’heures par jour, le retour sur investissement s’allonge. Regardez le scénario avec une équipe de plus.');
     if (i.wms === 2) watch.push('WMS à remplacer : changez d’abord le WMS, automatisez ensuite. Le remplacement du WMS n’est pas inclus dans ce chiffrage.');
     if (i.building === 1) watch.push('Travaux : faites auditer la planéité du sol, la hauteur, les sprinklers et l’alimentation électrique avant de consulter.');
     if (t >= 2) watch.push('Système fixe : exigez des performances garanties sur votre profil de commandes, un mode dégradé écrit et un stock de pièces détachées.');
+    if (i.growth >= 15) watch.push('Croissance forte : prévoyez dès la conception la place et l’alimentation de l’extension, elle coûte bien moins cher prévue qu’ajoutée.');
     return {
-      tier: T, parts, recurring, months: [m, m * 1.3], gains, watch,
+      tier: T, tierIndex: t, parts, recurring, months: [m, m * 1.3], gains, watch,
+      dip: ['Baisse de productivité pendant la montée en cadence', Math.min(i.fte * HOURS_FTE, hoursYear) / 52 * 8 * (a.dip / 100) * a.cost],
       kpi: t === 0 ? ['Robots nécessaires', `${robots} robots`, `${Math.round(hours)} h d’activité par jour, ${a.rate} lignes par heure et par robot`] : null,
       recurringNote: `Maintenance et logiciels, ${(maintRate * 100).toLocaleString('fr-FR')} % de l’investissement par an`,
     };
   },
+  verdictHook(i) {
+    if (i.tech >= 2 && i.volume < 2500) return { level: 'wait', title: 'Trop peu de volume pour un système fixe', text: `Avec ${i.volume.toLocaleString('fr-FR')} lignes ou unités par jour, un système fixe tourne en sous-régime. Des robots mobiles, plus modulables, ou une meilleure organisation manuelle sont à regarder d’abord.` };
+    return null;
+  },
+  scenarios(i) {
+    const names = this.fields[0].options;
+    const alt = pick([[1, 2], [0, 2], [0, 3], [2, 1]], i.tech);
+    const out = [{ label: 'Votre scénario', i }, { label: names[alt[0]], i: { ...i, tech: alt[0] } }];
+    if (i.shifts < 2) out.push({ label: `Avec ${i.shifts + 2} équipes par jour`, i: { ...i, shifts: i.shifts + 1 } });
+    else out.push({ label: names[alt[1]], i: { ...i, tech: alt[1] } });
+    return out;
+  },
+  benchmarks(i, a, r) {
+    const pb = payback(r); const t = i.tech;
+    const list = [
+      {
+        label: 'Délai de retour sur investissement', sub: 'De la mise en service au point mort, valeur médiane simulée', value: pb.v, display: pb.d, fmt: 'months', lo: 0, hi: 84,
+        bands: [
+          { label: 'Robots mobiles de préparation', lo: 18, hi: 24, mine: t === 0 },
+          { label: 'Stockage automatisé', lo: 24, hi: 48, mine: t >= 2 },
+          { label: 'Automatisation lourde et convoyeurs complets', lo: 36, hi: 60, mine: t === 1 },
+        ],
+        note: 'Le nombre d’équipes pèse lourd : une même flotte de robots peut se rembourser en moins d’un an en trois équipes, et en plus de deux ans en une seule.',
+        src: 'MHI, cité par Warehouse Revolution ; GoASRS ; Vndly', url: 'https://warehouserevolution.net/warehouse-automation-guide/',
+      },
+      {
+        label: 'Rendement sur 10 ans', sub: 'Gains nets rapportés au coût total, valeur médiane simulée', value: Math.max(0, (r.mc.net.p50 / r.total) * 100), fmt: 'pct', lo: 0, hi: 600,
+        bands: [{ label: 'Projets bien préparés', lo: 200, hi: 400, mine: true }],
+        note: 'Repère publié pour des projets dimensionnés sur un historique solide et une utilisation de plusieurs équipes.',
+        src: 'Conveyco, rentabilité de l’automatisation 2026', url: 'https://www.conveyco.com/news/warehouse-automation-roi-by-facility-size-in-2026/',
+      },
+    ];
+    if (t === 0) list.push({
+      label: 'Prix d’un robot mobile', sub: 'Robot seul, hors intégration', value: 18000, fmt: 'money', lo: 0, hi: 80000,
+      bands: [{ label: 'Marché mondial', lo: 13500, hi: 45000, mine: true }],
+      note: 'Les robots de préparation légers sont en bas de fourchette ; la location de robots existe aussi, au mois.',
+      src: 'Reeman, coûts de l’automatisation', url: 'https://reemanbot.com/posts/warehouse-automation-cost-breakdown-what-you-actually-pay-for',
+    });
+    return list;
+  },
+  method: methodV3(6, 'l’investissement de la technologie choisie, dimensionné sur vos volumes'),
   sources: [
     ['Robot mobile, intégration et informatique', '18 k€ par robot, plus intégration et licences', '25 robots : 650 k€, dont 450 k€ de robots, 120 k€ d’intégration, 80 k€ de licences', 'Exemple publié par un intégrateur', '/guides/prix-automatisation-entrepot/'],
+    ['Prix d’un robot mobile', '18 k€', '15 000 à 50 000 $ selon la charge et la navigation', 'Reeman', 'https://reemanbot.com/posts/warehouse-automation-cost-breakdown-what-you-actually-pay-for'],
     ['Convoyeurs et tri', '400 k€ plus 45 € par unité quotidienne', '500 k€ à 3 M€', 'Guide Malaheim', '/guides/prix-automatisation-entrepot/'],
     ['Stockage automatisé en bacs', '900 k€ plus 110 € par unité quotidienne', '1 à 5 M€', 'Guide Malaheim', '/guides/prix-automatisation-entrepot/'],
-    ['Retour sur investissement observé', 'Résultat du modèle', '11 à 28 mois sur cinq sites, les robots mobiles étant les plus rapides', 'Robotomated, études de cas 2026', 'https://robotomated.com/learn/warehouse/warehouse-automation-roi-case-study-2026'],
-    ['Retour par taille de site', 'Résultat du modèle', '2 à 4 ans pour un site de taille moyenne', 'Conveyco 2026', 'https://www.conveyco.com/news/warehouse-automation-roi-by-facility-size-in-2026/'],
+    ['Retour des robots mobiles', 'Résultat du modèle', '18 à 24 mois en médiane', 'MHI, cité par Warehouse Revolution', 'https://warehouserevolution.net/warehouse-automation-guide/'],
+    ['Retour du stockage automatisé', 'Résultat du modèle', '2 à 4 ans', 'GoASRS', 'https://goasrs.com/warehouse-automation-roi-guide/'],
+    ['Rendement sur 10 ans', 'Résultat du modèle', '200 à 400 %', 'Conveyco 2026', 'https://www.conveyco.com/news/warehouse-automation-roi-by-facility-size-in-2026/'],
+    ['Effet du nombre d’équipes', 'Heures d’activité de la machine', 'Robots mobiles : 8 à 12 mois en 3 équipes, 20 à 30 mois en 1 équipe', 'Highbay', 'https://www.highbay.io/knowledge/automation-robotics/automation-roi-and-payback'],
     ['Réduction des heures', '40 % en robots mobiles et convoyeurs, 56 % en stockage en bacs, 48 % en transstockeurs', 'Hypothèse prudente, modifiable', 'Retours de projets', ''],
+    ['Montée en cadence', '25 % de productivité en moins pendant 8 semaines', 'Hypothèse prudente, modifiable', 'Retours de projets', ''],
     ['Maintenance et logiciels', '3 % par an pour les systèmes fixes, 6 % pour les robots mobiles', 'Hypothèse, à remplacer par les offres reçues', 'Retours de projets', ''],
+    ...SRC_TAIL,
   ],
 };
 
-// ---------------------------------------------------------------- OMS
+// ---------------------------------------------------------------- OMS (modèle version 3)
 const oms = {
-  slug: 'oms', code: 'OMS', sw: 'oms', name: 'Gestion des commandes',
+  slug: 'oms', code: 'OMS', sw: 'oms', name: 'Gestion des commandes', version: 3,
   title: 'Combien coûte un OMS pour vos canaux de vente ?',
-  lead: 'Décrivez vos ventes et vos stocks en 7 questions. Vous obtenez le type de solution adapté, le budget d’intégration, l’abonnement et les ventes sauvées.',
-  card: 'Intégration, abonnement et ventes sauvées', horizon: 5, ramp: 4,
+  lead: `Décrivez vos ventes et vos stocks en deux minutes. ${LEAD3}`,
+  card: 'Intégration, risque et ventes sauvées', horizon: 5, ramp: 4, tail: [0.04, 0.08, 0.12],
   fields: [
     { group: 'Vos ventes', id: 'orders', label: 'Commandes par an', type: 'range', min: 5000, max: 5000000, step: 1000, value: 100000, unit: 'commandes', log: true },
     { group: 'Vos ventes', id: 'channels', label: 'Canaux de vente (site, places de marché, revendeurs)', type: 'range', min: 1, max: 15, step: 1, value: 4, unit: 'canaux' },
     { group: 'Vos ventes', id: 'basket', label: 'Panier moyen', type: 'range', min: 10, max: 2000, step: 5, value: 80, unit: '€', log: true },
     { group: 'Vos ventes', id: 'b2b', label: 'Clients', type: 'seg', value: 0, options: ['Particuliers', 'Particuliers et professionnels (EDI)'] },
+    GROWTH('Vos ventes'),
     { group: 'Vos stocks', id: 'points', label: 'Points d’expédition (entrepôts, prestataires, magasins)', type: 'range', min: 1, max: 300, step: 1, value: 2, unit: 'points', log: true },
     { group: 'Vos stocks', id: 'sfs', label: 'Magasins', type: 'seg', value: 0, options: ['Pas d’expédition depuis les magasins', 'Expédition ou retrait en magasin'] },
     { group: 'Vos stocks', id: 'returns', label: 'Taux de retour', type: 'range', min: 0, max: 50, step: 1, value: 10, unit: '%' },
@@ -440,53 +609,93 @@ const oms = {
     { name: 'OMS SaaS pour marques en croissance', desc: 'Plusieurs canaux et stocks, orchestration paramétrable.', months: 4 },
     { name: 'OMS de grande entreprise', desc: 'Magasins, entrepôts, prestataires, international, très gros volumes.', months: 8 },
   ],
-  compute(i, a) {
+  tierOf(i) {
     const s = (i.channels > 2 ? 1 : 0) + (i.points > 1 ? 1 : 0) + (i.orders > 300000 ? 1 : 0) + (i.orders > 1500000 ? 1 : 0) + i.sfs + (i.points > 20 ? 1 : 0);
-    const t = s === 0 ? 0 : s <= 3 ? 1 : 2;
-    const T = this.tiers[t];
+    return s === 0 ? 0 : s <= 3 ? 1 : 2;
+  },
+  compute(i, a) {
+    const fit = this.tierOf(i); const t = i._tier ?? fit; const T = this.tiers[t];
+    const { under, gf, cf } = fitAdj(fit, t);
     const base = [
-      ['Connecteurs de vente', i.channels * pick([1500, 6000, 12000], t) + i.b2b * pick([5000, 15000, 30000], t)],
-      ['Connecteurs logistiques', Math.min(i.points, 10) * pick([1500, 5000, 9000], t) + (i.points > 10 ? 15000 : 0) + i.sfs * pick([0, 40000, 80000], t)],
-      ['Règles d’orchestration et paramétrage', pick([3000, 25000, 70000], t) * (1 + 0.1 * (i.channels - 1))],
-      ['Interface finance et paiements', pick([2000, 10000, 25000], t)],
-      ['Tests de charge et recette', pick([1000, 10000, 30000], t)],
+      ['Connecteurs de vente', i.channels * pick([1500, 6000, 12000], t) + i.b2b * pick([5000, 15000, 30000], t), 1.2],
+      ['Connecteurs logistiques', Math.min(i.points, 10) * pick([1500, 5000, 9000], t) + (i.points > 10 ? 15000 : 0) + i.sfs * pick([0, 40000, 80000], t), 1.2],
+      ['Règles d’orchestration et paramétrage', pick([3000, 25000, 70000], t) * (1 + 0.1 * (i.channels - 1)) * cf, 1],
+      ['Interface finance et paiements', pick([2000, 10000, 25000], t), 1],
+      ['Tests de charge et recette', pick([1000, 10000, 30000], t), 0.6],
     ];
-    const parts = [...base, ['Pilotage du projet', sum(base) * 0.12]];
+    const parts = [...base, ['Pilotage du projet', sum(base) * 0.12, 0.8]];
     const recurring = t === 0 ? 1200 + i.orders * 0.01 : t === 1 ? 15000 + i.orders * 0.08 + i.channels * 1200 : 60000 + i.orders * 0.12 + i.points * 250;
     const m = T.months + i.channels * 0.3 + i.sfs * 2 + i.b2b;
     const gains = [
-      ['Ventes sauvées (marge)', i.orders * (a.lost / 100) * (a.save / 100) * i.basket * (a.margin / 100)],
-      ['Contacts au service client évités', i.orders * (a.contact / 100) * 0.4 * a.ccost],
-      ['Coûts logistiques optimisés', i.orders * a.logi * (t === 0 ? 0.3 : 1)],
+      ['Ventes sauvées (marge)', i.orders * (a.lost / 100) * (a.save / 100) * i.basket * (a.margin / 100) * gf],
+      ['Contacts au service client évités', i.orders * (a.contact / 100) * 0.4 * a.ccost * gf],
+      ['Coûts logistiques optimisés', i.orders * a.logi * (t === 0 ? 0.3 : 1) * gf],
     ];
     const watch = ['Définissez la règle de stock disponible à la vente (réservations, stock de sécurité par canal) avant de choisir l’outil.'];
     if (i.sfs) watch.push('Expédition depuis les magasins : la promesse ne sera juste que si le stock magasin est fiable.');
     if (i.returns > 15) watch.push('Taux de retour élevé : faites démontrer la gestion des retours et des remboursements de bout en bout.');
     if (i.orders > 1000000) watch.push('Volumes élevés : exigez un test de charge à deux fois votre pointe avant chaque grande opération commerciale.');
     if (i.channels > 5) watch.push('Plus de 5 canaux : démarrez avec ceux qui pèsent le plus, puis ajoutez les autres par vagues.');
+    if (a.contact > 15) watch.push('Plus de 15 % des commandes génèrent un contact de suivi : c’est le signe d’un problème opérationnel, à traiter en même temps que l’outil.');
+    if (under) watch.push('Gamme en dessous de votre besoin : une partie de l’orchestration restera manuelle, les gains seront réduits.');
     return {
-      tier: T, parts, recurring, months: [m, m * 1.4], gains, watch,
+      tier: T, tierIndex: t, tailAdd: 0.06 * under, parts, recurring, months: [m, m * 1.4], gains, watch,
       recurringNote: t === 0 ? 'Option ou extension de la plateforme' : 'Abonnement au volume de commandes et de canaux',
     };
   },
+  verdictHook(i) {
+    if (i.channels <= 1 && i.points <= 1 && i.sfs === 0) return { level: 'wait', title: 'Un OMS dédié est probablement prématuré', text: 'Avec un seul canal et un seul point d’expédition, le module commandes de votre plateforme de vente ou de votre ERP couvre l’essentiel.' };
+    return null;
+  },
+  scenarios(i, r) { return [{ label: 'Votre scénario', i }, ...nearTiers(this, i, r.tierIndex)]; },
+  benchmarks(i, a, r) {
+    return [
+      {
+        label: 'Contacts « où est ma commande »', sub: 'Part des commandes qui génèrent une demande de suivi', value: a.contact, fmt: 'pct', lo: 0, hi: 30,
+        bands: [{ label: 'Seuil d’alerte', lo: 15, hi: 30, mine: false }],
+        note: 'Au-delà de 15 % des commandes, le volume de demandes de suivi signale un problème opérationnel.',
+        src: 'ClickPost', url: 'https://www.clickpost.ai/en-us/blog/what-is-a-wismo-complaint',
+      },
+      {
+        label: 'Coût d’un contact', sub: 'Au service client', value: a.ccost, fmt: 'eur', lo: 0, hi: 20,
+        bands: [
+          { label: 'Libre-service', lo: 1.7, hi: 1.7, mine: false },
+          { label: 'Contact assisté (téléphone, chat, e-mail)', lo: 12, hi: 12, mine: true },
+        ],
+        note: 'Médianes Gartner de 1,84 $ en libre-service et 13,50 $ en contact assisté, converties en euros.',
+        src: 'Gartner, cité par ClickPost', url: 'https://www.clickpost.ai/en-us/blog/what-is-a-wismo-complaint',
+      },
+      {
+        label: 'Délai de mise en service', sub: 'Valeur médiane simulée', value: r.mc.months.p50, fmt: 'months', lo: 0, hi: 18,
+        bands: [{ label: 'Moyenne d’un OMS de grande entreprise', lo: 5, hi: 5, mine: r.tierIndex === 2 }],
+        note: 'Moyenne tirée des avis d’utilisateurs d’une solution de grande entreprise.',
+        src: 'G2', url: 'https://www.g2.com/products/salesforce-order-management/pricing',
+      },
+    ];
+  },
+  method: methodV3(4, 'le type de solution de gestion des commandes adapté à vos canaux'),
   sources: [
     ['Prix des OMS', 'Modèle au volume, par gamme', 'Rarement publiés, abonnement au volume le plus souvent', 'Guide Malaheim', '/guides/prix-oms/'],
-    ['Durée de mise en œuvre, grande entreprise', '8 mois et plus', 'Environ 5 mois en moyenne selon les avis d’utilisateurs', 'G2, Salesforce Order Management', 'https://www.g2.com/products/salesforce-order-management/pricing'],
+    ['Durée de mise en œuvre, grande entreprise', '8 mois et plus', 'Environ 5 mois en moyenne selon les avis d’utilisateurs', 'G2', 'https://www.g2.com/products/salesforce-order-management/pricing'],
     ['Critère de choix principal', 'Coût total sur 5 ans affiché', 'Le coût total de possession est le premier critère du marché intermédiaire', 'Perficient', 'https://blogs.perficient.com/2024/05/22/new-perficient-research-reveals-mid-market-priorities-for-order-management-selection'],
-    ['Ventes et contacts évités', '2 % de commandes perdues, moitié sauvée ; 8 % de contacts, 40 % évités', 'Hypothèses prudentes, modifiables', 'Retours de projets', ''],
+    ['Demandes de suivi', '8 % des commandes, 40 % évitées', 'Seuil d’alerte au-delà de 15 % des commandes', 'ClickPost', 'https://www.clickpost.ai/en-us/blog/what-is-a-wismo-complaint'],
+    ['Coût d’un contact', '5 €', '1,84 $ en libre-service, 13,50 $ en contact assisté', 'Gartner, cité par ClickPost', 'https://www.clickpost.ai/en-us/blog/what-is-a-wismo-complaint'],
+    ['Ventes sauvées', '2 % de commandes perdues, moitié sauvée', 'Hypothèses prudentes, modifiables', 'Retours de projets', ''],
+    ...SRC_TAIL,
   ],
 };
 
-// ---------------------------------------------------------------- S&OP et planification
+// ---------------------------------------------------------------- S&OP et planification (modèle version 3)
 const sop = {
-  slug: 'planification', code: 'S&OP', sw: 'sop-planification', name: 'Planification et S&OP',
+  slug: 'planification', code: 'S&OP', sw: 'sop-planification', name: 'Planification et S&OP', version: 3,
   title: 'Quel outil de planification, pour quel gain sur vos stocks ?',
-  lead: 'Décrivez votre portefeuille et votre organisation en 6 questions. Vous obtenez le niveau d’outillage adapté, le budget, et le stock que vous pouvez libérer.',
-  card: 'Niveau d’outil et stock libéré', horizon: 5, ramp: 6,
+  lead: `Décrivez votre portefeuille et votre organisation en deux minutes. ${LEAD3}`,
+  card: 'Niveau d’outil, risque et stock libéré', horizon: 5, ramp: 6, tail: [0.03, 0.06, 0.10, 0.14],
   fields: [
     { group: 'Votre portefeuille', id: 'refs', label: 'Références actives', type: 'range', min: 50, max: 200000, step: 50, value: 3000, unit: 'références', log: true },
     { group: 'Votre portefeuille', id: 'sites', label: 'Sites à planifier (usines, entrepôts)', type: 'range', min: 1, max: 30, step: 1, value: 2, unit: 'site(s)' },
     { group: 'Votre portefeuille', id: 'stock', label: 'Valeur du stock', type: 'range', min: 100, max: 300000, step: 50, value: 3000, unit: 'k€', log: true },
+    GROWTH('Votre portefeuille'),
     { group: 'Votre organisation', id: 'scope', label: 'Ambition', type: 'seg', value: 0, options: ['Prévision et réapprovisionnement', 'Avec capacités de production', 'S&OP complet, finance et scénarios'] },
     { group: 'Votre organisation', id: 'planners', label: 'Planificateurs et approvisionneurs', type: 'range', min: 1, max: 50, step: 1, value: 3, unit: 'personnes' },
     { group: 'Votre organisation', id: 'service', label: 'Taux de service actuel', type: 'seg', value: 1, options: ['Moins de 90 %', '90 à 95 %', 'Plus de 95 %'] },
@@ -503,50 +712,89 @@ const sop = {
     { name: 'Outil spécialisé de prévision et de réapprovisionnement', desc: 'Prévision statistique, politiques de stock, alertes.', months: 5, redF: 1, prodF: 1 },
     { name: 'Plateforme de planification avancée', desc: 'Demande, capacités, finance et scénarios sur plusieurs sites.', months: 9, redF: 1.2, prodF: 1 },
   ],
-  compute(i, a) {
+  tierOf(i) {
     const s = (i.refs > 1000 ? 1 : 0) + (i.refs > 20000 ? 1 : 0) + (i.sites > 3 ? 1 : 0) + i.scope;
-    const t = s === 0 ? 0 : s === 1 ? 1 : s <= 3 ? 2 : 3;
-    const T = this.tiers[t];
+    return s === 0 ? 0 : s === 1 ? 1 : s <= 3 ? 2 : 3;
+  },
+  compute(i, a) {
+    const fit = this.tierOf(i); const t = i._tier ?? fit; const T = this.tiers[t];
+    const { under, gf, cf } = fitAdj(fit, t);
     const lic = pick([0, 4000 + i.planners * 600, 24000 + i.refs * 1.0 + i.sites * 2000, 60000 + i.refs * 2.5 + i.sites * 6000], t);
     const base = [
-      ['Construction et paramétrage', pick([12000, 20000, lic * 1.5, lic * 2.2], t)],
-      ['Connexion à l’ERP et nettoyage de l’historique', pick([3000, 8000, 20000, 50000], t) * (1 + i.sites * 0.05)],
-      ['Modélisation des capacités', i.scope >= 1 ? pick([3000, 10000, 25000, 60000], t) : 0],
-      ['Formation et animation des premiers cycles', pick([6000, 8000, 15000, 30000], t) + i.planners * 800],
+      ['Construction et paramétrage', pick([12000, 20000, lic * 1.5, lic * 2.2], t) * cf, 1],
+      ['Connexion à l’ERP et nettoyage de l’historique', pick([3000, 8000, 20000, 50000], t) * (1 + i.sites * 0.05), 1.3],
+      ['Modélisation des capacités', i.scope >= 1 ? pick([3000, 10000, 25000, 60000], t) : 0, 1.2],
+      ['Formation et animation des premiers cycles', pick([6000, 8000, 15000, 30000], t) + i.planners * 800, 0.7],
     ];
-    const parts = [...base.filter((p) => p[1] > 0), ['Pilotage du projet', sum(base) * 0.10]];
+    const parts = [...base.filter((p) => p[1] > 0), ['Pilotage du projet', sum(base) * 0.10, 0.8]];
     const m = T.months + i.scope * 1.5 + i.sites / 10;
     const stock = i.stock * 1000;
-    const red = (a.red / 100) * T.redF;
+    const red = (a.red / 100) * T.redF * gf;
     const gains = [
       ['Coût de possession du stock évité', stock * red * (a.carry / 100)],
-      ['Temps des planificateurs', i.planners * HOURS_FTE * a.cost * (a.prod / 100) * T.prodF],
+      ['Temps des planificateurs', i.planners * HOURS_FTE * a.cost * (a.prod / 100) * T.prodF * gf],
     ];
     const watch = ['Un outil ne remplace pas le rendez-vous mensuel de décision : nommez un sponsor en direction générale qui le préside.'];
     if (t <= 1) watch.push('Faites tourner trois à six cycles S&OP avant d’acheter un outil : votre cahier des charges sera bien meilleur.');
     if (i.service === 0) watch.push('Taux de service sous 90 % : fiabilisez d’abord les délais fournisseurs et les données de stock.');
     if (t >= 2) watch.push('Exigez un test de prévision à l’aveugle sur votre historique, comparé à votre méthode actuelle.');
     if (i.scope >= 1) watch.push('Capacités : modélisez les goulets d’étranglement réels, pas la capacité théorique des lignes.');
+    if (under) watch.push('Niveau d’outil en dessous de votre besoin : la prévision restera en partie manuelle, les gains de stock seront réduits.');
     return {
-      tier: T, parts, recurring: lic, months: [m, m * 1.4], gains, watch,
+      tier: T, tierIndex: t, tailAdd: 0.06 * under, parts, recurring: lic, months: [m, m * 1.4], gains, watch,
       oneOff: ['Trésorerie libérée par la baisse du stock', stock * red],
       recurringNote: t === 0 ? 'Pas de licence, le temps d’animation reste interne' : 'Licence annuelle',
     };
   },
+  verdictHook(i, r) {
+    if (r.tierIndex === 0) return { extra: 'À ce niveau, l’enjeu est la discipline du processus mensuel, pas l’outil : c’est elle qui libère le stock.' };
+    return null;
+  },
+  scenarios(i, r) { return [{ label: 'Votre scénario', i }, ...nearTiers(this, i, r.tierIndex)]; },
+  benchmarks(i, a, r) {
+    const red = (a.red * r.tier.redF) ;
+    const list = [
+      {
+        label: 'Baisse de stock visée', sub: 'Avec le niveau d’outil recommandé', value: red, fmt: 'pct', lo: 0, hi: 30,
+        bands: [
+          { label: 'Prévision améliorée, estimation prudente', lo: 0, hi: 5, mine: false },
+          { label: 'Baisse des coûts de stock avec une prévision par intelligence artificielle', lo: 10, hi: 15, mine: false },
+        ],
+        note: 'McKinsey chiffre jusqu’à 5 % de stock en moins pour 10 à 20 % de précision gagnée, et 10 à 15 % de coûts de stock en moins avec une prévision avancée.',
+        src: 'McKinsey, cité par Finzarc et BuildMVPFast', url: 'https://www.finzarc.com/blog/how-predictive-analytics-improves-inventory-and-demand-planning-and-where-most-implementations-fail',
+      },
+      {
+        label: 'Taux de service', sub: 'Votre niveau déclaré, valeur centrale de la tranche', value: pick([87.5, 92.5, 97.5], i.service), fmt: 'pct', lo: 80, hi: 100,
+        bands: [{ label: 'Meilleurs 20 % des entrepôts, expéditions à l’heure', lo: 99.5, hi: 100, mine: false }],
+        note: 'Repère logistique : il mesure les expéditions à l’heure, pas la disponibilité à la commande.',
+        src: 'WERC, DC Measures 2025', url: 'https://www.extensiv.com/blog/3pl-on-time-shipping-benchmarks',
+      },
+    ];
+    if (r.tierIndex >= 2) list.push({
+      label: 'Licence annuelle', sub: 'Niveau d’outil recommandé', value: r.recurring, fmt: 'money', log: true,
+      bands: [{ label: 'Prix d’entrée publiés', lo: 26000, hi: 32000, mine: true }],
+      note: 'Prix d’entrée publiés de quelques outils et plateformes ; les grands déploiements se négocient au cas par cas.',
+      src: 'SelectHub', url: 'https://www.selecthub.com/c/supply-chain-planning-software/',
+    });
+    return list;
+  },
+  method: methodV3(6, 'le niveau d’outillage adapté à votre portefeuille'),
   sources: [
     ['Outil spécialisé', '24 k€ par an plus volume', 'Certaines solutions démarrent autour de 3 000 $ par mois', 'SelectHub', 'https://www.selecthub.com/c/supply-chain-planning-software/'],
     ['Plateforme avancée', '60 k€ par an et plus', 'Certaines plateformes de grands éditeurs démarrent autour de 29 000 $ par an', 'SelectHub', 'https://www.selecthub.com/c/supply-chain-planning-software/'],
     ['Déploiement', '1,5 à 2,2 fois la licence annuelle', '1,5 à 3 fois le coût annuel de licence', 'Deloitte, cité par Monetizely', 'https://www.getmonetizely.com/articles/how-do-enterprise-scm-and-planning-platforms-set-their-pricing-a-procurement-guide'],
-    ['Réduction de stock', '8 % avec un outil spécialisé, pondérée par niveau', 'Hypothèse prudente, modifiable', 'Retours de projets', ''],
+    ['Réduction de stock', '8 % avec un outil spécialisé, pondérée par niveau', 'Jusqu’à 5 % de stock en moins ; 10 à 15 % de coûts de stock en moins avec une prévision avancée', 'McKinsey, cité par BuildMVPFast et Finzarc', 'https://www.buildmvpfast.com/blog/ai-demand-forecasting-inventory-optimization-use-cases-2026'],
+    ['Erreur de prévision', 'Contexte', '20 à 50 % d’erreur en moins avec une prévision par intelligence artificielle', 'McKinsey, cité par Finzarc', 'https://www.finzarc.com/blog/how-predictive-analytics-improves-inventory-and-demand-planning-and-where-most-implementations-fail'],
+    ...SRC_TAIL,
   ],
 };
 
-// ---------------------------------------------------------------- Données
+// ---------------------------------------------------------------- Données (modèle version 3)
 const data = {
-  slug: 'donnees', code: 'DATA', sw: 'donnees-pilotage', name: 'Données et pilotage',
+  slug: 'donnees', code: 'DATA', sw: 'donnees-pilotage', name: 'Données et pilotage', version: 3,
   title: 'Combien coûte un projet de données, et combien coûtent vos données fausses ?',
-  lead: 'Choisissez votre projet et décrivez vos données en 6 questions. Vous obtenez le budget, la durée et le coût des erreurs que vous pouvez éviter.',
-  card: 'Budget et coût des données fausses', horizon: 5, ramp: 4,
+  lead: `Choisissez votre projet et décrivez vos données en deux minutes. ${LEAD3}`,
+  card: 'Budget, risque et coût des données fausses', horizon: 5, ramp: 4, tail: [0.05, 0.08, 0.15, 0.17],
   fields: [
     { group: 'Votre projet', id: 'type', label: 'Projet', type: 'seg', value: 0, options: ['Fiabiliser les données articles', 'Tableaux de bord partagés', 'Référentiel de données (MDM ou PIM)', 'Tour de contrôle'] },
     { group: 'Vos données', id: 'records', label: 'Fiches articles actives', type: 'range', min: 500, max: 500000, step: 500, value: 10000, unit: 'fiches', log: true },
@@ -554,6 +802,7 @@ const data = {
     { group: 'Vos données', id: 'quality', label: 'Qualité actuelle des données', type: 'seg', value: 1, options: ['Bonne', 'Moyenne', 'Faible'] },
     { group: 'Votre organisation', id: 'sites', label: 'Sites concernés', type: 'range', min: 1, max: 50, step: 1, value: 2, unit: 'site(s)' },
     { group: 'Votre organisation', id: 'users', label: 'Utilisateurs des données et indicateurs', type: 'range', min: 5, max: 2000, step: 5, value: 40, unit: 'personnes', log: true },
+    GROWTH('Votre organisation'),
   ],
   assumptions: [
     { id: 'hours', label: 'Temps passé à chercher ou réconcilier les chiffres', value: 1, min: 0, max: 8, step: 0.5, unit: 'h par personne et par semaine' },
@@ -573,20 +822,20 @@ const data = {
     const cleaning = bad * (a.min / 60) * a.cost + (i.records > 20000 ? 25000 : 0);
     let base, recurring, note;
     if (t === 0) {
-      base = [['Cadrage et règles de qualité', 8000 + i.sources * 1500], ['Correction et mesures des fiches', cleaning], ['Tableau de bord de qualité', 5000]];
+      base = [['Cadrage et règles de qualité', 8000 + i.sources * 1500, 0.8], ['Correction et mesures des fiches', cleaning, 1.3], ['Tableau de bord de qualité', 5000, 0.6]];
       recurring = 4000 + i.records * 0.05; note = 'Suivi mensuel de la qualité';
     } else if (t === 1) {
-      base = [['Connexion des sources', 15000 + i.sources * 6000], ['Couche sémantique et indicateurs', 8000 + i.sites * 1000], ['Formation des utilisateurs', 3000 + i.users * 30]];
+      base = [['Connexion des sources', 15000 + i.sources * 6000, 1.3], ['Couche sémantique et indicateurs', 8000 + i.sites * 1000, 1], ['Formation des utilisateurs', 3000 + i.users * 30, 0.6]];
       recurring = i.users * 120 + 3000; note = 'Licences de l’outil de tableaux de bord et hébergement';
     } else if (t === 2) {
       const lic = 30000 + i.records * 0.25 + i.sources * 1500;
-      base = [['Mise en œuvre du référentiel', lic * 1.8 + i.sources * 10000], ['Nettoyage initial', cleaning * 0.7], ['Gouvernance et formation', 15000]];
+      base = [['Mise en œuvre du référentiel', lic * 1.8 + i.sources * 10000, 1.1], ['Nettoyage initial', cleaning * 0.7, 1.3], ['Gouvernance et formation', 15000, 0.8]];
       recurring = lic; note = 'Licence annuelle du référentiel';
     } else {
-      base = [['Mise en œuvre de la tour de contrôle', 120000 + i.sources * 20000 + i.sites * 5000], ['Données et intégrations', 30000 + cleaning * 0.3], ['Formation et organisation', 15000 + i.users * 40]];
+      base = [['Mise en œuvre de la tour de contrôle', 120000 + i.sources * 20000 + i.sites * 5000, 1.1], ['Données et intégrations', 30000 + cleaning * 0.3, 1.3], ['Formation et organisation', 15000 + i.users * 40, 0.8]];
       recurring = 60000 + i.sites * 3000 + i.users * 100; note = 'Licence annuelle de la plateforme';
     }
-    const parts = [...base, ['Pilotage du projet', sum(base) * 0.10]];
+    const parts = [...base, ['Pilotage du projet', sum(base) * 0.10, 0.8]];
     const m = pick([2 + i.records / 50000, 2.5 + i.sources * 0.3, 6 + i.sources * 0.4, 9 + i.sources * 0.5 + i.sites * 0.05], t);
     const incidents = i.records * pick([0.02, 0.06, 0.12], i.quality);
     const gains = [
@@ -598,13 +847,56 @@ const data = {
     if (i.sources > 8) watch.push('Plus de 8 systèmes sources : une plateforme d’intégration ou un référentiel devient indispensable.');
     if (t === 3) watch.push('Tour de contrôle : définissez d’abord 5 à 10 indicateurs, leurs définitions et leurs responsables.');
     if (t === 0) watch.push('Limitez le périmètre aux articles actifs des douze derniers mois et corrigez à la source, jamais dans un fichier à côté.');
-    return { tier: T, parts, recurring, months: [m, m * 1.4], gains, watch, recurringNote: note, kpi: ['Fiches probablement à corriger', `${Math.round(bad).toLocaleString('fr-FR')} fiches`, `Sur ${i.records.toLocaleString('fr-FR')} fiches actives`] };
+    watch.push('Mesurez la qualité avant et après : la plupart des entreprises ne le font pas, et ne savent donc pas ce que leurs données fausses leur coûtent.');
+    return { tier: T, tierIndex: t, parts, recurring, months: [m, m * 1.4], gains, watch, recurringNote: note, kpi: ['Fiches probablement à corriger', `${Math.round(bad).toLocaleString('fr-FR')} fiches`, `Sur ${i.records.toLocaleString('fr-FR')} fiches actives`] };
   },
+  verdictHook(i) {
+    if (i.quality === 0 && i.type === 0) return { extra: 'Vos données sont déjà de bonne qualité : un chantier de fiabilisation rapportera peu, un projet de pilotage davantage.' };
+    return null;
+  },
+  scenarios(i) {
+    const names = this.fields[0].options;
+    const alt = pick([[1, 2], [0, 2], [0, 3], [2, 1]], i.type);
+    return [{ label: 'Votre scénario', i }, { label: names[alt[0]], i: { ...i, type: alt[0] } }, { label: names[alt[1]], i: { ...i, type: alt[1] } }];
+  },
+  benchmarks(i, a, r) {
+    const list = [
+      {
+        label: 'Fiches en erreur', sub: 'Part estimée selon la qualité déclarée', value: pick([15, 35, 60], i.quality), fmt: 'pct', lo: 0, hi: 80,
+        bands: [{ label: 'Constat courant sur les données de base', lo: 15, hi: 30, mine: true }],
+        note: 'Au-delà de 30 %, un chantier de fiabilisation passe avant tout nouvel outil.',
+        src: 'CPCON Group', url: 'https://cpcongroup.com/insights/article/warehouse-management-system-cost-guide/',
+      },
+      {
+        label: 'Délai de retour sur investissement', sub: 'De la mise en service au point mort, valeur médiane simulée', value: payback(r).v, display: payback(r).d, fmt: 'months', lo: 0, hi: 48,
+        bands: [{ label: 'Seuil habituel des directions financières', lo: 18, hi: 24, mine: true }],
+        note: 'Au-delà de 36 mois, un chantier ciblé de fiabilisation est souvent plus rentable qu’une plateforme.',
+        src: 'CPCON Group', url: 'https://cpcongroup.com/insights/article/warehouse-management-system-cost-guide/',
+      },
+    ];
+    if (i.type === 2) list.push({
+      label: 'Licence annuelle du référentiel', sub: 'Valeur du modèle', value: r.recurring, fmt: 'money', log: true,
+      bands: [
+        { label: 'Logiciels de données produits, entrée de gamme', lo: 40000, hi: 40000, mine: true },
+        { label: 'Grands éditeurs', lo: 180000, hi: 1800000, mine: false },
+      ],
+      note: 'Les grands éditeurs vendent des contrats de 200 000 $ à plus de 2 millions, pour des périmètres multi-domaines.',
+      src: 'G2 ; ERP Research', url: 'https://erpresearch.com/erp-add-ons/mdm/informatica-mdm/pricing',
+    });
+    return list;
+  },
+  method: [
+    ...methodV3(4, 'le budget du projet choisi'),
+    'Pour ordre de grandeur, Gartner estime à 12,9 millions de dollars par an le coût moyen des données de mauvaise qualité pour une grande organisation ; ce modèle ne compte que le temps perdu et les incidents évités chez vous.',
+  ],
   sources: [
     ['Logiciel de données produits', '30 k€ par an plus volume', 'Offres de gestion des informations produit à partir d’environ 45 000 $ par an', 'G2', 'https://www.g2.com/products/triniti-master-data-management/pricing'],
     ['Grands éditeurs de données de référence', 'Hors périmètre du modèle', '200 000 $ à plus de 2 millions par contrat', 'ERP Research', 'https://erpresearch.com/erp-add-ons/mdm/informatica-mdm/pricing'],
     ['Mise en œuvre d’un référentiel', '1,8 fois la licence plus les sources', '1,5 à 3 fois la licence', 'Monetizely', 'https://www.getmonetizely.com/articles/procurement-guide-how-master-data-management-mdm-platforms-are-priced-for-enterprises'],
+    ['Données de base en erreur', '15, 35 ou 60 % selon la qualité déclarée', '15 à 30 % des données de base', 'CPCON Group', 'https://cpcongroup.com/insights/article/warehouse-management-system-cost-guide/'],
+    ['Coût des données fausses', 'Contexte', '12,9 M$ par an en moyenne pour une grande organisation', 'Gartner', 'https://www.gartner.com/en/data-analytics/topics/data-quality'],
     ['Temps perdu et incidents', '1 h par semaine et par utilisateur, 100 € par incident', 'Hypothèses prudentes, modifiables', 'Retours de projets', ''],
+    ...SRC_TAIL,
   ],
 };
 
@@ -664,8 +956,9 @@ export function monteCarlo(model, b, N = 1000) {
   const dip0 = b.dip ? b.dip[1] : 0;
   const budgets = []; const months = []; const nets = []; const bes = [];
   let within = 0; let over = 0;
+  const [ra, rm, rb] = model.risk || [-0.12, 0.08, 0.45];
   for (let k = 0; k < N; k++) {
-    const X = R() < pTail ? 0.6 + R() * 0.9 : tri(R(), -0.12, 0.08, 0.45);
+    const X = R() < pTail ? 0.6 + R() * 0.9 : tri(R(), ra, rm, rb);
     let initial = 0;
     for (const p of b.parts) { const w = p[2] ?? 1; initial += p[1] * Math.max(0.5, 1 + w * X + w * tri(R(), -0.08, 0, 0.08)); }
     const M = Math.max(1, Math.round(Mc * (1 + 0.6 * X) + tri(R(), -0.5, 0, 1.5)));

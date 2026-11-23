@@ -1,10 +1,15 @@
 {
-  // Déploiement du site statique Astro sur Cloudflare Workers (fichiers servis depuis dist).
+  // Site statique Astro (dossier dist) servi par Cloudflare Workers, plus une route /api/lead pour les inscriptions.
+  // Secrets à créer dans Cloudflare (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL et LEADS_TOKEN.
   "name": "malaheim",
   "compatibility_date": "2026-11-01",
+  "main": "./worker/index.js",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
-  }
+  },
+  "observability": { "enabled": true }
 }

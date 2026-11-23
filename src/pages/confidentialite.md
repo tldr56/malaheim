@@ -15,15 +15,17 @@ Robin Thomas-Le Déoré, entrepreneur individuel (EI) exerçant sous le nom comm
 
 | Données | Finalité | Base légale | Durée de conservation |
 |---|---|---|---|
-| Adresse e-mail et résumé de simulation | Envoi du rapport détaillé et des conseils du site | Consentement | 3 ans après le dernier contact |
+| Nom, e-mail professionnel, entreprise, fonction, téléphone facultatif, réponses et résultats des simulateurs | Accès à l'analyse complète des simulateurs, envoi du récapitulatif, suivi des simulations réalisées et prise de contact au sujet de votre projet | Intérêt légitime (répondre à votre demande et prospection professionnelle en lien avec votre fonction), avec droit d'opposition à tout moment | 3 ans après le dernier contact |
+| Adresse e-mail | Envoi des nouveaux guides et simulateurs, si vous avez coché la case prévue | Consentement | Jusqu'au retrait du consentement |
 | Nom, société, adresse de facturation | Vente du kit et des prestations | Exécution du contrat | 10 ans (obligation comptable) |
 | Données de rendez-vous | Organisation de l'appel de découverte | Mesures précontractuelles | 3 ans après le dernier contact |
 | Statistiques de visite anonymes | Mesure d'audience, sans cookie | Intérêt légitime | 6 mois |
 
-Les réponses au simulateur sont calculées dans votre navigateur. Elles ne sont transmises que si vous demandez le rapport détaillé.
+Les calculs des simulateurs se font dans votre navigateur. Vos réponses et vos résultats nous sont transmis, avec vos coordonnées, lorsque vous débloquez l'analyse complète, puis lorsque vous utilisez un simulateur une fois inscrit (simulation, rapport PDF, lien partagé). Le pays de connexion est déduit de votre adresse IP, qui n'est pas conservée.
 
 ## Destinataires et sous-traitants
 
+- **Google** (Google Workspace) : stockage des coordonnées et des simulations dans Google Sheets, envoi des récapitulatifs par e-mail.
 - **Brevo** (France) : envoi des e-mails.
 - **Lemon Squeezy** : paiement et facturation du kit.
 - **Cal.com** : prise de rendez-vous.
