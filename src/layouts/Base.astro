@@ -8,8 +8,9 @@ interface Props {
   description: string;
   dock?: boolean;
   jsonLd?: Record<string, unknown>;
+  noindex?: boolean;
 }
-const { title, description, dock = true, jsonLd } = Astro.props;
+const { title, description, dock = true, jsonLd, noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const path = Astro.url.pathname;
 const fullTitle = path === '/' ? `${SITE.name} | Choisir son logiciel supply chain : WMS, TMS, ERP` : `${title} | ${SITE.name}`;
@@ -30,6 +31,7 @@ import Logo from '../components/Logo.astro';
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{fullTitle}</title>
   <meta name="description" content={description}>
+  {noindex && <meta name="robots" content="noindex">}
   <link rel="canonical" href={canonical}>
   <meta property="og:type" content="website">
   <meta property="og:locale" content="fr_FR">

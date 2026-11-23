@@ -163,6 +163,42 @@ const H = model.horizon;
       </div>
     </section>
 
+    <section class="sx-dos" id="dossier" aria-labelledby="t-dos">
+      <div class="wrap sx-dgrid">
+        <div class="sx-dtext">
+          <p class="sx-dk">Pour décider, et faire décider</p>
+          <h2 id="t-dos" class="sx-dh">Votre dossier de décision, prêt pour la direction.</h2>
+          <p class="sx-dl">Dix pages à votre nom, construites sur vos réponses et sur les études internationales. Le travail qu’un cabinet facture plusieurs jours, livré en une minute.</p>
+          <ul class="sx-dlist">
+            <li><b>Synthèse pour la direction</b><span>Verdict, chiffres clés, valeur actuelle nette</span></li>
+            <li><b>Budget détaillé</b><span>Poste par poste, échéancier sur {H} ans</span></li>
+            <li><b>Risque chiffré</b><span>1 000 simulations et facteurs de rentabilité</span></li>
+            <li><b>Marché et scénarios</b><span>Vos chiffres face aux références publiées</span></li>
+            <li><b>Planning et prochaines étapes</b><span>Du cadrage au démarrage</span></li>
+            <li><b>Les 10 questions à poser aux éditeurs</b><span>Celles qui font tomber les offres trop belles</span></li>
+            <li><b>Le modèle de calcul Excel</b><span>À compléter avec les offres reçues, tout se recalcule</span></li>
+          </ul>
+          <div class="sx-dbuy"><span class="sx-dprice">{SITE.dossierPrice}</span><span class="sx-dnote">Déduits du kit de consultation.<br />Accès immédiat, PDF et Excel.</span></div>
+          <div class="sx-dact">
+            <button type="button" class="sx-dbtn" id="dos-buy">Recevoir mon dossier</button>
+            <a class="sx-dlink" href={`/dossier/?exemple=${slug}`}>Voir un exemple complet</a>
+          </div>
+          <p class="sx-dmsg" id="dos-msg" role="status"></p>
+        </div>
+        <div class="sx-dviz" aria-hidden="true">
+          <div class="mp mp3"><div class="mp-h"></div><strong>Le risque, chiffré</strong><div class="mp-hist" id="mp-hist"></div><div class="mp-l"></div><div class="mp-l s"></div><div class="mp-l"></div></div>
+          <div class="mp mp2"><div class="mp-h"></div><strong>Budget détaillé</strong><div class="mp-bar" id="mp-bar"></div><div class="mp-rows" id="mp-rows"></div></div>
+          <div class="mp mp1">
+            <div class="mp-logo"><Logo variant="full" /></div>
+            <span class="mp-k">Dossier de décision</span>
+            <strong class="mp-t">{model.name}</strong>
+            <div class="mp-v" id="mp-v"><i></i><span id="mp-vt"></span></div>
+            <div class="mp-k2"><div><small>Budget, 9 chances sur 10</small><b id="mp-p90"></b></div><div><small>Valeur nette sur {H} ans</small><b id="mp-net"></b></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="sx-risk" aria-labelledby="t-risk">
       <div class="wrap">
         <h2 id="t-risk" class="sx-h2 sr-up">Le risque, chiffré</h2>
@@ -524,6 +560,14 @@ const H = model.horizon;
       v.reasons.push(msg); $('v-reasons').insertAdjacentHTML('beforeend', `<li>${esc(msg)}</li>`);
     }
     slow = { sens, v, w, bl, list };
+    // Aperçu du dossier, alimenté par la simulation en cours
+    $('mp-v').dataset.level = v.level; $('mp-vt').textContent = v.title;
+    $('mp-p90').textContent = money(mc.budget.p90); $('mp-net').textContent = sMoney(mc.net.p50);
+    const pp = r.parts.filter((x: any) => x[1] > 0);
+    $('mp-bar').innerHTML = pp.map((x: any, k: number) => `<span style="width:${(x[1] / r.initial) * 100}%;background:${COLORS[k % COLORS.length]}"></span>`).join('');
+    $('mp-rows').innerHTML = pp.slice(0, 6).map((x: any) => `<div><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join('');
+    const hb = mc.hist.bins; const hm = Math.max(...hb, 1);
+    $('mp-hist').innerHTML = hb.map((c: number) => `<span style="height:${Math.max(2, (c / hm) * 100)}%"></span>`).join('');
   };
 
   const shareUrl = () => {
@@ -650,6 +694,25 @@ const H = model.horizon;
   };
   root.addEventListener('change', () => { if (!lead) return; clearTimeout(utmr); utmr = setTimeout(() => sendUsage('simulation'), 25000); });
   if (lead) utmr = setTimeout(() => sendUsage('ouverture'), 8000);
+
+  // Dossier de décision payant
+  $('dos-buy').addEventListener('click', async () => {
+    const msg = $('dos-msg');
+    if (!lead) { msg.textContent = 'Débloquez d’abord l’analyse, gratuitement : le dossier reprend vos réponses.'; goGate(); return; }
+    sendUsage('dossier');
+    const btn = $('dos-buy') as HTMLButtonElement; btn.disabled = true; msg.textContent = 'Ouverture du paiement sécurisé…';
+    try {
+      const rr = await fetch('/api/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
+        sim: model.slug, q: new URL(shareUrl()).search.slice(1), email: lead.email, name: lead.name, company: lead.company,
+      }) });
+      const j = await rr.json().catch(() => ({}));
+      if (j.ok && j.url) { location.href = j.url; return; }
+      msg.innerHTML = j.reason === 'not_configured'
+        ? `Le paiement en ligne ouvre très prochainement. En attendant, <a href="/dossier/?exemple=${model.slug}">découvrez l’exemple complet</a> ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a>.`
+        : 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant, ou écrivez-nous à contact@malaheim.com.';
+    } catch { msg.textContent = 'Connexion impossible. Réessayez dans un instant.'; }
+    btn.disabled = false;
+  });
 
   const gform = document.getElementById('gate-form') as HTMLFormElement; const gmsg = $('gate-msg');
   const val = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
@@ -932,6 +995,54 @@ const H = model.horizon;
   #g-cmp .tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #2448f5; color: #fff; font-size: 11.5px; font-weight: 600; }
   .sx-unpin { display: block; margin-top: 4px; padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--cobalt); cursor: pointer; }
 
+
+
+  /* Dossier de décision */
+  .sx-dos { background: #000; color: #fff; padding-block: 104px; overflow: hidden; }
+  .sx-dgrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+  @media (max-width: 980px) { .sx-dgrid { grid-template-columns: 1fr; gap: 40px; } }
+  .sx-dk { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #9db0ff; }
+  .sx-dh { margin: 0; font-size: clamp(32px, 4vw, 52px); line-height: 1.04; letter-spacing: -0.045em; color: #fff; }
+  .sx-dl { margin: 16px 0 0; font-size: 18px; line-height: 1.5; color: rgba(255,255,255,.7); max-width: 34em; }
+  .sx-dlist { margin: 26px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+  @media (max-width: 560px) { .sx-dlist { grid-template-columns: 1fr; } }
+  .sx-dlist li { position: relative; padding-left: 24px; display: flex; flex-direction: column; gap: 2px; }
+  .sx-dlist li::before { content: ''; position: absolute; left: 3px; top: 4px; width: 6px; height: 11px; border: solid #9db0ff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .sx-dlist b { font-size: 15px; letter-spacing: -0.01em; } .sx-dlist span { font-size: 13.5px; color: rgba(255,255,255,.55); line-height: 1.35; }
+  .sx-dbuy { margin-top: 32px; display: flex; align-items: center; gap: 18px; }
+  .sx-dprice { font-family: var(--display); font-weight: 700; font-size: 52px; letter-spacing: -0.05em; line-height: 1; }
+  .sx-dnote { font-size: 14px; line-height: 1.4; color: rgba(255,255,255,.6); }
+  .sx-dact { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+  .sx-dbtn { font: inherit; font-size: 16px; font-weight: 600; padding: 15px 28px; border-radius: 999px; border: 0; background: #fff; color: #000; cursor: pointer; transition: transform .3s var(--ease); }
+  .sx-dbtn:hover { transform: scale(1.03); } .sx-dbtn:disabled { opacity: .5; cursor: default; transform: none; }
+  .sx-dlink { color: #9db0ff; font-weight: 500; } .sx-dlink:hover { color: #fff; }
+  .sx-dmsg { margin: 14px 0 0; min-height: 1.2em; font-size: 14px; color: rgba(255,255,255,.75); } .sx-dmsg a { color: #9db0ff; }
+  .sx-dviz { position: relative; height: 520px; }
+  @media (max-width: 980px) { .sx-dviz { height: 440px; } }
+  .mp { position: absolute; top: 40px; width: 300px; aspect-ratio: 210 / 297; border-radius: 10px; background: #fff; color: #1d1d1f; padding: 22px; box-shadow: 0 30px 70px rgba(0,0,0,.5); display: flex; flex-direction: column; gap: 10px; overflow: hidden; transition: transform .8s var(--ease); }
+  .mp strong { font-size: 15px; letter-spacing: -0.02em; }
+  .mp-h { height: 10px; border-bottom: 1.5px solid #1d1d1f; margin-bottom: 4px; }
+  .mp1 { left: 50%; margin-left: -150px; z-index: 3; background: #000; color: #fff; box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.12); }
+  .mp2 { left: 50%; margin-left: -150px; z-index: 2; transform: translateX(-120px) rotate(-8deg); }
+  .mp3 { left: 50%; margin-left: -150px; z-index: 1; transform: translateX(120px) rotate(8deg); }
+  .sx-dviz:hover .mp2 { transform: translateX(-150px) rotate(-10deg); } .sx-dviz:hover .mp3 { transform: translateX(150px) rotate(10deg); }
+  @media (max-width: 560px) { .mp { width: 230px; margin-left: -115px !important; padding: 16px; } .mp2 { transform: translateX(-70px) rotate(-7deg); } .mp3 { transform: translateX(70px) rotate(7deg); } }
+  .mp-logo svg { height: 34px; width: auto; color: #fff; display: block; }
+  .mp-k { margin-top: 30%; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.55); }
+  .mp-t { font-size: 24px !important; line-height: 1.05; letter-spacing: -0.04em !important; }
+  .mp-v { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.1); font-size: 11.5px; font-weight: 600; line-height: 1.25; }
+  .mp-v i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #30d158; }
+  .mp-v[data-level=prep] i { background: #ffd60a; } .mp-v[data-level=wait] i { background: #ff6961; }
+  .mp-k2 { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mp-k2 div { padding: 8px; border-radius: 8px; background: rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 2px; }
+  .mp-k2 small { font-size: 8.5px; color: rgba(255,255,255,.55); line-height: 1.2; } .mp-k2 b { font-size: 15px; letter-spacing: -0.02em; }
+  .mp-bar { display: flex; gap: 2px; height: 9px; border-radius: 5px; overflow: hidden; }
+  .mp-rows { display: flex; flex-direction: column; gap: 6px; font-size: 10px; }
+  .mp-rows div { display: flex; justify-content: space-between; gap: 8px; padding-bottom: 5px; border-bottom: 1px solid #ececf0; } .mp-rows span { color: #48484a; }
+  .mp3 > * { margin-left: 40%; }
+  .mp-hist { height: 90px; display: flex; align-items: flex-end; gap: 2px; padding-bottom: 4px; border-bottom: 1px solid #d2d2d7; }
+  .mp-hist span { flex: 1; background: #2448f5; border-radius: 2px 2px 0 0; }
+  .mp-l { height: 7px; border-radius: 4px; background: #ececf0; } .mp-l.s { width: 60%; }
 
   /* Accès sur inscription */
   .simx:not(.locked) .sx-gate { display: none; }

@@ -20,6 +20,8 @@ export const SITE = {
   kitFrom: '149 € HT',
   reviewPrice: '490 € HT',
   hourlyRate: '95 € HT',
+  // Dossier de décision vendu à l'issue d'une simulation (montant encaissé réglé par le secret DOSSIER_AMOUNT_CENTS du Worker).
+  dossierPrice: '19 € HT',
   hourlyNum: 95,
 };
 

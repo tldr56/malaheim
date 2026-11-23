@@ -19,6 +19,7 @@ const ENVOYER_RECAP = true; // envoie au visiteur le récapitulatif de sa simula
 const ONGLETS = {
   unlock: ['Contacts', ['Date', 'Nom', 'E-mail', 'Entreprise', 'Fonction', 'Téléphone', 'Nouveautés', 'Adresse gratuite', 'Simulateur', 'Solution', 'Budget', 'Verdict', 'Pays', 'Lien', 'Résumé']],
   usage: ['Utilisation', ['Date', 'E-mail', 'Nom', 'Entreprise', 'Simulateur', 'Événement', 'Solution', 'Budget', 'Verdict', 'Lien']],
+  achat: ['Ventes', ['Date', 'Référence', 'E-mail', 'Nom', 'Entreprise', 'Dossier', 'Montant TTC', 'Lien du dossier', 'Session Stripe']],
 };
 
 function doPost(e) {
@@ -27,11 +28,24 @@ function doPost(e) {
   try {
     const d = JSON.parse(e.postData.contents);
     if (d.token !== JETON) return sortie({ ok: false });
-    const [nom, entetes] = ONGLETS[d.type === 'usage' ? 'usage' : 'unlock'];
+    const [nom, entetes] = ONGLETS[ONGLETS[d.type] ? d.type : 'unlock'];
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sh = ss.getSheetByName(nom) || ss.insertSheet(nom);
     if (sh.getLastRow() === 0) { sh.appendRow(entetes); sh.setFrozenRows(1); sh.getRange(1, 1, 1, entetes.length).setFontWeight('bold'); }
     const date = new Date(d.date || Date.now());
+    if (d.type === 'achat') {
+      // Le Worker signale la vente à chaque ouverture du dossier : on n'enregistre qu'une fois par session
+      const deja = sh.getLastRow() > 1 && sh.getRange(2, 9, sh.getLastRow() - 1, 1).getValues().some((r) => r[0] === d.session);
+      if (deja) return sortie({ ok: true });
+      sh.appendRow([date, d.ref, d.email, d.name, d.company, d.code, d.amount, d.link, d.session].map(texte));
+      MailApp.sendEmail({ to: NOTIFIER, subject: `Vente : dossier ${d.code}, ${d.company || d.email}`, body: `${d.name}\n${d.email}\n${d.company}\nMontant : ${d.amount} € TTC\nRéférence : ${d.ref}\n${d.link}` });
+      if (d.email) MailApp.sendEmail({
+        to: d.email, replyTo: NOTIFIER, name: 'MALAHEIM Consulting',
+        subject: `Votre dossier de décision ${d.code}, référence ${d.ref}`,
+        body: `Bonjour,\n\nMerci pour votre achat. Votre dossier de décision reste accessible à tout moment à ce lien personnel :\n${d.link}\n\nVous pouvez le télécharger en PDF et récupérer le modèle de calcul Excel depuis cette page.\n\nCe montant est déduit du kit de consultation : indiquez la référence ${d.ref} lors de votre commande.\n\nPour toute question, répondez simplement à cet e-mail.\n\nMALAHEIM Consulting\nhttps://www.malaheim.com`,
+      });
+      return sortie({ ok: true });
+    }
     if (d.type === 'usage') {
       sh.appendRow([date, d.email, d.name, d.company, d.code, d.event, d.tier, d.budget, d.verdict, d.link].map(texte));
       return sortie({ ok: true });

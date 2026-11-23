@@ -1,0 +1,515 @@
+---
+// Dossier de décision : rendu en pages A4 à partir d'une simulation payée (session Stripe) ou d'un exemple.
+import Base from '../../layouts/Base.astro';
+import Logo from '../../components/Logo.astro';
+import { SITE } from '../../config';
+---
+<Base title="Dossier de décision" description="Le dossier de décision Malaheim : synthèse pour la direction, budget, risque, marché, scénarios, planning et questions à poser aux éditeurs." dock={false} noindex>
+  <div class="dz" id="dz" data-kit={SITE.kitPrice} data-price={SITE.dossierPrice}>
+    <div class="dz-bar">
+      <div class="dz-t"><strong id="dz-h">Dossier de décision</strong><span id="dz-sub">Préparation de votre dossier…</span></div>
+      <div class="dz-act">
+        <button type="button" class="dz-btn" id="dz-pdf" disabled>Télécharger en PDF</button>
+        <button type="button" class="dz-btn dz-ghost" id="dz-xlsx" disabled>Modèle Excel</button>
+      </div>
+    </div>
+    <div class="dz-ex" id="dz-ex" hidden>
+      <div>
+        <strong>Exemple de dossier, sur une entreprise fictive</strong>
+        <span>Votre dossier reprend vos propres réponses, vos chiffres et votre profil. Il est livré avec le modèle de calcul Excel modifiable.</span>
+      </div>
+      <a class="dz-btn" id="dz-run" href="/simulateurs/">Lancer ma simulation</a>
+    </div>
+    <p class="dz-status" id="dz-status" role="status"></p>
+    <div class="dz-pages" id="dz-pages"></div>
+    <template id="dz-logo"><Logo variant="full" /></template>
+  </div>
+</Base>
+
+<script>
+  import { SIMS, simulate, sensitivity, verdict, inaction, scenarios, money } from '../../lib/sims.js';
+  import { questionsFor, PHASES, NEXT_STEPS } from '../../lib/dossier-content.js';
+  import { buildXlsx, S } from '../../lib/xlsx.js';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $('dz');
+  const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const nf = new Intl.NumberFormat('fr-FR');
+  const sMoney = (v: number) => (v < 0 ? `-${money(-v)}` : money(v));
+  const pc = (x: number) => `${Math.round(x * 100)} %`;
+  const beTxt = (be: number, H: number) => (Number.isFinite(be) ? `${be} mois` : `au-delà de ${H} ans`);
+  const LV: Record<string, string> = { go: 'Feu vert', prep: 'À sécuriser', wait: 'À revoir' };
+  const logo = () => ($('dz-logo') as HTMLTemplateElement).innerHTML;
+  const status = (t: string) => { $('dz-status').innerHTML = t; };
+
+  // Lecture des réponses à partir de la chaîne de paramètres de la simulation
+  const readInputs = (model: any, q: string) => {
+    const p = new URLSearchParams(q || ''); const i: any = {}; const a: any = {};
+    model.fields.forEach((f: any) => {
+      const raw = p.get(f.id); const n = Number(raw);
+      if (raw === null || !Number.isFinite(n)) { i[f.id] = f.value; return; }
+      i[f.id] = f.type === 'range' ? Math.min(f.max, Math.max(f.min, n)) : Math.min(f.options.length - 1, Math.max(0, Math.round(n)));
+    });
+    model.assumptions.forEach((h: any) => {
+      const raw = p.get(`h_${h.id}`); const n = Number(raw);
+      a[h.id] = raw !== null && Number.isFinite(n) ? Math.min(h.max, Math.max(h.min, n)) : h.value;
+    });
+    return { i, a };
+  };
+
+  // Flux annuels du scénario central et valeur actuelle nette à 8 %
+  const yearly = (r: any) => {
+    const H = r.horizon; const rows = []; let npv = 0;
+    for (let y = 1; y <= H; y++) {
+      const e = 12 * y - 1, s = 12 * (y - 1) - 1;
+      const cost = r.cumCost[e] - (s >= 0 ? r.cumCost[s] : 0);
+      const gain = r.cumGain[e] - (s >= 0 ? r.cumGain[s] : 0);
+      rows.push({ y, cost, gain, net: gain - cost, cum: r.cumGain[e] - r.cumCost[e] });
+    }
+    for (let m = 0; m < r.cumCost.length; m++) {
+      const dc = r.cumCost[m] - (m ? r.cumCost[m - 1] : 0); const dg = r.cumGain[m] - (m ? r.cumGain[m - 1] : 0);
+      npv += (dg - dc) / Math.pow(1.08, (m + 1) / 12);
+    }
+    return { rows, npv };
+  };
+
+  const curve = (r: any) => {
+    const W = 640, Hh = 230, P = { l: 8, r: 8, t: 14, b: 26 };
+    const n = r.cumCost.length; const max = Math.max(r.cumCost[n - 1], r.cumGain[n - 1], 1);
+    const x = (m: number) => P.l + (m / (n - 1)) * (W - P.l - P.r);
+    const y = (v: number) => Hh - P.b - (v / max) * (Hh - P.t - P.b);
+    const line = (arr: number[]) => arr.map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    let ticks = '';
+    for (let yr = 1; yr <= r.horizon; yr++) { const xx = x(yr * 12 - 1); ticks += `<text x="${xx}" y="${Hh - 6}" text-anchor="${yr === r.horizon ? 'end' : 'middle'}" class="tx">An ${yr}</text>`; }
+    const gl = x(r.goLive - 1);
+    const be = r.breakEven ? `<circle cx="${x(r.breakEven - 1)}" cy="${y(r.cumGain[r.breakEven - 1])}" r="5" class="be"/><text x="${Math.min(x(r.breakEven - 1) + 8, W - 130)}" y="${y(r.cumGain[r.breakEven - 1]) - 10}" class="bt">Point mort central</text>` : '';
+    return `<svg viewBox="0 0 ${W} ${Hh}" class="dz-svg" role="img" aria-label="Coûts et gains cumulés">
+      <line x1="${P.l}" x2="${W - P.r}" y1="${Hh - P.b}" y2="${Hh - P.b}" class="ax"/>${ticks}
+      <line x1="${gl}" x2="${gl}" y1="${P.t}" y2="${Hh - P.b}" class="gl"/><text x="${gl + 6}" y="${P.t + 10}" class="tx">Mise en service</text>
+      <path d="${line(r.cumCost)}" class="lc"/><path d="${line(r.cumGain)}" class="lg"/>${be}</svg>`;
+  };
+
+  const hist = (r: any) => {
+    const h = r.mc.hist; const W = 640, Hh = 210, P = { l: 8, r: 8, t: 34, b: 28 };
+    const n = h.bins.length; const max = Math.max(...h.bins, 1); const span = h.hi - h.lo || 1; const bw = (W - P.l - P.r) / n;
+    const x = (v: number) => P.l + Math.min(1, Math.max(0, (v - h.lo) / span)) * (W - P.l - P.r);
+    const { p10, p90 } = r.mc.budget; let bars = '';
+    h.bins.forEach((c: number, k: number) => {
+      if (!c) return; const a0 = h.lo + (k * span) / n, a1 = h.lo + ((k + 1) * span) / n;
+      const bh = (c / max) * (Hh - P.t - P.b);
+      bars += `<rect x="${P.l + k * bw + 1}" y="${Hh - P.b - bh}" width="${Math.max(1, bw - 2)}" height="${bh}" rx="2" class="hb${a1 > p10 && a0 < p90 ? ' in' : ''}"/>`;
+    });
+    const x10 = x(p10), x90 = x(p90), xc = x(r.initial);
+    return `<svg viewBox="0 0 ${W} ${Hh}" class="dz-svg" role="img" aria-label="Répartition du budget simulé">${bars}
+      <line x1="${P.l}" x2="${W - P.r}" y1="${Hh - P.b}" y2="${Hh - P.b}" class="ax"/>
+      <path d="M${x10} 22V16H${x90}V22" class="br"/><text x="${Math.min(W - 140, Math.max(140, (x10 + x90) / 2))}" y="11" text-anchor="middle" class="bt2">8 chances sur 10 : ${money(p10)} à ${money(p90)}</text>
+      <line x1="${xc}" x2="${xc}" y1="${P.t - 6}" y2="${Hh - P.b + 6}" class="cl"/><text x="${xc}" y="${Hh - 8}" text-anchor="${xc < 80 ? 'start' : xc > W - 80 ? 'end' : 'middle'}" class="bt2">Central ${money(r.initial)}</text></svg>`;
+  };
+
+  const tornado = (sens: any[], base: number) => {
+    const lo = Math.min(base, ...sens.map((s) => s.lo)), hi = Math.max(base, ...sens.map((s) => s.hi));
+    const pad = (hi - lo) * 0.03 || 1; const L = lo - pad, R = hi + pad; const X = (v: number) => ((v - L) / (R - L)) * 100; const xb = X(base);
+    return sens.map((s) => { const d0 = Math.min(s.lo, base), u1 = Math.max(s.hi, base); return `<div class="tr">
+      <div class="tl"><strong>${esc(s.label)}</strong><span>${esc(s.range)}</span></div>
+      <div class="tb"><span class="td" style="left:${X(d0)}%;width:${Math.max(0, xb - X(d0))}%"></span><span class="tu" style="left:${xb}%;width:${Math.max(0, X(u1) - xb)}%"></span><span class="tz" style="left:${xb}%"></span></div>
+      <div class="tv"><span>${sMoney(s.lo)}</span><span>${sMoney(s.hi)}</span></div></div>`; }).join('');
+  };
+
+  const fmtB = (v: number, f: string) => f === 'money' ? money(v) : f === 'months' ? `${Math.round(v)} mois` : f === 'pct' ? `${String(Math.round(v * 100) / 100).replace('.', ',')} %` : `${v < 10 ? String(Math.round(v * 10) / 10).replace('.', ',') : Math.round(v)} €`;
+  const bench = (list: any[]) => list.map((b) => {
+    let L: number, R: number, X: (v: number) => number;
+    if (b.log) { L = Math.min(b.value, ...b.bands.map((x: any) => x.lo)) / 1.5; R = Math.max(b.value, ...b.bands.map((x: any) => x.hi)) * 1.5; X = (v) => (Math.log(v / L) / Math.log(R / L)) * 100; }
+    else { L = b.lo; R = b.hi; X = (v) => ((Math.min(R, Math.max(L, v)) - L) / (R - L)) * 100; }
+    const rng = (x: any) => (x.lo === x.hi ? fmtB(x.lo, b.fmt) : `${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`);
+    const xm = X(b.value); const al = xm > 82 ? 'r' : xm < 18 ? 'l' : 'c';
+    return `<div class="bk"><div class="bk-h"><strong>${esc(b.label)}</strong><span>${esc(b.sub)}</span></div>
+      <div class="bk-t" style="height:${b.bands.length * 10 + 30}px"><div class="bk-l" style="height:${b.bands.length * 10}px">${b.bands.map((x: any, k: number) => `<span class="bl${x.mine ? ' mine' : ''}${x.lo === x.hi ? ' pt' : ''}" style="top:${k * 10}px;left:${X(x.lo)}%;${x.lo === x.hi ? '' : `width:${Math.max(1, X(x.hi) - X(x.lo))}%`}"></span>`).join('')}</div>
+      <span class="bk-m bk-${al}" style="left:${xm}%;height:${b.bands.length * 10 + 10}px"><b>${esc(b.display ?? fmtB(b.value, b.fmt))}</b></span></div>
+      <p class="bk-c">${b.bands.map((x: any) => `${esc(x.label)} : ${rng(x)}`).join(' ; ')}. ${esc(b.note)} <em>Source : ${esc(b.src)}.</em></p></div>`;
+  }).join('');
+
+  const gantt = (months: number) => {
+    const M = Math.max(2, Math.round(months));
+    return `<div class="gt">${PHASES.map(([lab, s, w]) => {
+      const m0 = Math.round(s * M), m1 = Math.max(m0 + 1, Math.round((s + w) * M));
+      return `<div class="gt-r"><span class="gt-l">${esc(lab)}</span><div class="gt-t"><span style="left:${(s as number) * 100}%;width:${(w as number) * 100}%"></span></div><span class="gt-m">mois ${m0 + 1} à ${m1}</span></div>`;
+    }).join('')}</div>`;
+  };
+
+  let current: any = null;
+
+  const render = (ctx: any) => {
+    const model = SIMS[ctx.slug]; const { i, a } = readInputs(model, ctx.query);
+    const r = simulate(model, i, a); const sens = sensitivity(model, i, a, r); const v = verdict(model, i, r, sens);
+    const w = inaction(r); const bl = model.benchmarks(i, a, r); const sc = scenarios(model, i, a, r); const yr = yearly(r);
+    const H = r.horizon; const mc = r.mc; const be = mc.breakEven.p50;
+    const nets = sc.map((x: any) => x.r.mc.net.p50); const bi = nets.indexOf(Math.max(...nets));
+    if (bi > 0) v.reasons.push(`Dans le comparateur, le scénario « ${sc[bi].label} » ressort plus rentable : regardez-le avant de décider.`);
+    current = { ctx, model, i, a, r, sens, v, w, bl, sc, yr };
+    const date = ctx.date || new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const pages: string[] = [];
+    const head = (t: string) => `<header class="dp-h"><span class="dp-logo">${logo()}</span><span>Dossier de décision ${esc(model.code)}${ctx.company ? `, ${esc(ctx.company)}` : ''}</span></header><h2 class="dp-t">${t}</h2>`;
+
+    // 1. Couverture
+    pages.push(`<section class="dp dp-cover">
+      <div class="cv-logo">${logo()}</div>
+      <p class="cv-k">Dossier de décision</p>
+      <h1 class="cv-t">${esc(model.name)}</h1>
+      <p class="cv-s">${esc(ctx.company || '')}${ctx.company ? '<br>' : ''}Établi le ${esc(date)}, référence ${esc(ctx.ref)}</p>
+      <div class="cv-v" data-level="${v.level}"><i></i><span><small>${LV[v.level]}</small>${esc(v.title)}</span></div>
+      <div class="cv-k4">
+        <div><small>Budget à prévoir, 9 chances sur 10</small><b>${money(mc.budget.p90)}</b></div>
+        <div><small>Budget le plus probable</small><b>${money(mc.budget.p50)}</b></div>
+        <div><small>Rentabilisé après le lancement</small><b>${beTxt(be, H)}</b></div>
+        <div><small>Valeur nette sur ${H} ans</small><b>${sMoney(mc.net.p50)}</b></div>
+      </div>
+      <p class="cv-f">Établi par MALAHEIM Consulting à partir de vos réponses et de valeurs publiées sur les marchés européen et nord-américain. Ordres de grandeur en euros hors taxes, à confirmer par des offres d’éditeurs.</p>
+    </section>`);
+
+    // 2. Synthèse
+    pages.push(`<section class="dp">${head('Synthèse pour la direction')}
+      <div class="sy-v" data-level="${v.level}"><b>${LV[v.level]} : ${esc(v.title)}</b><ul>${v.reasons.map((x: string) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <h3>La solution adaptée</h3><p><b>${esc(r.tier.name)}</b>. ${esc(r.tier.desc)}</p>
+      <h3>Les chiffres clés</h3>
+      <table class="dt"><tbody>
+        <tr><td>Budget de mise en place, scénario central</td><td>${money(r.initial)}</td></tr>
+        <tr><td>Budget de mise en place, 8 chances sur 10</td><td>${money(mc.budget.p10)} à ${money(mc.budget.p90)}</td></tr>
+        <tr><td>Coût annuel</td><td>${money(r.recurring)} (${esc(r.recurringNote)})</td></tr>
+        <tr><td>Coût total sur ${H} ans, scénario central</td><td>${money(r.total)}</td></tr>
+        <tr><td>Délai de mise en service, 8 chances sur 10</td><td>${mc.months.p10} à ${mc.months.p90} mois</td></tr>
+        <tr><td>Gains annuels mesurables à pleine charge</td><td>${money(r.gainsTotal)}</td></tr>
+        <tr><td>Chances d’être rentabilisé en ${H} ans</td><td>${pc(mc.pWithin)}</td></tr>
+        <tr><td>Valeur actuelle nette à 8 %, scénario central</td><td>${sMoney(yr.npv)}</td></tr>
+        <tr><td>Coût de chaque mois d’attente</td><td>${w.monthly > 0 ? money(w.monthly) : 'Aucun coût mesurable'}</td></tr>
+      </tbody></table>
+      <h3>Les points de vigilance de votre profil</h3><ol class="dl">${r.watch.slice(0, 5).map((x: string) => `<li>${esc(x)}</li>`).join('')}</ol>
+    </section>`);
+
+    // 3. Budget
+    const tot = r.initial;
+    pages.push(`<section class="dp">${head('Budget détaillé')}
+      <div class="bg-bar">${r.parts.filter((p: any) => p[1] > 0).map((p: any, k: number) => `<span style="width:${(p[1] / tot) * 100}%" class="c${k % 7}"></span>`).join('')}</div>
+      <table class="dt"><thead><tr><th>Poste</th><th>Montant central</th><th>Part</th></tr></thead><tbody>
+        ${r.parts.filter((p: any) => p[1] > 0).map((p: any, k: number) => `<tr><td><i class="sw c${k % 7}"></i>${esc(p[0])}</td><td>${money(p[1])}</td><td>${Math.round((p[1] / tot) * 100)} %</td></tr>`).join('')}
+        <tr class="tt"><td>Total de la mise en place</td><td>${money(tot)}</td><td>100 %</td></tr>
+        <tr><td>Coût annuel après la mise en service</td><td>${money(r.recurring)}</td><td></td></tr>
+        ${r.dip ? `<tr><td>${esc(r.dip[0])}, une fois</td><td>${money(r.dip[1])}</td><td></td></tr>` : ''}
+      </tbody></table>
+      <h3>Échéancier sur ${H} ans, scénario central</h3>
+      <table class="dt dt-n"><thead><tr><th>Année</th><th>Coûts</th><th>Gains</th><th>Flux net</th><th>Cumul</th></tr></thead><tbody>
+        ${yr.rows.map((x: any) => `<tr><td>Année ${x.y}</td><td>${money(x.cost)}</td><td>${money(x.gain)}</td><td>${sMoney(x.net)}</td><td class="${x.cum >= 0 ? 'pos' : 'neg'}">${sMoney(x.cum)}</td></tr>`).join('')}
+      </tbody></table>
+      <p class="dn">Le budget est réparti sur la durée du projet ; les coûts annuels et les gains commencent à la mise en service et les gains montent en charge sur ${model.ramp} mois. Valeur actuelle nette à 8 % : ${sMoney(yr.npv)}.</p>
+    </section>`);
+
+    // 4. Rentabilité
+    pages.push(`<section class="dp">${head('Rentabilité')}
+      <figure class="dz-fig">${curve(r)}<figcaption><span class="k k-c"></span>Coûts cumulés <span class="k k-g"></span>Gains cumulés, scénario central</figcaption></figure>
+      <h3>D’où viennent les gains</h3>
+      <table class="dt"><tbody>${r.gains.map((g: any) => `<tr><td>${esc(g[0])}</td><td>${money(g[1])} par an</td></tr>`).join('')}<tr class="tt"><td>Total à pleine charge</td><td>${money(r.gainsTotal)} par an</td></tr></tbody></table>
+      ${r.oneOff && r.oneOff[1] > 0 ? `<p class="dn">${esc(r.oneOff[0])} : ${money(r.oneOff[1])}, gain ponctuel non compté dans le retour sur investissement.</p>` : ''}
+      <div class="wt"><div><small>Le coût de l’attente</small><b>${w.monthly > 0 ? money(w.monthly) : '0 €'}</b><span>de gains nets perdus pour chaque mois de report, à pleine charge</span></div><div><small>Un an de report</small><b>${w.monthly > 0 ? money(w.year) : '0 €'}</b><span>${r.growth > 0 ? `L’écart grandit avec votre activité, ${Math.round(r.growth * 100)} % par an.` : 'Hors croissance de l’activité.'}</span></div></div>
+      <p class="dn">Seuls les gains mesurables sont comptés, avec des hypothèses prudentes. Les bénéfices qualitatifs (conformité, image, capacité à grandir) viennent en plus.</p>
+    </section>`);
+
+    // 5. Risque
+    pages.push(`<section class="dp">${head('Le risque, chiffré')}
+      <p class="dl2">Votre projet a été rejoué 1 000 fois en faisant varier les dépassements, les retards, la montée en charge et la part des gains réellement obtenue. Les dépassements suivent une loi à queue épaisse, comme l’ont mesuré les travaux de l’université d’Oxford sur plus de 5 000 projets informatiques.</p>
+      <figure class="dz-fig">${hist(r)}</figure>
+      <table class="dt dt-n"><thead><tr><th></th><th>Favorable</th><th>Médian</th><th>Défavorable</th></tr></thead><tbody>
+        <tr><td>Budget de mise en place</td><td>${money(mc.budget.p10)}</td><td>${money(mc.budget.p50)}</td><td>${money(mc.budget.p90)}</td></tr>
+        <tr><td>Mise en service</td><td>${mc.months.p10} mois</td><td>${mc.months.p50} mois</td><td>${mc.months.p90} mois</td></tr>
+        <tr><td>Point mort après lancement</td><td>${beTxt(mc.breakEven.p10, H)}</td><td>${beTxt(mc.breakEven.p50, H)}</td><td>${beTxt(mc.breakEven.p90, H)}</td></tr>
+        <tr><td>Valeur nette sur ${H} ans</td><td>${sMoney(mc.net.p90)}</td><td>${sMoney(mc.net.p50)}</td><td>${sMoney(mc.net.p10)}</td></tr>
+      </tbody></table>
+      <p class="dn">Risque de dépasser le scénario central : ${pc(mc.pOver)}. Chances d’être rentabilisé en ${H} ans : ${pc(mc.pWithin)}.</p>
+      <h3>Ce qui fait bouger votre valeur nette</h3><div class="tor">${tornado(sens, r.net)}</div>
+    </section>`);
+
+    // 6. Marché
+    pages.push(`<section class="dp">${head('Votre projet face au marché')}<p class="dl2">Vos chiffres placés sur les fourchettes publiées par les études internationales. Le trait noir, c’est vous.</p><div class="bks">${bench(bl)}</div></section>`);
+
+    // 7. Scénarios et planning
+    const rows: [string, (x: any) => string][] = [
+      ['Solution', (x) => esc(x.r.tier.name)], ['Budget central', (x) => money(x.r.initial)], ['Budget couvert 9 fois sur 10', (x) => money(x.r.mc.budget.p90)],
+      ['Coût annuel', (x) => money(x.r.recurring)], [`Coût total sur ${H} ans`, (x) => money(x.r.total)], ['Mise en service', (x) => `${x.r.mc.months.p50} mois`],
+      ['Rentabilisé après', (x) => beTxt(x.r.mc.breakEven.p50, H)], [`Chances d’être rentabilisé`, (x) => pc(x.r.mc.pWithin)], [`Valeur nette sur ${H} ans`, (x) => sMoney(x.r.mc.net.p50)],
+    ];
+    pages.push(`<section class="dp">${head('Scénarios et planning')}
+      <table class="dt dt-c"><thead><tr><th></th>${sc.map((x: any) => `<th>${esc(x.label)}</th>`).join('')}</tr></thead><tbody>${rows.map(([l, f], ri) => `<tr><td>${l}</td>${sc.map((x: any, k: number) => `<td class="${ri === rows.length - 1 && k === bi ? 'best' : ''}">${f(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      <h3>Planning type, sur ${mc.months.p50} mois</h3>${gantt(mc.months.p50)}
+      <p class="dn">Répartition type d’un projet de logiciel ; votre planning réel dépend de la disponibilité de vos équipes et des éditeurs.</p>
+    </section>`);
+
+    // 8. Questions et prochaines étapes
+    pages.push(`<section class="dp">${head('Les questions à poser aux éditeurs')}
+      <ol class="qs">${questionsFor(ctx.slug).map((x: string) => `<li>${esc(x)}</li>`).join('')}</ol>
+      <h3>Prochaines étapes</h3>
+      <ol class="ns">${NEXT_STEPS.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol>
+      <p class="dn dn-k">Ce dossier vaut ${esc(root.dataset.price || '')} : ce montant est déduit du kit de consultation ${esc(model.code)} (${esc(root.dataset.kit || '')}). Indiquez la référence ${esc(ctx.ref)} lors de votre commande.</p>
+    </section>`);
+
+    // 9. Hypothèses et sources
+    pages.push(`<section class="dp">${head('Vos réponses, hypothèses et sources')}
+      <div class="hy">
+        <table class="dt dt-s"><thead><tr><th colspan="2">Vos réponses</th></tr></thead><tbody>${model.fields.map((f: any) => `<tr><td>${esc(f.label)}</td><td>${f.type === 'range' ? `${nf.format(i[f.id])} ${esc(f.unit)}` : esc(f.options[i[f.id]])}</td></tr>`).join('')}</tbody></table>
+        <table class="dt dt-s"><thead><tr><th colspan="2">Hypothèses de calcul</th></tr></thead><tbody>${model.assumptions.map((h: any) => `<tr><td>${esc(h.label)}</td><td>${String(a[h.id]).replace('.', ',')} ${esc(h.unit)}</td></tr>`).join('')}</tbody></table>
+      </div>
+      <h3>Méthode</h3>
+      ${(model.method || []).map((p: string) => `<p class="dn">${esc(p)}</p>`).join('')}
+    </section>`);
+
+    // 10. Sources
+    pages.push(`<section class="dp">${head('Sources')}
+      <table class="dt dt-s"><thead><tr><th>Paramètre</th><th>Valeur retenue</th><th>Repère publié</th><th>Source</th></tr></thead><tbody>${model.sources.map((s: any) => `<tr><td>${esc(s[0])}</td><td>${esc(s[1])}</td><td>${esc(s[2])}</td><td>${esc(s[3])}</td></tr>`).join('')}</tbody></table>
+      <p class="dn">Ordres de grandeur indicatifs, établis à partir de vos réponses : ils ne remplacent pas un chiffrage ferme, qui demande un cadrage de vos flux et des offres d’éditeurs. Le choix final de la solution vous appartient.</p>
+    </section>`);
+
+    const n = pages.length;
+    $('dz-pages').innerHTML = pages.map((p, k) => p.replace('</section>', `<footer class="dp-f"><span>MALAHEIM Consulting, malaheim.com</span><span>Page ${k + 1} sur ${n}</span></footer></section>`)).join('');
+    root.classList.toggle('demo', !!ctx.demo);
+    $('dz-h').textContent = `Dossier de décision ${model.code}`;
+    $('dz-sub').textContent = ctx.demo ? 'Exemple sur une entreprise fictive' : `${ctx.company ? `${ctx.company}, ` : ''}référence ${ctx.ref}`;
+    ($('dz-pdf') as HTMLButtonElement).disabled = false;
+    ($('dz-xlsx') as HTMLButtonElement).disabled = !!ctx.demo;
+    if (ctx.demo) { $('dz-ex').hidden = false; ($('dz-run') as HTMLAnchorElement).href = `/simulateurs/${model.slug}/`; ($('dz-xlsx') as HTMLButtonElement).title = 'Livré avec votre dossier'; }
+    document.title = `Dossier de décision ${model.code} | Malaheim`;
+    status('');
+  };
+
+  // Modèle Excel : budget, gains et échéancier recalculés par formules
+  const excel = () => {
+    const { ctx, model, i, a, r, mc = r.mc, sc } = current;
+    const H = r.horizon;
+    const parts = r.parts.filter((p: any) => p[1] > 0);
+    const bRows: any[] = [[{ v: `Budget de mise en place, ${model.name}`, s: S.title }], [{ v: 'Les cellules bleues sont modifiables : remplacez-les par les montants des offres reçues.', s: S.note }], [],
+      [{ v: 'Poste', s: S.head }, { v: 'Montant (€ HT)', s: S.head }]];
+    parts.forEach((p: any) => bRows.push([p[0], { v: Math.round(p[1]), s: S.eurIn }]));
+    const b0 = 5, b1 = 4 + parts.length; // lignes Excel des postes
+    bRows.push([{ v: 'Total de la mise en place', s: S.bold }, { f: `SUM(B${b0}:B${b1})`, s: S.eurBold }]);
+    const bTot = b1 + 1;
+    bRows.push([]); bRows.push(['Coût annuel après la mise en service', { v: Math.round(r.recurring), s: S.eurIn }]);
+    const bRec = bTot + 2;
+    bRows.push([r.dip ? r.dip[0] : 'Perturbation du démarrage', { v: Math.round(r.dip ? r.dip[1] : 0), s: S.eurIn }]);
+    const bDip = bRec + 1;
+
+    const gRows: any[] = [[{ v: 'Gains annuels mesurables, à pleine charge', s: S.title }], [{ v: 'Les cellules bleues sont modifiables.', s: S.note }], [], [{ v: 'Gain', s: S.head }, { v: 'Montant par an (€)', s: S.head }]];
+    r.gains.forEach((g: any) => gRows.push([g[0], { v: Math.round(g[1]), s: S.eurIn }]));
+    const g1 = 4 + r.gains.length;
+    gRows.push([{ v: 'Total', s: S.bold }, { f: `SUM(B5:B${g1})`, s: S.eurBold }]);
+    const gTot = g1 + 1;
+
+    const R: any[] = [[{ v: 'Rentabilité', s: S.title }], [{ v: 'Modèle annuel simplifié : la montée en charge est approchée par un décalage de la moitié de sa durée. Les résultats peuvent différer de quelques pourcents de la simulation mensuelle du site.', s: S.note }], [],
+      ['Durée du projet (mois)', { v: r.goLive, s: S.numIn }],
+      ['Montée en charge des gains (mois)', { v: model.ramp, s: S.numIn }],
+      ['Croissance annuelle de l’activité', { v: r.growth || 0, s: S.pctIn }],
+      ['Taux d’actualisation', { v: 0.08, s: S.pctIn }],
+      ['Budget de mise en place', { f: `Budget!B${bTot}`, s: S.eur }],
+      ['Coût annuel', { f: `Budget!B${bRec}`, s: S.eur }],
+      ['Perturbation du démarrage', { f: `Budget!B${bDip}`, s: S.eur }],
+      ['Gains annuels à pleine charge', { f: `Gains!B${gTot}`, s: S.eur }],
+      [],
+      ['Année', 'Projet', 'Coûts annuels', 'Démarrage', 'Gains', 'Flux net', 'Cumul', 'Rentabilisé'].map((v) => ({ v, s: S.head }))];
+    const y0 = R.length + 1;
+    for (let y = 1; y <= H; y++) {
+      const row = y0 + y - 1;
+      R.push([
+        { v: y, s: S.num },
+        { f: `$B$8*MAX(0,MIN(12,$B$4-12*(${y}-1)))/$B$4`, s: S.eur },
+        { f: `$B$9*MAX(0,MIN(12,12*${y}-$B$4))/12`, s: S.eur },
+        { f: `IF(AND($B$4>=12*(${y}-1),$B$4<12*${y}),$B$10,0)`, s: S.eur },
+        { f: `$B$11*(1+$B$6)^(${y}-1)*MAX(0,MIN(12,12*${y}-$B$4-$B$5/2))/12`, s: S.eur },
+        { f: `E${row}-B${row}-C${row}-D${row}`, s: S.eur },
+        { f: `SUM(F$${y0}:F${row})`, s: S.eur },
+        { f: `IF(G${row}>=0,"oui","non")` },
+      ]);
+    }
+    const yl = y0 + H - 1;
+    R.push([]);
+    R.push([{ v: 'Valeur actuelle nette', s: S.bold }, { f: `NPV(B7,F${y0}:F${yl})`, s: S.eurBold }]);
+    R.push([{ v: 'Coût total', s: S.bold }, { f: `SUM(B${y0}:D${yl})`, s: S.eurBold }]);
+    R.push([{ v: 'Gains totaux', s: S.bold }, { f: `SUM(E${y0}:E${yl})`, s: S.eurBold }]);
+    R.push([{ v: 'Retour sur investissement', s: S.bold }, { f: `IF(B${yl + 3}>0,(B${yl + 4}-B${yl + 3})/B${yl + 3},0)`, s: S.pct }]);
+
+    const risk: any[] = [[{ v: 'Le risque, sur 1 000 simulations', s: S.title }], [],
+      ['', 'Favorable', 'Médian', 'Défavorable'].map((v) => ({ v, s: S.head })),
+      ['Budget de mise en place', { v: Math.round(mc.budget.p10), s: S.eur }, { v: Math.round(mc.budget.p50), s: S.eur }, { v: Math.round(mc.budget.p90), s: S.eur }],
+      ['Mise en service (mois)', mc.months.p10, mc.months.p50, mc.months.p90],
+      [`Valeur nette sur ${H} ans`, { v: Math.round(mc.net.p90), s: S.eur }, { v: Math.round(mc.net.p50), s: S.eur }, { v: Math.round(mc.net.p10), s: S.eur }],
+      [], ['Risque de dépasser le scénario central', { v: mc.pOver, s: S.pct }], [`Chances d’être rentabilisé en ${H} ans`, { v: mc.pWithin, s: S.pct }], [],
+      ['Facteur', 'Valeur nette basse', 'Valeur nette haute', 'Plage testée'].map((v) => ({ v, s: S.head })),
+      ...current.sens.map((x: any) => [x.label, { v: Math.round(x.lo), s: S.eur }, { v: Math.round(x.hi), s: S.eur }, x.range])];
+
+    const scen: any[] = [[{ v: 'Scénarios comparés', s: S.title }], [], [{ v: '', s: S.head }, ...sc.map((x: any) => ({ v: x.label, s: S.head }))],
+      ['Solution', ...sc.map((x: any) => x.r.tier.name)],
+      ['Budget central', ...sc.map((x: any) => ({ v: Math.round(x.r.initial), s: S.eur }))],
+      ['Budget couvert 9 fois sur 10', ...sc.map((x: any) => ({ v: Math.round(x.r.mc.budget.p90), s: S.eur }))],
+      ['Coût annuel', ...sc.map((x: any) => ({ v: Math.round(x.r.recurring), s: S.eur }))],
+      [`Coût total sur ${H} ans`, ...sc.map((x: any) => ({ v: Math.round(x.r.total), s: S.eur }))],
+      ['Mise en service (mois)', ...sc.map((x: any) => x.r.mc.months.p50)],
+      ['Chances d’être rentabilisé', ...sc.map((x: any) => ({ v: x.r.mc.pWithin, s: S.pct }))],
+      [`Valeur nette sur ${H} ans`, ...sc.map((x: any) => ({ v: Math.round(x.r.mc.net.p50), s: S.eur }))]];
+
+    const hyp: any[] = [[{ v: 'Vos réponses et les hypothèses', s: S.title }], [], [{ v: 'Réponse', s: S.head }, { v: 'Valeur', s: S.head }],
+      ...model.fields.map((f: any) => [f.label, f.type === 'range' ? `${nf.format(i[f.id])} ${f.unit}` : f.options[i[f.id]]]), [],
+      [{ v: 'Hypothèse', s: S.head }, { v: 'Valeur', s: S.head }], ...model.assumptions.map((h: any) => [h.label, `${String(a[h.id]).replace('.', ',')} ${h.unit}`]), [],
+      ['Paramètre', 'Valeur retenue', 'Repère publié', 'Source', 'Lien'].map((v) => ({ v, s: S.head })), ...model.sources.map((s: any) => [s[0], s[1], s[2], s[3], s[4] || ''])];
+
+    const intro: any[] = [[{ v: `Dossier de décision ${model.code}, modèle de calcul`, s: S.title }], [],
+      ['Entreprise', ctx.company || ''], ['Référence', ctx.ref], ['Établi le', ctx.date || new Date().toLocaleDateString('fr-FR')], ['Solution adaptée', r.tier.name], ['Verdict', current.v.title], [],
+      [{ v: 'Mode d’emploi', s: S.bold }],
+      ['1. Feuille Budget', 'Remplacez les montants bleus par ceux des offres reçues.'],
+      ['2. Feuille Gains', 'Ajustez les gains à vos propres mesures.'],
+      ['3. Feuille Rentabilité', 'Modifiez la durée du projet, la montée en charge, la croissance ou le taux d’actualisation : l’échéancier, la valeur actuelle nette et le retour sur investissement se recalculent.'],
+      ['4. Feuilles Risque, Scénarios et Hypothèses', 'Valeurs issues de la simulation, pour mémoire.'], [],
+      [{ v: 'MALAHEIM Consulting, malaheim.com. Ordres de grandeur indicatifs en euros hors taxes.', s: S.note }]];
+
+    const data = buildXlsx([
+      { name: 'Lisez-moi', cols: [34, 90], rows: intro },
+      { name: 'Budget', cols: [52, 20], rows: bRows },
+      { name: 'Gains', cols: [52, 22], rows: gRows },
+      { name: 'Rentabilité', cols: [40, 16, 16, 14, 16, 16, 16, 12], rows: R },
+      { name: 'Risque', cols: [52, 18, 18, 22], rows: risk },
+      { name: 'Scénarios', cols: [34, ...sc.map(() => 30)], rows: scen },
+      { name: 'Hypothèses', cols: [52, 40, 50, 36, 40], rows: hyp },
+    ]);
+    const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob); const link = document.createElement('a');
+    link.href = url; link.download = `Malaheim-dossier-${model.code.replace(/[^A-Z]/g, '')}-${ctx.ref}.xlsx`; document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  $('dz-pdf').addEventListener('click', () => window.print());
+  $('dz-xlsx').addEventListener('click', () => { if (current && !current.ctx.demo) excel(); });
+
+  const p = new URLSearchParams(location.search);
+  const ex = p.get('exemple'); const sid = p.get('session_id');
+  if (ex !== null) {
+    render({ slug: SIMS[ex] ? ex : 'wms', query: '', company: 'Exemple SAS, entreprise fictive', ref: 'EXEMPLE', demo: true });
+  } else if (sid) {
+    status('Vérification de votre paiement…');
+    fetch(`/api/dossier?session_id=${encodeURIComponent(sid)}`).then((x) => x.json()).then((j) => {
+      if (!j.ok || !SIMS[j.sim]) throw new Error(j.error || 'refus');
+      render({ slug: j.sim, query: j.q, company: j.company, ref: j.ref, date: j.date });
+    }).catch(() => status(`Nous n’avons pas pu retrouver ce dossier. Si vous venez de payer, actualisez la page dans quelques secondes, ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a> avec votre reçu.`));
+  } else {
+    status('Aucun dossier à afficher. Lancez une simulation, ou consultez <a href="/dossier/?exemple=wms">un exemple de dossier</a>.');
+    $('dz-sub').textContent = '';
+  }
+</script>
+
+<style is:global>
+  .dz { background: #f5f5f7; padding: 0 0 80px; min-height: 70vh; }
+  .dz-bar { position: sticky; top: 64px; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px max(20px, calc((100vw - 900px) / 2)); background: rgba(245,245,247,.92); backdrop-filter: blur(12px); }
+  .dz-t { display: flex; flex-direction: column; } .dz-t strong { font-size: 17px; letter-spacing: -0.02em; } .dz-t span { font-size: 13px; color: var(--muted); }
+  .dz-act { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dz-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 999px; border: 0; background: #000; color: #fff; cursor: pointer; text-decoration: none !important; white-space: nowrap; }
+  .dz-btn:hover { color: #fff; }
+  .dz-btn:disabled { opacity: .35; cursor: default; }
+  .dz-ghost { background: #fff; color: #000; box-shadow: inset 0 0 0 1px #d2d2d7; } .dz-ghost:hover { color: #000; }
+  .dz-ex { max-width: 900px; margin: 12px auto 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; border-radius: 20px; background: #000; color: #fff; }
+  .dz-ex div { display: flex; flex-direction: column; gap: 3px; } .dz-ex span { font-size: 14px; color: rgba(255,255,255,.7); }
+  .dz-ex .dz-btn { background: #fff; color: #000; } .dz-ex .dz-btn:hover { color: #000; }
+  .dz-ex[hidden] { display: none; }
+  .dz-status { max-width: 900px; margin: 16px auto; text-align: center; color: var(--muted); }
+  .dz-status:empty { display: none; }
+  .dz-pages { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 20px 12px 0; }
+
+  .dp { position: relative; width: 210mm; max-width: 100%; min-height: 297mm; box-sizing: border-box; padding: 16mm 16mm 22mm; background: #fff; color: #1d1d1f; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.08); font-size: 13px; line-height: 1.45; overflow: hidden; }
+  .demo .dp::after { content: 'EXEMPLE'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; font-weight: 800; letter-spacing: .08em; color: rgba(36,72,245,.06); pointer-events: none; }
+  .dp-h { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 1.5px solid #1d1d1f; font-size: 11px; color: #6e6e73; }
+  .dp-logo svg { height: 26px; width: auto; color: #1d1d1f; display: block; }
+  .dp-t { margin: 0 0 12px; font-size: 26px; letter-spacing: -0.035em; line-height: 1.1; }
+  .dp h3 { margin: 18px 0 8px; font-size: 15px; letter-spacing: -0.02em; }
+  .dp p { margin: 0 0 8px; }
+  .dp-f { position: absolute; left: 16mm; right: 16mm; bottom: 9mm; display: flex; justify-content: space-between; font-size: 10px; color: #8e8e93; border-top: 1px solid #e5e5ea; padding-top: 6px; }
+
+  .dp-cover { display: flex; flex-direction: column; background: #000; color: #fff; padding: 22mm 18mm; }
+  .cv-logo svg { height: 64px; width: auto; color: #fff; display: block; }
+  .cv-k { margin: 34mm 0 6px !important; font-size: 15px; font-weight: 600; color: rgba(255,255,255,.6); }
+  .cv-t { margin: 0; font-size: 48px; line-height: 1.02; letter-spacing: -0.05em; color: #fff; }
+  .cv-s { margin-top: 14px !important; font-size: 15px; color: rgba(255,255,255,.7); }
+  .cv-v { margin-top: 18mm; display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 18px; background: rgba(255,255,255,.08); }
+  .cv-v i { flex: none; width: 14px; height: 14px; border-radius: 50%; background: #30d158; }
+  .cv-v[data-level=prep] i { background: #ffd60a; } .cv-v[data-level=wait] i { background: #ff6961; }
+  .cv-v span { display: flex; flex-direction: column; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; } .cv-v small { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.6); }
+  .cv-k4 { margin-top: 10mm; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cv-k4 div { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 4px; }
+  .cv-k4 small { font-size: 11.5px; color: rgba(255,255,255,.55); } .cv-k4 b { font-size: 26px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .cv-f { margin-top: auto !important; font-size: 11px; color: rgba(255,255,255,.5); }
+  .dp-cover .dp-f { border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.4); }
+
+  .sy-v { padding: 14px 16px; border-radius: 14px; background: #f5f5f7; border-left: 5px solid #1f9d48; }
+  .sy-v[data-level=prep] { border-color: #c79100; } .sy-v[data-level=wait] { border-color: #d93025; }
+  .sy-v b { font-size: 16px; } .sy-v ul { margin: 8px 0 0; padding-left: 18px; } .sy-v li { margin-bottom: 4px; }
+  .dt { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .dt th, .dt td { padding: 6px 8px; border-bottom: 1px solid #ececf0; text-align: left; vertical-align: top; }
+  .dt th { font-size: 11px; font-weight: 600; color: #6e6e73; background: #f5f5f7; }
+  .dt td:not(:first-child), .dt th:not(:first-child) { text-align: right; }
+  .dt .tt td { font-weight: 700; border-top: 1.5px solid #1d1d1f; }
+  .dt .pos { color: #1f7a3e; font-weight: 600; } .dt .neg { color: #b42318; }
+  .dt-c td, .dt-c th { font-size: 11.5px; } .dt-c .best { color: #2448f5; font-weight: 700; }
+  .dt-s td, .dt-s th { font-size: 10.5px; padding: 4px 6px; } .dt-s td:not(:first-child) { text-align: left; }
+  .dl { margin: 0; padding-left: 18px; } .dl li { margin-bottom: 5px; }
+  .dl2 { color: #48484a; }
+  .dn { font-size: 11px; color: #6e6e73; margin-top: 8px !important; }
+  .dn-k { margin-top: 14px !important; padding: 10px 12px; border-radius: 10px; background: #eef1ff; color: #1d1d1f; font-size: 12px; }
+  .bg-bar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+  .c0 { background: #2448f5; } .c1 { background: #6f8bff; } .c2 { background: #a9b8ff; } .c3 { background: #1d1d1f; } .c4 { background: #8e8e93; } .c5 { background: #c7c7cc; } .c6 { background: #d7defd; }
+  .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
+  .dz-fig { margin: 0 0 6px; } .dz-svg { width: 100%; height: auto; display: block; }
+  .dz-svg .ax { stroke: #d2d2d7; } .dz-svg .tx { fill: #8e8e93; font-size: 11px; } .dz-svg .gl { stroke: #c7c7cc; stroke-dasharray: 3 4; }
+  .dz-svg .lc { fill: none; stroke: #1d1d1f; stroke-width: 2; } .dz-svg .lg { fill: none; stroke: #2448f5; stroke-width: 2.5; }
+  .dz-svg .be { fill: #1f9d48; stroke: #fff; stroke-width: 2; } .dz-svg .bt { fill: #1f7a3e; font-size: 12px; font-weight: 600; }
+  .dz-svg .hb { fill: #c9d3fd; } .dz-svg .hb.in { fill: #2448f5; } .dz-svg .br { fill: none; stroke: #1d1d1f; stroke-width: 1.5; }
+  .dz-svg .bt2 { fill: #1d1d1f; font-size: 11.5px; font-weight: 600; } .dz-svg .cl { stroke: #1d1d1f; stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .dz-fig figcaption { font-size: 11px; color: #6e6e73; display: flex; align-items: center; gap: 6px; }
+  .k { display: inline-block; width: 12px; height: 3px; border-radius: 2px; } .k-c { background: #1d1d1f; } .k-g { background: #2448f5; margin-left: 8px; }
+  .wt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .wt div { padding: 14px; border-radius: 14px; background: #000; color: #fff; display: flex; flex-direction: column; gap: 3px; }
+  .wt small { font-size: 11px; color: rgba(255,255,255,.6); } .wt b { font-size: 26px; letter-spacing: -0.03em; } .wt span { font-size: 11px; color: rgba(255,255,255,.6); }
+  .tor { display: flex; flex-direction: column; gap: 7px; }
+  .tor .tl { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; } .tor .tl span { color: #8e8e93; white-space: nowrap; }
+  .tor .tb { position: relative; height: 10px; background: #f5f5f7; border-radius: 3px; margin: 3px 0 2px; }
+  .tor .td, .tor .tu { position: absolute; top: 0; bottom: 0; } .tor .td { background: #aeaeb2; } .tor .tu { background: #2448f5; }
+  .tor .tz { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: #1d1d1f; }
+  .tor .tv { display: flex; justify-content: space-between; font-size: 10px; color: #8e8e93; }
+  .bks { display: flex; flex-direction: column; gap: 12px; }
+  .bk { padding-bottom: 10px; border-bottom: 1px solid #ececf0; }
+  .bk-h { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; } .bk-h span { font-size: 11px; color: #8e8e93; }
+  .bk-t { position: relative; margin-top: 22px; }
+  .bk-l { position: relative; background: #f5f5f7; border-radius: 3px; }
+  .bk-l .bl { position: absolute; height: 8px; border-radius: 3px; background: #c7c7cc; } .bk-l .bl.mine { background: #9db0ff; }
+  .bk-l .bl.pt { width: 5px; margin-left: -2px; background: #6e6e73; } .bk-l .bl.pt.mine { background: #2448f5; }
+  .bk-m { position: absolute; top: -5px; width: 2px; margin-left: -1px; background: #1d1d1f; }
+  .bk-m b { position: absolute; bottom: 100%; margin-bottom: 3px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; }
+  .bk-m.bk-r b { left: auto; right: -2px; transform: none; } .bk-m.bk-l b { left: -2px; transform: none; }
+  .bk-c { font-size: 10.5px; color: #6e6e73; margin: 0 !important; } .bk-c em { font-style: normal; color: #8e8e93; }
+  .gt { display: flex; flex-direction: column; gap: 6px; }
+  .gt-r { display: grid; grid-template-columns: 170px 1fr 80px; gap: 10px; align-items: center; font-size: 11.5px; }
+  .gt-t { position: relative; height: 14px; background: #f5f5f7; border-radius: 4px; } .gt-t span { position: absolute; top: 0; bottom: 0; background: #2448f5; border-radius: 4px; }
+  .gt-m { color: #6e6e73; font-size: 10.5px; text-align: right; }
+  .qs { margin: 0; padding-left: 20px; } .qs li { margin-bottom: 7px; padding-left: 2px; }
+  .ns { margin: 0; padding-left: 20px; } .ns li { margin-bottom: 6px; }
+  .hy { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  @media screen and (max-width: 820px) {
+    .dz-bar { top: 56px; flex-direction: column; align-items: stretch; }
+    .dp { min-height: 0; padding: 22px 18px 44px; font-size: 12.5px; }
+    .dp-f { left: 18px; right: 18px; bottom: 12px; }
+    .cv-t { font-size: 34px; } .cv-k { margin-top: 40px !important; } .cv-k4 b { font-size: 20px; }
+    .hy, .wt { grid-template-columns: 1fr; } .gt-r { grid-template-columns: 110px 1fr 70px; }
+    .dz-ex { flex-direction: column; align-items: stretch; margin-inline: 12px; }
+    .demo .dp::after { font-size: 64px; }
+  }
+  @media print {
+    @page { size: A4; margin: 0; }
+    .topbar, .footer, .dock, .skip, .dz-bar, .dz-ex, .dz-status { display: none !important; }
+    body, .dz { background: #fff !important; padding: 0 !important; }
+    .dz-pages { padding: 0; gap: 0; display: block; }
+    .dp { width: 210mm; height: 297mm; min-height: 0; max-width: none; border-radius: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    .dp:last-child { page-break-after: auto; break-after: auto; }
+    .dp-cover, .wt div, .dz-btn { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dp * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>

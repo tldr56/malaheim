@@ -17,7 +17,7 @@ Robin Thomas-Le Déoré, entrepreneur individuel (EI) exerçant sous le nom comm
 |---|---|---|---|
 | Nom, e-mail professionnel, entreprise, fonction, téléphone facultatif, réponses et résultats des simulateurs | Accès à l'analyse complète des simulateurs, envoi du récapitulatif, suivi des simulations réalisées et prise de contact au sujet de votre projet | Intérêt légitime (répondre à votre demande et prospection professionnelle en lien avec votre fonction), avec droit d'opposition à tout moment | 3 ans après le dernier contact |
 | Adresse e-mail | Envoi des nouveaux guides et simulateurs, si vous avez coché la case prévue | Consentement | Jusqu'au retrait du consentement |
-| Nom, société, adresse de facturation | Vente du kit et des prestations | Exécution du contrat | 10 ans (obligation comptable) |
+| Nom, société, adresse de facturation, numéro de TVA, réponses au simulateur | Vente et mise à disposition du dossier de décision, du kit et des prestations | Exécution du contrat | 10 ans (obligation comptable) |
 | Données de rendez-vous | Organisation de l'appel de découverte | Mesures précontractuelles | 3 ans après le dernier contact |
 | Statistiques de visite anonymes | Mesure d'audience, sans cookie | Intérêt légitime | 6 mois |
 
@@ -27,7 +27,7 @@ Les calculs des simulateurs se font dans votre navigateur. Vos réponses et vos 
 
 - **Google** (Google Workspace) : stockage des coordonnées et des simulations dans Google Sheets, envoi des récapitulatifs par e-mail.
 - **Brevo** (France) : envoi des e-mails.
-- **Lemon Squeezy** : paiement et facturation du kit.
+- **Stripe** : paiement en ligne du dossier de décision et du kit. Les données de carte bancaire sont traitées par Stripe et ne nous sont jamais transmises.
 - **Cal.com** : prise de rendez-vous.
 - **Cloudflare** : hébergement et statistiques de visite sans cookie.
 

@@ -1,6 +1,7 @@
 {
   // Site statique Astro (dossier dist) servi par Cloudflare Workers, plus une route /api/lead pour les inscriptions.
-  // Secrets à créer dans Cloudflare (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL et LEADS_TOKEN.
+  // Secrets à créer dans Cloudflare (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL, LEADS_TOKEN et STRIPE_SECRET_KEY.
+  // Facultatif : DOSSIER_AMOUNT_CENTS, montant du dossier en centimes (2280 par défaut, 19 € HT plus TVA).
   "name": "malaheim",
   "compatibility_date": "2026-11-01",
   "main": "./worker/index.js",
