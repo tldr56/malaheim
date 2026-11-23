@@ -15,6 +15,8 @@ const brevo = SITE.brevoFormAction;
 const others = SIM_LIST.filter((m) => m.slug !== slug);
 const preview = (m) => { const d = defaults(m); return simulate(m, d.i, d.a); };
 const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math.log(f.max / f.min)) : f.value);
+const v3 = model.version === 3;
+const H = model.horizon;
 ---
 <div class="simx" data-slug={slug}>
   <header class="sx-hero wrap">
@@ -61,6 +63,12 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
     </form>
 
     <section class="sx-res" aria-label="Votre estimation" aria-live="polite">
+      {v3 && (
+        <a class="sx-vd" id="r-vd" href="#t-verdict">
+          <span class="sx-vdot" aria-hidden="true"></span>
+          <span class="sx-vtxt"><span class="sx-vlab" id="r-vlab"></span><strong id="r-vtitle"></strong></span>
+        </a>
+      )}
       <div class="sx-tier">
         <span class="sx-rk">Solution adaptée</span>
         <strong id="r-tier"></strong>
@@ -80,6 +88,8 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
         <div class="sx-kpi"><span class="sx-rk">Gains annuels mesurables</span><span class="sx-v" id="r-gain"></span><span class="sx-s" id="r-gains"></span></div>
         <div class="sx-kpi sx-kpi-x" id="r-x" hidden><span class="sx-rk" id="r-xk"></span><span class="sx-v" id="r-xv"></span><span class="sx-s" id="r-xs"></span></div>
         <div class="sx-kpi sx-kpi-x" id="r-o" hidden><span class="sx-rk" id="r-ok"></span><span class="sx-v" id="r-ov"></span><span class="sx-s">Gain ponctuel, non compté dans le retour sur investissement</span></div>
+        {v3 && <div class="sx-kpi"><span class="sx-rk">Coût du démarrage</span><span class="sx-v" id="r-dip"></span><span class="sx-s">Productivité réduite pendant 6 semaines, comptée dans le calcul</span></div>}
+        {v3 && <div class="sx-kpi"><span class="sx-rk">Valeur nette sur {H} ans</span><span class="sx-v" id="r-net"></span><span class="sx-s">Gains moins coûts, valeur médiane simulée</span></div>}
       </div>
       <div class="sx-pay">
         <span class="sx-rk">Retour sur investissement</span>
@@ -88,15 +98,75 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
       </div>
       <figure class="sx-chart">
         <svg id="r-chart" viewBox="0 0 560 200" role="img" aria-label="Coûts et gains cumulés"></svg>
-        <figcaption><span class="lg lg-c"></span>Coûts cumulés <span class="lg lg-g"></span>Gains cumulés</figcaption>
+        <figcaption><span class="lg lg-c"></span>Coûts cumulés <span class="lg lg-g"></span>Gains cumulés{v3 && <span class="lg-n">Scénario central</span>}</figcaption>
       </figure>
       <div class="sx-actions">
         <button type="button" class="sx-btn" id="sx-print">Imprimer ou enregistrer en PDF</button>
         <button type="button" class="sx-btn sx-btn-ghost" id="sx-link">Copier le lien de cette simulation</button>
+        {v3 && <button type="button" class="sx-btn sx-btn-ghost" id="sx-pin">Garder ce scénario pour comparer</button>}
       </div>
       <p class="sx-status" id="sx-status" role="status"></p>
     </section>
   </div>
+
+  {v3 && (
+    <section class="wrap sx-vsec" aria-labelledby="t-verdict">
+      <div class="sx-vgrid">
+        <div class="sx-vcard sr-up" id="v-card">
+          <span class="sx-vbadge" id="v-badge"><i aria-hidden="true"></i><span id="v-blab"></span></span>
+          <h2 id="t-verdict" class="sx-vh"></h2>
+          <ul class="sx-vlist" id="v-reasons"></ul>
+        </div>
+        <div class="sx-wait sr-up lag1">
+          <span class="sx-rk">Le coût de l’attente</span>
+          <span class="sx-wbig" id="w-month"></span>
+          <span class="sx-ws">de gains nets perdus pour chaque mois de report, à pleine charge</span>
+          <div class="sx-wrow"><span>Un an de report</span><strong id="w-year"></strong></div>
+          <p class="sx-wn" id="w-note"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sx-risk" aria-labelledby="t-risk">
+      <div class="wrap">
+        <h2 id="t-risk" class="sx-h2 sr-up">Le risque, chiffré</h2>
+        <p class="sx-sub sr-up">Votre projet rejoué 1 000 fois, avec les dépassements, les retards et les écarts de gains observés sur le marché.</p>
+        <div class="sx-stats sr-up">
+          <div class="sx-stat"><span class="sx-sk">Budget le plus probable</span><span class="sx-sv" id="s-p50"></span><span class="sx-ss" id="s-p50s"></span></div>
+          <div class="sx-stat"><span class="sx-sk">Risque de dépasser le scénario central</span><span class="sx-sv" id="s-over"></span><span class="sx-ss">Part des simulations au-dessus</span></div>
+          <div class="sx-stat"><span class="sx-sk">Chances d’être rentabilisé en {H} ans</span><span class="sx-sv" id="s-within"></span><span class="sx-ss" id="s-withins"></span></div>
+          <div class="sx-stat"><span class="sx-sk">Valeur nette sur {H} ans</span><span class="sx-sv" id="s-net"></span><span class="sx-ss" id="s-nets"></span></div>
+        </div>
+        <div class="sx-rgrid">
+          <figure class="sx-panel sr-up">
+            <figcaption><strong>Budget de mise en place, 1 000 simulations</strong><span>Chaque barre compte les simulations tombées dans la tranche.</span></figcaption>
+            <svg id="g-hist" viewBox="0 0 560 230" role="img" aria-label="Répartition du budget simulé"></svg>
+            <p class="sx-glegend"><span class="li"><span class="k k-bar"></span>Simulations</span><span class="li"><span class="k k-p"></span>8 chances sur 10</span><span class="li"><span class="k k-c"></span>Scénario central</span></p>
+            <table class="sx-rtab" id="g-rtab"></table>
+          </figure>
+          <figure class="sx-panel sr-up lag1">
+            <figcaption><strong>Ce qui fait bouger votre valeur nette sur {H} ans</strong><span>Chaque facteur varie seul, les autres restent au scénario central.</span></figcaption>
+            <div id="g-tornado" class="sx-tor"></div>
+            <p class="sx-glegend"><span class="li"><span class="k k-down"></span>Effet défavorable</span><span class="li"><span class="k k-up"></span>Effet favorable</span></p>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap sx-mkt" aria-labelledby="t-mkt">
+      <h2 id="t-mkt" class="sx-h2 sr-up">Votre projet face au marché</h2>
+      <p class="sx-sub sr-up">Vos chiffres placés sur les fourchettes publiées par les études internationales. Le point noir, c’est vous.</p>
+      <div id="g-bench" class="sx-bench sr-up"></div>
+    </section>
+
+    <section class="sx-cmp" aria-labelledby="t-cmp">
+      <div class="wrap">
+        <h2 id="t-cmp" class="sx-h2 sr-up">Comparer les scénarios</h2>
+        <p class="sx-sub sr-up">Les alternatives les plus proches, calculées avec vos réponses. Modifiez vos réponses puis gardez jusqu’à deux scénarios pour les mettre côte à côte.</p>
+        <div class="sx-scroll sx-cscroll sr-up"><table id="g-cmp"></table></div>
+      </div>
+    </section>
+  )}
 
   <section class="wrap sx-watch" aria-labelledby="t-watch">
     <h2 id="t-watch" class="sx-h2 sr-up">Points de vigilance pour votre profil</h2>
@@ -146,8 +216,12 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   <section class="wrap sx-method" aria-labelledby="t-method">
     <h2 id="t-method" class="sx-h2 sr-up">Méthode et sources</h2>
     <div class="sx-mtext sr-up">
-      <p>Le modèle détermine d’abord la gamme de solution adaptée à votre profil, puis chiffre chaque poste à partir de valeurs publiées. La fourchette va de 20 % sous à 30 % au-dessus du scénario central, parce que les dépassements sont plus fréquents que les économies.</p>
-      <p>Le retour sur investissement est calculé mois par mois : le budget est réparti sur la durée du projet, les coûts annuels et les gains commencent à la mise en service, et les gains montent en charge sur {model.ramp} mois. Seuls les gains mesurables sont comptés, avec des hypothèses prudentes que vous pouvez modifier.</p>
+      {model.method ? model.method.map((p) => <p>{p}</p>) : (
+        <Fragment>
+          <p>Le modèle détermine d’abord la gamme de solution adaptée à votre profil, puis chiffre chaque poste à partir de valeurs publiées. La fourchette va de 20 % sous à 30 % au-dessus du scénario central, parce que les dépassements sont plus fréquents que les économies.</p>
+          <p>Le retour sur investissement est calculé mois par mois : le budget est réparti sur la durée du projet, les coûts annuels et les gains commencent à la mise en service, et les gains montent en charge sur {model.ramp} mois. Seuls les gains mesurables sont comptés, avec des hypothèses prudentes que vous pouvez modifier.</p>
+        </Fragment>
+      )}
     </div>
     <div class="sx-scroll sr-up">
       <table>
@@ -159,7 +233,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
         </tbody>
       </table>
     </div>
-    <p class="sx-foot">Ordres de grandeur indicatifs en euros hors taxes, modèle version 2 de novembre 2026. Les réponses sont calculées dans votre navigateur et ne sont transmises à personne. Un chiffrage ferme demande un cadrage de vos flux et des offres d’éditeurs.</p>
+    <p class="sx-foot">Ordres de grandeur indicatifs en euros hors taxes, modèle version {model.version || 2} de novembre 2026. Les réponses sont calculées dans votre navigateur et ne sont transmises à personne. Un chiffrage ferme demande un cadrage de vos flux et des offres d’éditeurs.</p>
   </section>
 
   <section class="sx-others" aria-labelledby="t-others">
@@ -185,7 +259,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
 </div>
 
 <script>
-  import { SIMS, defaults, simulate, money } from '../lib/sims.js';
+  import { SIMS, defaults, simulate, money, sensitivity, verdict, inaction, scenarios } from '../lib/sims.js';
 
   const root = document.querySelector<HTMLElement>('.simx')!;
   const model = SIMS[root.dataset.slug!];
@@ -234,6 +308,14 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   const COLORS = ['#2448f5', '#6f8bff', '#a9b8ff', '#d7defd', '#8e8e93', '#48484a', '#c7c7cc'];
   const months = (n: number) => `${Math.round(n)} mois`;
   let last: any = null; let state: any = null;
+  const V3 = model.version === 3;
+  const HZ = model.horizon;
+  const LV: Record<string, string> = { go: 'Feu vert', prep: 'À sécuriser', wait: 'À revoir' };
+  const pc = (x: number) => `${Math.round(x * 100)} %`;
+  const sMoney = (v: number) => (v < 0 ? `-${money(-v)}` : money(v));
+  const beTxt = (be: number) => (Number.isFinite(be) ? `${be} mois` : `Au-delà de ${HZ} ans`);
+  const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  let pinned: any[] = []; let slow: any = null; let tmr: any = 0;
 
   const chart = (r: any) => {
     const W = 560, H = 200, P = { l: 8, r: 8, t: 12, b: 26 };
@@ -245,7 +327,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
     for (let yr = 1; yr <= r.horizon; yr++) { const xx = x(yr * 12 - 1); ticks += `<line x1="${xx}" x2="${xx}" y1="${H - P.b}" y2="${H - P.b + 4}" class="tk"/>`; if (r.horizon <= 5 || yr % 2 === 0) ticks += `<text x="${xx}" y="${H - 6}" class="tx" text-anchor="${yr === r.horizon ? 'end' : 'middle'}">An ${yr}</text>`; }
     const gl = x(r.goLive - 1);
     let be = '';
-    if (r.breakEven) { const bx = x(r.breakEven - 1), by = y(r.cumGain[r.breakEven - 1]); be = `<circle cx="${bx}" cy="${by}" r="5" class="be"/><text x="${Math.min(bx + 8, W - 90)}" y="${by - 10}" class="bt">Point mort</text>`; }
+    if (r.breakEven) { const bx = x(r.breakEven - 1), by = y(r.cumGain[r.breakEven - 1]); be = `<circle cx="${bx}" cy="${by}" r="5" class="be"/><text x="${Math.min(bx + 8, W - 130)}" y="${by - 10}" class="bt">${V3 ? 'Point mort central' : 'Point mort'}</text>`; }
     $('r-chart').innerHTML = `<line x1="${P.l}" x2="${W - P.r}" y1="${H - P.b}" y2="${H - P.b}" class="ax"/>${ticks}
       <line x1="${gl}" x2="${gl}" y1="${P.t}" y2="${H - P.b}" class="gl"/><text x="${gl + 6}" y="${P.t + 10}" class="tx">Mise en service</text>
       <path d="${line(r.cumCost)}" class="lc"/><path d="${line(r.cumGain)}" class="lg"/>${be}`;
@@ -254,23 +336,33 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   const render = () => {
     const { i, a } = read(); state = { i, a };
     const r = simulate(model, i, a); last = r;
+    const vd = V3 ? verdict(model, i, r, null) : null;
     $('r-tier').textContent = r.tier.name;
     $('r-tierdesc').textContent = r.tier.desc;
     $('r-budget').textContent = `${money(r.low)} à ${money(r.high)}`;
-    $('r-central').textContent = `Scénario central : ${money(r.initial)}`;
+    $('r-central').textContent = V3 ? `8 chances sur 10 dans cette fourchette. Scénario central : ${money(r.initial)}` : `Scénario central : ${money(r.initial)}`;
     $('r-bar').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<span style="width:${((p[1] / r.initial) * 100).toFixed(2)}%;background:${COLORS[n % COLORS.length]}"></span>`).join('');
     $('r-legend').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<dt><i style="background:${COLORS[n % COLORS.length]}"></i>${p[0]}</dt><dd>${money(p[1])}</dd>`).join('');
     $('r-rec').textContent = r.recurring > 0 ? `${money(r.recurring)} par an` : 'Aucun';
     $('r-recs').textContent = r.recurringNote;
     $('r-totk').textContent = `Coût total sur ${r.horizon} ans`;
     $('r-tot').textContent = money(r.total);
-    $('r-delay').textContent = `${months(r.months[0])} à ${months(r.months[1])}`;
+    $('r-delay').textContent = V3 ? `${r.mc.months.p10} à ${r.mc.months.p90} mois` : `${months(r.months[0])} à ${months(r.months[1])}`;
     $('r-gain').textContent = `${money(r.gainsTotal)} par an`;
     $('r-gains').textContent = r.gains.map((g: any) => `${g[0]} : ${money(g[1])}`).join(' ; ');
     const x = $('r-x'); if (r.kpi) { x.hidden = false; $('r-xk').textContent = r.kpi[0]; $('r-xv').textContent = r.kpi[1]; $('r-xs').textContent = r.kpi[2]; } else x.hidden = true;
     const o = $('r-o'); if (r.oneOff && r.oneOff[1] > 0) { o.hidden = false; $('r-ok').textContent = r.oneOff[0]; $('r-ov').textContent = money(r.oneOff[1]); } else o.hidden = true;
     const pill = $('r-pill');
-    if (r.breakEven) {
+    if (V3) {
+      const be = r.mc.breakEven.p50;
+      $('r-pay').textContent = Number.isFinite(be) ? `Rentabilisé ${be} mois après le lancement` : `Non rentabilisé en ${HZ} ans dans la plupart des simulations`;
+      pill.textContent = `${pc(r.mc.pWithin)} de chances d’être rentabilisé en ${HZ} ans`;
+      pill.className = `sx-pill ${vd.level === 'go' ? 'ok' : vd.level === 'prep' ? 'mid' : 'ko'}`;
+      const box = $('r-vd'); box.dataset.level = vd.level;
+      $('r-vlab').textContent = LV[vd.level]; $('r-vtitle').textContent = vd.title;
+      $('r-dip').textContent = r.dip ? money(r.dip[1]) : 'Aucun';
+      $('r-net').textContent = sMoney(r.mc.net.p50);
+    } else if (r.breakEven) {
       $('r-pay').textContent = `Rentabilisé ${r.breakEven} mois après le lancement`;
       pill.textContent = `${r.roi >= 0 ? '+' : ''}${Math.round(r.roi * 100)} % sur ${r.horizon} ans, soit ${r.breakEven - r.goLive} mois après la mise en service`;
       pill.className = `sx-pill ${r.breakEven <= r.horizon * 12 * 0.6 ? 'ok' : 'mid'}`;
@@ -281,6 +373,124 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
     }
     chart(r);
     $('r-watch').innerHTML = r.watch.map((w: string) => `<li>${w}</li>`).join('');
+    if (V3) { clearTimeout(tmr); tmr = setTimeout(() => renderSlow(i, a, r), 110); }
+  };
+
+  // Blocs de la version 3 : calculés juste après la carte de résultat pour garder les curseurs fluides
+  const hist = (r: any) => {
+    const el = $('g-hist'); const W = Math.round(Math.max(300, el.clientWidth || 560)); el.setAttribute('viewBox', `0 0 ${W} 230`);
+    const h = r.mc.hist; const Hh = 230, P = { l: 10, r: 10, t: 40, b: 34 };
+    const n = h.bins.length; const max = Math.max(...h.bins, 1); const span = h.hi - h.lo || 1;
+    const bw = (W - P.l - P.r) / n;
+    const x = (v: number) => P.l + Math.min(1, Math.max(0, (v - h.lo) / span)) * (W - P.l - P.r);
+    const y = (c: number) => Hh - P.b - (c / max) * (Hh - P.t - P.b);
+    const { p10, p50, p90 } = r.mc.budget;
+    let bars = '';
+    h.bins.forEach((c: number, k: number) => {
+      if (!c) return;
+      const a0 = h.lo + (k * span) / n, a1 = h.lo + ((k + 1) * span) / n;
+      const inR = a1 > p10 && a0 < p90;
+      const bx = P.l + k * bw + 1, by = y(c), bh = Hh - P.b - by, w = Math.max(1, bw - 2), rr = Math.min(3, w / 2, bh);
+      bars += `<path class="hb${inR ? ' in' : ''}" d="M${bx} ${Hh - P.b}V${by + rr}Q${bx} ${by} ${bx + rr} ${by}H${bx + w - rr}Q${bx + w} ${by} ${bx + w} ${by + rr}V${Hh - P.b}Z"><title>${money(a0)} à ${money(a1)} : ${c} simulations</title></path>`;
+    });
+    const x10 = x(p10), x90 = x(p90), xc = x(r.initial), x50 = x(p50);
+    const by0 = 16;
+    $('g-hist').innerHTML = `${bars}
+      <line x1="${P.l}" x2="${W - P.r}" y1="${Hh - P.b}" y2="${Hh - P.b}" class="ax"/>
+      <path d="M${x10} ${by0 + 6}V${by0}H${x90}V${by0 + 6}" class="br"/>
+      <text x="${Math.min(W - 120, Math.max(120, (x10 + x90) / 2))}" y="${by0 - 5}" text-anchor="middle" class="bt">8 chances sur 10 : ${money(p10)} à ${money(p90)}</text>
+      <line x1="${xc}" x2="${xc}" y1="${P.t - 6}" y2="${Hh - P.b + 6}" class="cl"/>
+      <text x="${xc}" y="${Hh - 10}" text-anchor="${xc < 70 ? 'start' : xc > W - 70 ? 'end' : 'middle'}" class="ct">Central ${money(r.initial)}</text>
+      <line x1="${x50}" x2="${x50}" y1="${Hh - P.b}" y2="${Hh - P.b + 5}" class="tk"><title>Médiane ${money(p50)}</title></line>`;
+  };
+
+  const tornado = (sens: any[], base: number) => {
+    if (!sens.length) { $('g-tornado').innerHTML = ''; return; }
+    const lo = Math.min(base, ...sens.map((s) => s.lo)), hi = Math.max(base, ...sens.map((s) => s.hi));
+    const pad = (hi - lo) * 0.03 || 1; const L = lo - pad, R = hi + pad;
+    const X = (v: number) => ((v - L) / (R - L)) * 100;
+    const xb = X(base);
+    $('g-tornado').innerHTML = sens.map((s) => {
+      const d0 = Math.min(s.lo, base), u1 = Math.max(s.hi, base);
+      return `<div class="tr" title="${esc(s.label)} : valeur nette de ${sMoney(s.lo)} à ${sMoney(s.hi)}">
+        <div class="tl"><strong>${esc(s.label)}</strong><span>${esc(s.range)}</span></div>
+        <div class="tb"><span class="td" style="left:${X(d0)}%;width:${Math.max(0, xb - X(d0))}%"></span><span class="tu" style="left:${xb}%;width:${Math.max(0, X(u1) - xb)}%"></span><span class="tz" style="left:${xb}%"></span></div>
+        <div class="tv"><span>${sMoney(s.lo)}</span><span>${sMoney(s.hi)}</span></div>
+      </div>`;
+    }).join('') + `<p class="tbase">Scénario central : ${sMoney(base)}</p>`;
+  };
+
+  const fmtB = (v: number, f: string) => f === 'money' ? money(v) : f === 'months' ? `${Math.round(v)} mois` : f === 'pct' ? `${String(Math.round(v * 100) / 100).replace('.', ',')} %` : `${Math.round(v)} €`;
+  const bench = (list: any[]) => {
+    $('g-bench').innerHTML = list.map((b) => {
+      let L: number, R: number, X: (v: number) => number;
+      if (b.log) {
+        L = Math.min(b.value, ...b.bands.map((x: any) => x.lo)) / 1.5; R = Math.max(b.value, ...b.bands.map((x: any) => x.hi)) * 1.5;
+        X = (v) => (Math.log(v / L) / Math.log(R / L)) * 100;
+      } else { L = b.lo; R = b.hi; X = (v) => ((Math.min(R, Math.max(L, v)) - L) / (R - L)) * 100; }
+      const xm = X(b.value);
+      const lanes = b.bands.map((x: any, k: number) => `<span class="bl${x.mine ? ' mine' : ''}" style="top:${k * 12}px;left:${X(x.lo)}%;width:${Math.max(1, X(x.hi) - X(x.lo))}%" title="${esc(x.label)} : ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}"></span>`).join('');
+      const chips = b.bands.map((x: any) => `<span class="bc${x.mine ? ' mine' : ''}"><i></i>${esc(x.label)} : ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}</span>`).join('');
+      const al = xm > 82 ? 'r' : xm < 18 ? 'l' : 'c';
+      return `<div class="br-row">
+        <div class="br-h"><strong>${esc(b.label)}</strong><span>${esc(b.sub)}</span></div>
+        <div class="br-t" style="height:${b.bands.length * 12 + 34}px">
+          <div class="br-l" style="height:${b.bands.length * 12}px">${lanes}</div>
+          <span class="br-m br-${al}" style="left:${xm}%;height:${b.bands.length * 12 + 12}px"><b>${fmtB(b.value, b.fmt)}</b></span>
+        </div>
+        <div class="br-c">${chips}</div>
+        <p class="br-n">${esc(b.note)} <span>Source : ${b.url ? `<a href="${b.url}">${esc(b.src)}</a>` : esc(b.src)}</span></p>
+      </div>`;
+    }).join('');
+  };
+
+  const compare = (i: any, a: any, r: any) => {
+    const list = scenarios(model, i, a, r, pinned);
+    const nets = list.map((s: any) => s.r.mc.net.p50); const best = nets.indexOf(Math.max(...nets));
+    const rows: [string, (s: any) => string][] = [
+      ['Solution', (s) => esc(s.r.tier.name)],
+      ['Budget central', (s) => money(s.r.initial)],
+      ['Budget couvert 9 fois sur 10', (s) => money(s.r.mc.budget.p90)],
+      ['Coût annuel', (s) => money(s.r.recurring)],
+      [`Coût total sur ${HZ} ans`, (s) => money(s.r.total)],
+      ['Mise en service', (s) => `${s.r.mc.months.p50} mois`],
+      ['Rentabilisé après', (s) => beTxt(s.r.mc.breakEven.p50)],
+      [`Chances d’être rentabilisé en ${HZ} ans`, (s) => pc(s.r.mc.pWithin)],
+      [`Valeur nette sur ${HZ} ans`, (s) => sMoney(s.r.mc.net.p50)],
+    ];
+    const head = `<thead><tr><th></th>${list.map((s: any, k: number) => `<th class="${k === 0 ? 'me' : ''}">${esc(s.label)}${s.pinned ? ` <button type="button" class="sx-unpin" data-unpin="${k - (list.length - pinned.length)}">Retirer</button>` : ''}</th>`).join('')}</tr></thead>`;
+    const body = rows.map(([lab, f], ri) => `<tr><th scope="row">${lab}</th>${list.map((s: any, k: number) => `<td class="${k === 0 ? 'me' : ''}${ri === rows.length - 1 && k === best ? ' best' : ''}">${f(s)}${ri === rows.length - 1 && k === best && list.length > 1 ? '<span class="tag">La meilleure</span>' : ''}</td>`).join('')}</tr>`).join('');
+    $('g-cmp').innerHTML = head + `<tbody>${body}</tbody>`;
+    return list;
+  };
+
+  const renderSlow = (i: any, a: any, r: any) => {
+    const sens = sensitivity(model, i, a, r);
+    const v = verdict(model, i, r, sens); const w = inaction(r);
+    const card = $('v-card'); card.dataset.level = v.level;
+    $('v-blab').textContent = LV[v.level]; $('t-verdict').textContent = v.title;
+    $('v-reasons').innerHTML = v.reasons.map((x: string) => `<li>${esc(x)}</li>`).join('');
+    if (w.monthly > 0) {
+      $('w-month').textContent = money(w.monthly); $('w-year').textContent = money(w.year);
+      $('w-note').textContent = `Chaque mois de retard du projet lui-même coûte autant.${r.growth > 0 ? ` L’écart grandit avec vos volumes, ${Math.round(r.growth * 100)} % par an.` : ''}`;
+    } else {
+      $('w-month').textContent = '0 €'; $('w-year').textContent = '0 €';
+      $('w-note').textContent = 'Avec ces hypothèses, attendre ne coûte rien de mesurable : les gains ne couvrent pas les coûts annuels.';
+    }
+    const mc = r.mc;
+    $('s-p50').textContent = money(mc.budget.p50); $('s-p50s').textContent = `Médiane des simulations, contre ${money(r.initial)} au scénario central`;
+    $('s-over').textContent = pc(mc.pOver);
+    $('s-within').textContent = pc(mc.pWithin); $('s-withins').textContent = Number.isFinite(mc.breakEven.p50) ? `Point mort médian : ${mc.breakEven.p50} mois après le lancement` : 'Point mort au-delà de l’horizon dans la plupart des cas';
+    $('s-net').textContent = sMoney(mc.net.p50); $('s-nets').textContent = `De ${sMoney(mc.net.p10)} à ${sMoney(mc.net.p90)}, 8 chances sur 10`;
+    hist(r); tornado(sens, r.net);
+    $('g-rtab').innerHTML = `<thead><tr><th></th><th>Favorable</th><th>Médian</th><th>Défavorable</th></tr></thead><tbody>
+      <tr><th scope="row">Budget de mise en place</th><td>${money(mc.budget.p10)}</td><td>${money(mc.budget.p50)}</td><td>${money(mc.budget.p90)}</td></tr>
+      <tr><th scope="row">Mise en service</th><td>${mc.months.p10} mois</td><td>${mc.months.p50} mois</td><td>${mc.months.p90} mois</td></tr>
+      <tr><th scope="row">Point mort après lancement</th><td>${beTxt(mc.breakEven.p10)}</td><td>${beTxt(mc.breakEven.p50)}</td><td>${beTxt(mc.breakEven.p90)}</td></tr>
+      <tr><th scope="row">Valeur nette sur ${HZ} ans</th><td>${sMoney(mc.net.p90)}</td><td>${sMoney(mc.net.p50)}</td><td>${sMoney(mc.net.p10)}</td></tr></tbody>`;
+    const bl = model.benchmarks(i, a, r); bench(bl);
+    const list = compare(i, a, r);
+    slow = { sens, v, w, bl, list };
   };
 
   const shareUrl = () => {
@@ -293,6 +503,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   const summary = () => {
     const r = last; const lines = [
       `Simulation ${model.code}, Malaheim Consulting`,
+      ...(V3 && slow ? [`Verdict : ${slow.v.title}`] : []),
       `Solution adaptée : ${r.tier.name}`,
       `Budget de mise en place : ${money(r.low)} à ${money(r.high)} (central ${money(r.initial)})`,
       ...r.parts.map((p: any) => `  ${p[0]} : ${money(p[1])}`),
@@ -301,26 +512,30 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
       `Délai : ${months(r.months[0])} à ${months(r.months[1])}`,
       `Gains annuels mesurables : ${money(r.gainsTotal)}`,
       `Retour sur investissement : ${$('r-pay').textContent}`,
+      ...(V3 ? [`Budget couvert 9 fois sur 10 : ${money(r.mc.budget.p90)}`, `Chances d’être rentabilisé en ${HZ} ans : ${pc(r.mc.pWithin)}`] : []),
       `Lien : ${shareUrl()}`,
     ];
     return lines.join('\n');
   };
 
   const buildReport = () => {
-    const r = last; const esc = (s: string) => s.replace(/</g, '&lt;');
+    if (V3) { clearTimeout(tmr); renderSlow(state.i, state.a, last); }
+    const r = last;
     $('rp-date').textContent = `Établie le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     const inputs = fields.map((f: any) => `<tr><td>${esc(f.label)}</td><td>${f.type === 'range' ? `${nf.format(state.i[f.id])} ${f.unit}` : esc(f.options[state.i[f.id]])}</td></tr>`).join('');
     const hyp = model.assumptions.map((h: any) => `<tr><td>${esc(h.label)}</td><td>${nf.format(state.a[h.id])} ${esc(h.unit)}</td></tr>`).join('');
     $('rp-body').innerHTML = `
       <h1>${esc(model.title)}</h1>
+      ${V3 && slow ? `<div class="rp-verdict"><strong>${esc(LV[slow.v.level])} : ${esc(slow.v.title)}</strong><ul>${slow.v.reasons.map((x: string) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
       <div class="rp-cols">
         <div><h2>Vos données</h2><table>${inputs}</table></div>
         <div><h2>Résultat</h2><table>
           <tr><td>Solution adaptée</td><td>${esc(r.tier.name)}</td></tr>
-          <tr><td>Budget de mise en place</td><td><strong>${money(r.low)} à ${money(r.high)}</strong></td></tr>
+          <tr><td>Budget de mise en place${V3 ? ', 8 chances sur 10' : ''}</td><td><strong>${money(r.low)} à ${money(r.high)}</strong></td></tr>
+          ${V3 ? `<tr><td>Budget couvert 9 fois sur 10</td><td>${money(r.mc.budget.p90)}</td></tr><tr><td>Chances d’être rentabilisé en ${HZ} ans</td><td>${pc(r.mc.pWithin)}</td></tr><tr><td>Valeur nette médiane sur ${HZ} ans</td><td>${sMoney(r.mc.net.p50)}</td></tr>` : ''}
           <tr><td>Coût annuel</td><td>${money(r.recurring)}</td></tr>
           <tr><td>Coût total sur ${r.horizon} ans</td><td>${money(r.total)}</td></tr>
-          <tr><td>Délai de mise en service</td><td>${months(r.months[0])} à ${months(r.months[1])}</td></tr>
+          <tr><td>Délai de mise en service</td><td>${V3 ? `${r.mc.months.p10} à ${r.mc.months.p90} mois` : `${months(r.months[0])} à ${months(r.months[1])}`}</td></tr>
           <tr><td>Gains annuels mesurables</td><td>${money(r.gainsTotal)}</td></tr>
           <tr><td>Retour sur investissement</td><td>${esc($('r-pay').textContent || '')}</td></tr>
           ${r.oneOff ? `<tr><td>${esc(r.oneOff[0])}</td><td>${money(r.oneOff[1])}</td></tr>` : ''}
@@ -330,11 +545,14 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
       <table>${r.parts.map((p: any) => `<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td></tr>`).join('')}<tr><td><strong>Total</strong></td><td><strong>${money(r.initial)}</strong></td></tr></table>
       <h2>Gains annuels</h2>
       <table>${r.gains.map((g: any) => `<tr><td>${esc(g[0])}</td><td>${money(g[1])}</td></tr>`).join('')}</table>
+      ${V3 && slow ? `<h2>Face au marché</h2><table>${slow.bl.map((b: any) => `<tr><td>${esc(b.label)}</td><td>${fmtB(b.value, b.fmt)} ; ${b.bands.map((x: any) => `${esc(x.label)} ${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`).join(' ; ')}</td></tr>`).join('')}</table>
+      <h2>Scénarios comparés</h2><table>${slow.list.map((s: any) => `<tr><td>${esc(s.label)}</td><td>${money(s.r.initial)} ; ${money(s.r.recurring)} par an ; rentabilisé ${pc(s.r.mc.pWithin)} des cas ; valeur nette ${sMoney(s.r.mc.net.p50)}</td></tr>`).join('')}</table>
+      <h2>Facteurs de risque principaux</h2><table>${slow.sens.slice(0, 5).map((x: any) => `<tr><td>${esc(x.label)} (${esc(x.range)})</td><td>${sMoney(x.lo)} à ${sMoney(x.hi)}</td></tr>`).join('')}</table>` : ''}
       <h2>Points de vigilance</h2>
       <ol>${r.watch.map((w: string) => `<li>${esc(w)}</li>`).join('')}</ol>
       <h2>Hypothèses retenues</h2>
       <table>${hyp}</table>
-      <p class="rp-foot">Ordres de grandeur indicatifs en euros hors taxes, établis par le simulateur Malaheim (modèle version 2). Ils ne remplacent pas un chiffrage ferme. Retrouvez cette simulation : ${esc(shareUrl())}</p>`;
+      <p class="rp-foot">Ordres de grandeur indicatifs en euros hors taxes, établis par le simulateur Malaheim (modèle version ${model.version || 2}). Ils ne remplacent pas un chiffrage ferme. Retrouvez cette simulation : ${esc(shareUrl())}</p>`;
   };
 
   root.addEventListener('input', render);
@@ -347,6 +565,20 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
     try { navigator.clipboard.writeText(url).then(() => done(true), () => done(false)); } catch { done(false); }
   });
   window.addEventListener('beforeprint', buildReport);
+  if (V3) {
+    let rz: any = 0;
+    window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (last && state) hist(last); }, 150); });
+    $('sx-pin').addEventListener('click', () => {
+      if (pinned.length >= 2) pinned.shift();
+      pinned.push({ label: `Gardé : ${last.tier.name}, ${model.fields.find((f: any) => f.id === 'mode')?.options[state.i.mode] ?? ''}`.replace(/, $/, ''), i: { ...state.i }, a: { ...state.a }, pinned: true });
+      $('sx-status').textContent = 'Scénario gardé. Modifiez vos réponses : il reste affiché dans le comparateur plus bas.';
+      renderSlow(state.i, state.a, last);
+    });
+    $('g-cmp').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('[data-unpin]') as HTMLElement | null; if (!b) return;
+      pinned.splice(Number(b.dataset.unpin), 1); renderSlow(state.i, state.a, last);
+    });
+  }
 
   const form = document.getElementById('lead') as HTMLFormElement; const msg = $('lead-msg');
   form.addEventListener('submit', (e) => {
@@ -440,6 +672,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   .sx-chart .lg-c, .sx-chart .lg-g { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
   .sx-chart .lg-c { background: rgba(255,255,255,.75); }
   .sx-chart .lg-g { background: #4f74ff; margin-left: 10px; }
+  .sx-chart .lg-n { margin-left: auto; }
   .sx-actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .sx-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 999px; border: 0; cursor: pointer; background: #fff; color: #000; transition: transform .3s var(--ease); }
   .sx-btn:hover { transform: scale(1.03); }
@@ -466,15 +699,15 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   .sx-card-dark h3 { color: #fff; }
   .sx-card-dark p, .sx-card-dark .sx-ck { color: rgba(255,255,255,.6); }
   .sx-card-dark .sx-go { color: #9db0ff; }
-  .sx-lead { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px 40px; align-items: center; padding: 32px; border-radius: 28px; background: #fff; }
-  @media (max-width: 900px) { .sx-lead { grid-template-columns: 1fr; } }
-  .sx-lead h3 { margin: 0 0 6px; font-size: 21px; }
-  .sx-lead p { margin: 0; color: var(--muted); font-size: 15px; }
+  form.sx-lead { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px 40px; align-items: center; padding: 32px; border-radius: 28px; background: #fff; }
+  @media (max-width: 900px) { form.sx-lead { grid-template-columns: 1fr; } }
+  form.sx-lead h3 { margin: 0 0 6px; font-size: 21px; }
+  form.sx-lead p { margin: 0; color: var(--muted); font-size: 15px; }
   .sx-lead-f { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
   .sx-lead-f input[type=email] { padding: 13px 16px; border: 1px solid #d2d2d7; border-radius: 999px; font: inherit; }
   .sx-consent { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--dim); }
   .sx-consent input { margin-top: 3px; }
-  .sx-lead .sx-status { grid-column: 1 / -1; color: var(--muted); }
+  form.sx-lead .sx-status { grid-column: 1 / -1; color: var(--muted); }
 
   .sx-method { padding-block: 96px 64px; max-width: 1000px; }
   .sx-mtext { max-width: 760px; margin: 0 auto 32px; color: var(--muted); font-size: 16.5px; line-height: 1.55; }
@@ -497,6 +730,124 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
   .sx-oc span { color: var(--muted); font-size: 14.5px; }
   .sx-oc .sx-oex { margin-top: 6px; color: var(--ink); font-weight: 600; }
 
+
+  /* Version 3 : verdict, risque, marché, scénarios */
+  .sx-vd { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin: -6px -6px 0; border-radius: 20px; background: rgba(255,255,255,.08); color: #fff; text-decoration: none !important; transition: background-color .3s; }
+  .sx-vd:hover { background: rgba(255,255,255,.13); color: #fff; }
+  .sx-vdot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: #30d158; box-shadow: 0 0 0 4px rgba(48,209,88,.18); }
+  .sx-vd[data-level=prep] .sx-vdot { background: #ffd60a; box-shadow: 0 0 0 4px rgba(255,214,10,.16); }
+  .sx-vd[data-level=wait] .sx-vdot { background: #ff6961; box-shadow: 0 0 0 4px rgba(255,69,58,.18); }
+  .sx-vtxt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .sx-vlab { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.6); }
+  .sx-vtxt strong { font-size: 16.5px; letter-spacing: -0.02em; line-height: 1.25; }
+
+  .sx-sub { margin: -14px auto 40px; max-width: 40em; text-align: center; color: var(--muted); font-size: 17px; line-height: 1.5; }
+  .sx-vsec { padding-block: 8px 96px; }
+  .sx-vgrid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 900px) { .sx-vgrid { grid-template-columns: 1fr; } }
+  .sx-vcard { padding: 40px; border-radius: 32px; background: var(--pearl); display: flex; flex-direction: column; gap: 16px; }
+  .sx-vbadge { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border-radius: 999px; background: #fff; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .sx-vbadge i { width: 10px; height: 10px; border-radius: 50%; background: #1f9d48; }
+  .sx-vcard[data-level=prep] .sx-vbadge i { background: #c79100; }
+  .sx-vcard[data-level=wait] .sx-vbadge i { background: #d93025; }
+  .sx-vh { margin: 0; font-size: clamp(28px, 3.4vw, 42px); line-height: 1.08; letter-spacing: -0.04em; }
+  .sx-vlist { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .sx-vlist li { position: relative; padding-left: 22px; font-size: 16.5px; line-height: 1.5; color: var(--text); }
+  .sx-vlist li::before { content: ''; position: absolute; left: 2px; top: .62em; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+  .sx-wait { padding: 40px; border-radius: 32px; background: #000; color: #fff; display: flex; flex-direction: column; gap: 6px; }
+  .sx-wbig { margin-top: 8px; font-family: var(--display); font-weight: 700; font-size: clamp(44px, 5vw, 64px); line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .sx-ws { font-size: 15px; color: rgba(255,255,255,.65); line-height: 1.4; }
+  .sx-wrow { margin-top: auto; padding-top: 22px; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid rgba(255,255,255,.14); font-size: 15px; color: rgba(255,255,255,.75); }
+  .sx-wrow strong { font-size: 22px; color: #fff; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .sx-wn { margin: 8px 0 0; font-size: 13.5px; color: rgba(255,255,255,.55); line-height: 1.45; }
+
+  .sx-risk { background: var(--pearl); padding-block: 96px; }
+  .sx-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 900px) { .sx-stats { grid-template-columns: 1fr 1fr; } }
+  .sx-stat { background: #fff; border-radius: 24px; padding: 22px 24px; display: flex; flex-direction: column; gap: 4px; }
+  .sx-sk { font-size: 13.5px; font-weight: 600; color: var(--dim); line-height: 1.3; }
+  .sx-sv { font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; letter-spacing: -0.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .sx-ss { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .sx-rgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 980px) { .sx-rgrid { grid-template-columns: 1fr; } }
+  .sx-panel { margin: 0; background: #fff; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .sx-panel figcaption { display: flex; flex-direction: column; gap: 3px; }
+  .sx-panel figcaption strong { font-size: 17px; letter-spacing: -0.02em; color: var(--ink); }
+  .sx-panel figcaption span { font-size: 13.5px; color: var(--muted); }
+  #g-hist { display: block; width: 100%; height: auto; }
+  #g-hist .hb { fill: #c9d3fd; transition: fill .2s; }
+  #g-hist .hb.in { fill: #2448f5; }
+  #g-hist .hb:hover { fill: #1d1d1f; }
+  #g-hist .ax { stroke: #d2d2d7; }
+  #g-hist .tk { stroke: #6e6e73; }
+  #g-hist .br { fill: none; stroke: #1d1d1f; stroke-width: 1.5; }
+  #g-hist .bt, #g-hist .ct { fill: #1d1d1f; font-size: 12px; font-weight: 600; font-family: var(--body); }
+  #g-hist .cl { stroke: #1d1d1f; stroke-width: 1.5; stroke-dasharray: 4 4; }
+  #g-hist .tx { fill: #6e6e73; font-size: 12px; font-family: var(--body); font-variant-numeric: tabular-nums; }
+  .sx-glegend { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--muted); }
+  .sx-glegend { gap: 6px 16px; }
+  .sx-glegend .li { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .sx-glegend .k { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+  .k-bar { background: #c9d3fd; } .k-p { background: #2448f5; } .k-c { height: 0 !important; width: 14px !important; border-top: 2px dashed #1d1d1f; border-radius: 0 !important; }
+  .k-down { background: #aeaeb2; } .k-up { background: #2448f5; }
+  .sx-rtab { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .sx-rtab th, .sx-rtab td { padding: 9px 6px; text-align: right; border-top: 1px solid #f0f0f2; }
+  .sx-rtab thead th { border-top: 0; font-size: 12.5px; font-weight: 600; color: var(--dim); }
+  .sx-rtab tbody th { text-align: left; font-weight: 500; color: var(--muted); }
+  .sx-rtab td { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .sx-rtab th:first-child { padding-left: 0; } .sx-rtab td:last-child, .sx-rtab th:last-child { padding-right: 0; }
+  .sx-tor { display: flex; flex-direction: column; gap: 12px; }
+  .sx-tor .tr { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .sx-tor .tl { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .sx-tor .tl strong { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .sx-tor .tl span { flex: none; font-size: 12.5px; color: var(--dim); white-space: nowrap; }
+  .sx-tor .tb { position: relative; height: 14px; border-radius: 4px; background: #f5f5f7; }
+  .sx-tor .td, .sx-tor .tu { position: absolute; top: 0; bottom: 0; }
+  .sx-tor .td { background: #aeaeb2; border-radius: 4px 0 0 4px; }
+  .sx-tor .tu { background: #2448f5; border-radius: 0 4px 4px 0; }
+  .sx-tor .tz { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #1d1d1f; }
+  .sx-tor .tv { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .sx-tor .tbase { margin: 2px 0 0; font-size: 12.5px; color: var(--dim); }
+
+  .sx-mkt { padding-block: 96px; max-width: 1000px; }
+  .sx-bench { display: flex; flex-direction: column; }
+  .br-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 10px 36px; padding: 28px 0; border-top: 1px solid var(--line-soft); }
+  .br-row:last-child { border-bottom: 1px solid var(--line-soft); }
+  @media (max-width: 760px) { .br-row { grid-template-columns: 1fr; } }
+  .br-h { display: flex; flex-direction: column; gap: 3px; grid-row: span 2; }
+  @media (max-width: 760px) { .br-h { grid-row: auto; } }
+  .br-h strong { font-size: 18px; letter-spacing: -0.02em; color: var(--ink); }
+  .br-h span { font-size: 14px; color: var(--muted); }
+  .br-t { position: relative; margin-top: 30px; }
+  .br-l { position: relative; border-radius: 4px; background: #f5f5f7; }
+  .br-l .bl { position: absolute; height: 10px; border-radius: 4px; background: #c7c7cc; }
+  .br-l .bl.mine { background: #9db0ff; }
+  .br-m { position: absolute; top: -6px; width: 2px; margin-left: -1px; background: #1d1d1f; }
+  .br-m::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #1d1d1f; box-shadow: 0 0 0 2px #fff; }
+  .br-m b { position: absolute; bottom: 100%; margin-bottom: 4px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .br-m.br-r b { left: auto; right: -2px; transform: none; }
+  .br-m.br-l b { left: -2px; transform: none; }
+  .br-c { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+  .br-c .bc { display: inline-flex; align-items: center; gap: 6px; }
+  .br-c .bc i { width: 10px; height: 10px; border-radius: 3px; background: #c7c7cc; }
+  .br-c .bc.mine i { background: #9db0ff; }
+  .br-c .bc.mine { color: var(--ink); font-weight: 600; }
+  .br-n { grid-column: 2; margin: 2px 0 0; font-size: 13px; color: var(--dim); line-height: 1.45; }
+  @media (max-width: 760px) { .br-n { grid-column: 1; } }
+  .br-n span { display: block; margin-top: 2px; }
+
+  .sx-cmp { background: var(--pearl); padding-block: 96px; }
+  .sx-cscroll { background: #fff; border: 0; border-radius: 28px; }
+  #g-cmp { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 640px; }
+  #g-cmp th, #g-cmp td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #f0f0f2; vertical-align: top; font-variant-numeric: tabular-nums; }
+  #g-cmp thead th { font-size: 14px; font-weight: 700; color: var(--ink); vertical-align: bottom; }
+  #g-cmp tbody th { font-weight: 500; color: var(--muted); width: 26%; }
+  #g-cmp tr:last-child th, #g-cmp tr:last-child td { border-bottom: 0; font-weight: 700; color: var(--ink); }
+  #g-cmp .me { background: #f7f8ff; }
+  #g-cmp .best { color: #2448f5 !important; }
+  #g-cmp .tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #2448f5; color: #fff; font-size: 11.5px; font-weight: 600; }
+  .sx-unpin { display: block; margin-top: 4px; padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--cobalt); cursor: pointer; }
+
   .sx-report { display: none; }
   @media print {
     @page { size: A4; margin: 16mm 14mm; }
@@ -517,5 +868,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
     .sx-report ol { margin: 0; padding-left: 18px; }
     .sx-report li { margin-bottom: 4px; }
     .rp-foot { margin-top: 18px; font-size: 8.5pt; color: #555; }
+    .rp-verdict { padding: 8px 10px; border: 1pt solid #000; border-radius: 6px; margin-bottom: 8px; }
+    .rp-verdict ul { margin: 4px 0 0; padding-left: 16px; }
   }
 </style>
