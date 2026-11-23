@@ -14,8 +14,9 @@ Le site est édité par **Robin Thomas-Le Déoré, entrepreneur individuel (EI)*
 - SIRET : 883 396 285 00024
 - Immatriculation : Registre national des entreprises (RNE)
 - Code APE : 7022Z, conseil pour les affaires et autres conseils de gestion
+- Numéro de TVA intracommunautaire : FR69 883 396 285
 - Directeur de la publication : Robin Thomas-Le Déoré
-- Contact : [contact@malaheim.com](mailto:contact@malaheim.com)
+- Contact : [contact@malaheim.com](mailto:contact@malaheim.com), [06 16 54 03 74](tel:+33616540374)
 
 ## Hébergement
 
