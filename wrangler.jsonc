@@ -1,7 +1,8 @@
 {
-  // Site statique Astro (dossier dist) servi par Cloudflare Workers, plus une route /api/lead pour les inscriptions.
-  // Secrets à créer dans Cloudflare (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL, LEADS_TOKEN et STRIPE_SECRET_KEY.
-  // Facultatif : DOSSIER_AMOUNT_CENTS, montant du dossier en centimes (2280 par défaut, 19 € HT plus TVA).
+  // Site statique Astro (dossier dist) servi par Cloudflare Workers, plus les routes /api/* des comptes clients.
+  // La base D1 « malaheim-comptes » est créée automatiquement au premier déploiement.
+  // Secrets (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL, LEADS_TOKEN, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (facultatif).
+  // Montants facultatifs en centimes TTC : PRICE_CREDIT_CENTS (2280), PRICE_PACK_CENTS (8280), PRICE_PRO_CENTS (46800).
   "name": "malaheim",
   "compatibility_date": "2026-11-01",
   "main": "./worker/index.js",
@@ -12,5 +13,6 @@
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
+  "d1_databases": [{ "binding": "DB", "database_name": "malaheim-comptes" }],
   "observability": { "enabled": true }
 }

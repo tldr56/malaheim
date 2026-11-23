@@ -78,9 +78,9 @@ const H = model.horizon;
         <span class="sx-big" id="r-budget"></span>
         <span class="sx-small" id="r-central"></span>
       </div>
-      <div class="sx-gate" id="gate">
-        <strong class="sx-gt">Débloquez l’analyse complète, gratuitement</strong>
-        <ul class="sx-gl">
+      <div class="sx-gate" id="gate" data-step="sign">
+        <strong class="sx-gt" id="gate-t">Votre première simulation complète est offerte</strong>
+        <ul class="sx-gl" id="gate-list">
           <li>Le budget poste par poste et le coût total sur {H} ans</li>
           <li>Le verdict détaillé et le coût de chaque mois d’attente</li>
           <li>Le risque chiffré sur 1 000 simulations</li>
@@ -88,9 +88,9 @@ const H = model.horizon;
           <li>Votre position face au marché, sources à l’appui</li>
           <li>Le comparateur de scénarios</li>
           <li>Le rapport PDF et le lien partageable</li>
-          <li>Les 7 simulateurs débloqués d’un coup</li>
+          <li>Votre espace client et l’historique de vos simulations</li>
         </ul>
-        <form id="gate-form" class="sx-gf" novalidate>
+        <form id="gate-form" class="sx-gf" data-pane="sign" novalidate>
           <div class="sx-gfi"><label for="g-name">Nom et prénom</label><input id="g-name" name="name" autocomplete="name" required maxlength="80" /></div>
           <div class="sx-gfi"><label for="g-email">E-mail professionnel</label><input id="g-email" name="email" type="email" autocomplete="email" required maxlength="120" placeholder="prenom.nom@entreprise.fr" /></div>
           <div class="sx-gfi"><label for="g-company">Entreprise</label><input id="g-company" name="company" autocomplete="organization" required maxlength="100" /></div>
@@ -110,10 +110,35 @@ const H = model.horizon;
           <div class="sx-gfi"><label for="g-phone">Téléphone <span>facultatif</span></label><input id="g-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" /></div>
           <div class="sx-hp" aria-hidden="true"><label for="g-web">Site web</label><input id="g-web" name="website" tabindex="-1" autocomplete="off" /></div>
           <label class="sx-gopt"><input id="g-optin" type="checkbox" /><span>Recevoir les nouveaux guides et simulateurs, une à deux fois par mois</span></label>
-          <button type="submit" class="sx-btn sx-gbtn" id="g-btn">Débloquer l’analyse</button>
-          <p class="sx-gn">Vous recevez le récapitulatif de votre simulation par e-mail. Nous pouvons vous recontacter au sujet de votre projet ; vous pouvez vous y opposer à tout moment. Vos données ne sont ni vendues ni cédées. <a href="/confidentialite/">Confidentialité</a></p>
+          <button type="submit" class="sx-btn sx-gbtn" id="g-btn">Recevoir mon code d’accès</button>
+          <p class="sx-gn">Un code à 6 chiffres vous est envoyé par e-mail pour créer votre espace client. Nous pouvons vous recontacter au sujet de votre projet ; vous pouvez vous y opposer à tout moment. Vos données ne sont ni vendues ni cédées. <a href="/confidentialite/">Confidentialité</a></p>
+          <p class="sx-gsw">Déjà un compte ? <button type="button" class="sx-glink" data-go="login">Se connecter</button></p>
           <p class="sx-gmsg" id="gate-msg" role="status"></p>
         </form>
+        <form id="gate-login" class="sx-gf sx-gf1" data-pane="login" novalidate hidden>
+          <div class="sx-gfi"><label for="g-lemail">E-mail</label><input id="g-lemail" type="email" autocomplete="email" maxlength="120" /></div>
+          <button type="submit" class="sx-btn sx-gbtn">Recevoir mon code</button>
+          <p class="sx-gsw">Pas encore de compte ? <button type="button" class="sx-glink" data-go="sign">Créer mon compte</button></p>
+          <p class="sx-gmsg" id="login-msg" role="status"></p>
+        </form>
+        <form id="gate-code" class="sx-gf sx-gf1" data-pane="code" novalidate hidden>
+          <p class="sx-gsent">Un code à 6 chiffres vient de partir à <b id="g-sent"></b>. Il est valable 15 minutes.</p>
+          <div class="sx-gfi"><label for="g-code">Code reçu par e-mail</label><input id="g-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" class="sx-gcode" /></div>
+          <button type="submit" class="sx-btn sx-gbtn">Ouvrir mon analyse</button>
+          <p class="sx-gsw"><button type="button" class="sx-glink" id="g-resend">Renvoyer le code</button> <button type="button" class="sx-glink" data-go="sign">Changer d’adresse</button></p>
+          <p class="sx-gmsg" id="code-msg" role="status"></p>
+        </form>
+        <div class="sx-gpay" data-pane="pay" hidden>
+          <p class="sx-gsent" id="g-paytxt"></p>
+          <button type="button" class="sx-btn sx-gbtn" id="g-use" hidden></button>
+          <div class="sx-gpb">
+            <button type="button" class="sx-gp" data-buy="credit"><b>1 simulation avec son dossier</b><span>{SITE.creditPrice}</span></button>
+            <button type="button" class="sx-gp" data-buy="pack"><b>5 simulations avec dossiers</b><span>{SITE.packPrice}</span></button>
+            <button type="button" class="sx-gp" data-buy="pro"><b>Pass Pro, illimité, à votre logo</b><span>{SITE.proPrice}</span></button>
+          </div>
+          <p class="sx-gsw"><a href="/compte/">Mon espace client</a></p>
+          <p class="sx-gmsg" id="pay-msg" role="status"></p>
+        </div>
       </div>
       <div class="sx-bar" id="r-bar" role="img" aria-label="Répartition du budget"></div>
       <dl class="sx-legend" id="r-legend"></dl>
@@ -142,6 +167,7 @@ const H = model.horizon;
         {v3 && <button type="button" class="sx-btn sx-btn-ghost" id="sx-pin">Garder ce scénario pour comparer</button>}
       </div>
       <p class="sx-status" id="sx-status" role="status"></p>
+      <p class="sx-acc" id="sx-acc"></p>
     </section>
   </div>
 
@@ -178,7 +204,8 @@ const H = model.horizon;
             <li><b>Les 10 questions à poser aux éditeurs</b><span>Celles qui font tomber les offres trop belles</span></li>
             <li><b>Le modèle de calcul Excel</b><span>À compléter avec les offres reçues, tout se recalcule</span></li>
           </ul>
-          <div class="sx-dbuy"><span class="sx-dprice">{SITE.dossierPrice}</span><span class="sx-dnote">Déduits du kit de consultation.<br />Accès immédiat, PDF et Excel.</span></div>
+          <div class="sx-dbuy"><span class="sx-dprice">{SITE.creditPrice}</span><span class="sx-dnote">Déduits du kit de consultation.<br />Accès immédiat, PDF et Excel.</span></div>
+          <p class="sx-doffers">Pack de 5 simulations avec dossiers : {SITE.packPrice}. Pass Pro, illimité et à votre logo : {SITE.proPrice}. <a href="/compte/">Voir les formules</a></p>
           <div class="sx-dact">
             <button type="button" class="sx-dbtn" id="dos-buy">Recevoir mon dossier</button>
             <a class="sx-dlink" href={`/dossier/?exemple=${slug}`}>Voir un exemple complet</a>
@@ -291,7 +318,7 @@ const H = model.horizon;
         </tbody>
       </table>
     </div>
-    <p class="sx-foot">Ordres de grandeur indicatifs en euros hors taxes, modèle version {model.version || 2} de novembre 2026. Les réponses sont calculées dans votre navigateur et ne sont transmises à personne. Un chiffrage ferme demande un cadrage de vos flux et des offres d’éditeurs.</p>
+    <p class="sx-foot">Ordres de grandeur indicatifs en euros hors taxes, modèle version {model.version || 2} de novembre 2026. Les calculs se font dans votre navigateur ; une fois connecté, vos réponses sont enregistrées dans votre espace client. Un chiffrage ferme demande un cadrage de vos flux et des offres d’éditeurs.</p>
   </section>
 
   <section class="sx-others" aria-labelledby="t-others">
@@ -311,8 +338,8 @@ const H = model.horizon;
   </section>
 
   <div class="sx-lockbar" id="lockbar" hidden>
-    <span>Analyse complète réservée aux inscrits : risque, marché, scénarios et PDF.</span>
-    <button type="button" class="sx-btn" id="lockbar-go">Débloquer gratuitement</button>
+    <span>Votre première simulation complète est offerte : risque, marché, scénarios et PDF.</span>
+    <button type="button" class="sx-btn" id="lockbar-go">Créer mon accès</button>
   </div>
 
   <div class="sx-report" id="sx-report" aria-hidden="true">
@@ -640,7 +667,7 @@ const H = model.horizon;
   root.addEventListener('input', render);
   root.addEventListener('change', render);
   $('sx-reset').addEventListener('click', () => { const d = defaults(model); model.assumptions.forEach((h: any) => { (document.getElementById(`a-${h.id}`) as HTMLInputElement).value = String(d.a[h.id]); }); render(); });
-  $('sx-print').addEventListener('click', () => { if (!lead) { goGate(); return; } sendUsage('pdf'); buildReport(); window.print(); });
+  $('sx-print').addEventListener('click', () => { if (!simRec) { goGate(); return; } sendUsage('pdf'); buildReport(); window.print(); });
   $('sx-link').addEventListener('click', () => {
     sendUsage('lien'); const url = shareUrl(); history.replaceState(null, '', url);
     const done = (ok: boolean) => { $('sx-status').textContent = ok ? 'Lien copié. Il rouvre cette simulation avec vos réponses.' : 'Copie impossible ici : le lien est dans la barre d’adresse.'; };
@@ -662,86 +689,150 @@ const H = model.horizon;
     });
   }
 
-  // Accès sur inscription : aperçu libre (verdict et fourchette), analyse complète après inscription, valable pour les 7 simulateurs
-  const LKEY = 'mlh-lead';
-  const getLead = () => { try { return JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch { return null; } };
-  let lead: any = getLead();
-  const t0 = Date.now();
+  // Comptes clients : première simulation complète offerte, les suivantes avec un crédit, un pack ou le Pass Pro
   const GATED = '.sx-bar,.sx-legend,.sx-kpis,.sx-pay,.sx-chart,.sx-actions,.sx-vsec,.sx-risk,.sx-mkt,.sx-cmp,.sx-watch';
-  const lockbar = $('lockbar');
+  const lockbar = $('lockbar'); const gate = $('gate');
+  let acct: any = null; let simRec: any = null; let pendingEmail = ''; let lastStart: any = null;
   const setLocked = (on: boolean) => {
     root.classList.toggle('locked', on);
     root.querySelectorAll(GATED).forEach((el) => { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); });
     if (!on) lockbar.hidden = true;
   };
-  setLocked(!lead);
-  const gate = $('gate');
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver((en) => { lockbar.hidden = !root.classList.contains('locked') || en[0].isIntersecting; }).observe(gate);
-  }
-  const goGate = () => { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => (document.getElementById('g-name') as HTMLInputElement)?.focus({ preventScroll: true }), 500); };
+  setLocked(true);
+  if ('IntersectionObserver' in window) new IntersectionObserver((en) => { lockbar.hidden = !root.classList.contains('locked') || en[0].isIntersecting; }).observe(gate);
+  const TITLES: Record<string, string> = { sign: 'Votre première simulation complète est offerte', login: 'Connexion à votre espace client', code: 'Vérifiez votre adresse e-mail', pay: 'Lancez une nouvelle simulation complète' };
+  const pane = (name: string) => {
+    gate.dataset.step = name; $('gate-t').textContent = TITLES[name];
+    gate.querySelectorAll<HTMLElement>('[data-pane]').forEach((el) => { el.hidden = el.dataset.pane !== name; });
+    $('gate-list').hidden = name === 'code' || name === 'login';
+    $('lockbar-go').textContent = name === 'pay' ? 'Voir les formules' : 'Créer mon accès';
+  };
+  gate.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('[data-go]') as HTMLElement | null; if (b) pane(b.dataset.go!); });
+  const goGate = () => { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => (gate.querySelector('[data-pane]:not([hidden]) input:not([type=checkbox]):not([tabindex="-1"])') as HTMLInputElement | null)?.focus({ preventScroll: true }), 500); };
   $('lockbar-go').addEventListener('click', goGate);
 
-  const post = (payload: any) => fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
+  const api = async (path: string, data?: any) => {
+    try {
+      const r = await fetch(path, data === undefined ? { credentials: 'same-origin' } : { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+      const j = await r.json().catch(() => ({})); return { status: r.status, ...j };
+    } catch { return { status: 0, ok: false, error: 'Connexion impossible. Réessayez dans un instant.' }; }
+  };
+  const qNow = () => new URL(shareUrl()).search.slice(1);
+  const dfr = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   const context = () => ({
     sim: model.slug, code: model.code, verdict: slow ? slow.v.title : '', budget: last ? `${money(last.low)} à ${money(last.high)}` : '',
     tier: last ? last.tier.name : '', summary: last ? summary() : '', link: shareUrl(),
   });
-  let usageSent = 0; let utmr: any = 0;
-  const sendUsage = (ev: string) => {
-    if (!lead || usageSent >= 4) return; usageSent++;
-    try { post({ type: 'usage', event: ev, email: lead.email, name: lead.name, company: lead.company, ...context() }).catch(() => {}); } catch { /* rien */ }
-  };
-  root.addEventListener('change', () => { if (!lead) return; clearTimeout(utmr); utmr = setTimeout(() => sendUsage('simulation'), 25000); });
-  if (lead) utmr = setTimeout(() => sendUsage('ouverture'), 8000);
+  let usageSent = 0; let utmr: any = 0; let stmr: any = 0;
+  const sendUsage = (ev: string) => { if (!acct || usageSent >= 4) return; usageSent++; api('/api/lead', { event: ev, ...context() }); };
 
-  // Dossier de décision payant
-  $('dos-buy').addEventListener('click', async () => {
-    const msg = $('dos-msg');
-    if (!lead) { msg.textContent = 'Débloquez d’abord l’analyse, gratuitement : le dossier reprend vos réponses.'; goGate(); return; }
-    sendUsage('dossier');
-    const btn = $('dos-buy') as HTMLButtonElement; btn.disabled = true; msg.textContent = 'Ouverture du paiement sécurisé…';
-    try {
-      const rr = await fetch('/api/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
-        sim: model.slug, q: new URL(shareUrl()).search.slice(1), email: lead.email, name: lead.name, company: lead.company,
-      }) });
-      const j = await rr.json().catch(() => ({}));
-      if (j.ok && j.url) { location.href = j.url; return; }
-      msg.innerHTML = j.reason === 'not_configured'
-        ? `Le paiement en ligne ouvre très prochainement. En attendant, <a href="/dossier/?exemple=${model.slug}">découvrez l’exemple complet</a> ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a>.`
-        : 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant, ou écrivez-nous à contact@malaheim.com.';
-    } catch { msg.textContent = 'Connexion impossible. Réessayez dans un instant.'; }
-    btn.disabled = false;
+  const showAccess = () => {
+    if (!simRec) { $('sx-acc').innerHTML = ''; return; }
+    const txt = simRec.kind === 'pro' ? 'Pass Pro : simulations et dossiers illimités.' : `${simRec.kind === 'free' ? 'Simulation offerte' : 'Simulation complète avec dossier'}, réglages libres jusqu’au ${dfr(simRec.until)}.`;
+    $('sx-acc').innerHTML = `${esc(txt)} <a href="/compte/">Mon espace client</a>`;
+    $('dos-buy').textContent = simRec.dossier || (acct && acct.pro) ? 'Ouvrir mon dossier' : 'Recevoir mon dossier';
+  };
+  const payPane = (j: any) => {
+    const a = j.account || acct; const lastTxt = j.last ? ` (${j.last.code}, le ${dfr(j.last.created)})` : '';
+    const use = $('g-use') as HTMLButtonElement;
+    if (j.need === 'confirm') {
+      $('g-paytxt').textContent = `Votre simulation offerte a déjà servi${lastTxt}. Il vous reste ${a.credits} crédit${a.credits > 1 ? 's' : ''} : une nouvelle simulation complète, avec son dossier de décision, en utilise un.`;
+      use.hidden = false; use.textContent = 'Utiliser 1 crédit';
+    } else {
+      $('g-paytxt').textContent = `Votre simulation offerte a déjà servi${lastTxt}. Chaque nouvelle simulation complète est livrée avec son dossier de décision : 10 pages et le modèle de calcul Excel.`;
+      use.hidden = true;
+    }
+    pane('pay');
+  };
+  const openSim = async (confirm = false) => {
+    const j = await api('/api/sim/open', { sim: model.slug, q: qNow(), confirm });
+    if (j.status === 401) { acct = null; simRec = null; setLocked(true); pane('sign'); return false; }
+    if (!j.ok) return false;
+    acct = j.account;
+    if (j.access === 'full') { simRec = j.sim; setLocked(false); showAccess(); return true; }
+    simRec = null; setLocked(true); payPane(j); return false;
+  };
+  const checkout = async (product: string, simId: string, back: string, msg: HTMLElement) => {
+    msg.textContent = 'Ouverture du paiement sécurisé…';
+    const j = await api('/api/checkout', { product, simId, back });
+    if (j.ok && j.url) { location.href = j.url; return; }
+    if (j.status === 401) { msg.textContent = 'Connectez-vous d’abord.'; pane('login'); goGate(); return; }
+    msg.innerHTML = j.reason === 'not_configured'
+      ? `Le paiement en ligne ouvre très prochainement. En attendant, <a href="/dossier/?exemple=${model.slug}">découvrez l’exemple complet</a> ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a>.`
+      : esc(j.error || 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant.');
+  };
+
+  root.addEventListener('change', () => {
+    if (!acct) return;
+    clearTimeout(utmr); utmr = setTimeout(() => sendUsage('simulation'), 25000);
+    if (simRec && simRec.active !== false) { clearTimeout(stmr); stmr = setTimeout(() => api('/api/sim/save', { id: simRec.id, q: qNow() }), 2500); }
   });
 
-  const gform = document.getElementById('gate-form') as HTMLFormElement; const gmsg = $('gate-msg');
+  // Inscription, connexion et code
   const val = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
-  gform.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = val('g-name'), email = val('g-email'), company = val('g-company'), role = val('g-role'), phone = val('g-phone');
+  const start = async (payload: any, msg: HTMLElement) => {
+    msg.textContent = 'Envoi du code…';
+    const j = await api('/api/auth/start', payload);
+    if (!j.ok) { msg.innerHTML = esc(j.error || 'Envoi impossible.') + (j.unknown ? ' <button type="button" class="sx-glink" data-go="sign">Créer mon compte</button>' : ''); return false; }
+    lastStart = payload; pendingEmail = payload.email; msg.textContent = '';
+    $('g-sent').textContent = pendingEmail; ($('g-code') as HTMLInputElement).value = j.devCode || '';
+    $('code-msg').textContent = j.devCode ? `Mode test, envoi des e-mails non branché : le code est ${j.devCode}.` : '';
+    pane('code'); setTimeout(() => ($('g-code') as HTMLInputElement).focus(), 50);
+    return true;
+  };
+  ($('gate-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault(); const gmsg = $('gate-msg');
+    const name = val('g-name'), email = val('g-email'), company = val('g-company'), role = val('g-role');
     if (name.length < 2) { gmsg.textContent = 'Indiquez votre nom et votre prénom.'; return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { gmsg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
     if (company.length < 2) { gmsg.textContent = 'Indiquez votre entreprise.'; return; }
     if (!role) { gmsg.textContent = 'Choisissez votre fonction.'; return; }
-    const btn = $('g-btn') as HTMLButtonElement; btn.disabled = true; gmsg.textContent = 'Un instant…';
-    clearTimeout(tmr); renderSlow(state.i, state.a, last);
-    let res: any = null;
-    try {
-      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 9000);
-      const rr = await fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal, body: JSON.stringify({
-        type: 'unlock', name, email, company, role, phone, optin: (document.getElementById('g-optin') as HTMLInputElement).checked,
-        website: val('g-web'), elapsed: Date.now() - t0, ...context(),
-      }) });
-      clearTimeout(to);
-      if (rr.status === 400) { const j = await rr.json().catch(() => ({})); gmsg.textContent = j.error || 'Vérifiez vos informations.'; btn.disabled = false; return; }
-      res = await rr.json().catch(() => null);
-    } catch { /* le visiteur n'est pas pénalisé par une panne réseau */ }
-    lead = { name, email, company, role, ts: Date.now() };
-    try { localStorage.setItem(LKEY, JSON.stringify(lead)); } catch { /* navigation privée */ }
-    setLocked(false); btn.disabled = false; gmsg.textContent = '';
-    $('sx-status').textContent = res && res.mailed ? 'Analyse débloquée sur les 7 simulateurs. Le récapitulatif part dans votre boîte e-mail.' : 'Analyse débloquée sur les 7 simulateurs.';
-    if (V3) setTimeout(() => $('t-verdict').scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    await start({ mode: 'signup', name, email, company, role, phone: val('g-phone'), optin: (document.getElementById('g-optin') as HTMLInputElement).checked, website: val('g-web') }, gmsg);
   });
+  ($('gate-login') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault(); const email = val('g-lemail');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { $('login-msg').textContent = 'Saisissez une adresse e-mail valide.'; return; }
+    await start({ mode: 'login', email }, $('login-msg'));
+  });
+  $('g-resend').addEventListener('click', () => { if (lastStart) start(lastStart, $('code-msg')); });
+  ($('gate-code') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault(); const msg = $('code-msg'); const code = val('g-code');
+    if (!/^\d{6}$/.test(code)) { msg.textContent = 'Saisissez les 6 chiffres du code.'; return; }
+    msg.textContent = 'Vérification…'; clearTimeout(tmr); renderSlow(state.i, state.a, last);
+    const c = context();
+    const j = await api('/api/auth/verify', { email: pendingEmail, code, sim: c.sim, simCode: c.code, verdict: c.verdict, budget: c.budget, tier: c.tier, summary: c.summary, link: c.link });
+    if (!j.ok) { msg.textContent = j.error || 'Code incorrect.'; return; }
+    acct = j.account; msg.textContent = '';
+    if (await openSim(false)) {
+      $('sx-status').textContent = 'Analyse complète débloquée. Elle est enregistrée dans votre espace client.';
+      if (V3) setTimeout(() => $('t-verdict').scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    } else goGate();
+  });
+  $('g-use').addEventListener('click', async () => { if (await openSim(true)) $('sx-status').textContent = 'Nouvelle simulation complète ouverte, avec son dossier.'; });
+  gate.querySelectorAll<HTMLElement>('[data-buy]').forEach((b) => b.addEventListener('click', () => checkout(b.dataset.buy!, '', location.pathname + location.search, $('pay-msg'))));
+
+  // Dossier de décision
+  $('dos-buy').addEventListener('click', async () => {
+    const msg = $('dos-msg');
+    if (!acct) { msg.textContent = 'Créez d’abord votre accès : la première simulation complète est offerte.'; goGate(); return; }
+    if (!simRec) { msg.textContent = 'Ouvrez d’abord une simulation complète sur cette page.'; goGate(); return; }
+    sendUsage('dossier');
+    await api('/api/sim/save', { id: simRec.id, q: qNow() });
+    const j = await api('/api/sim/dossier', { id: simRec.id });
+    if (j.ok && j.id) { location.href = `/dossier/?id=${j.id}`; return; }
+    if (j.need === 'confirm') {
+      msg.innerHTML = `Il vous reste ${j.credits} crédit${j.credits > 1 ? 's' : ''}. <button type="button" class="sx-dinline" id="dos-use">Utiliser 1 crédit pour ce dossier</button>`;
+      $('dos-use').addEventListener('click', async () => { const k = await api('/api/sim/dossier', { id: simRec.id, confirm: true }); if (k.ok && k.id) location.href = `/dossier/?id=${k.id}`; else msg.textContent = k.error || 'Opération impossible.'; });
+      return;
+    }
+    checkout('credit', simRec.id, `/dossier/?id=${simRec.id}`, msg);
+  });
+
+  (async () => {
+    const j = await api('/api/me');
+    if (j.account) { acct = j.account; await openSim(false); usageSent = 0; utmr = setTimeout(() => sendUsage('ouverture'), 8000); }
+    else pane('sign');
+  })();
 
   render();
 </script>
@@ -1067,6 +1158,20 @@ const H = model.horizon;
   .sx-gbtn:disabled { opacity: .5; cursor: default; }
   .sx-gn { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.45; color: var(--dim); }
   .sx-gmsg { grid-column: 1 / -1; margin: 0; min-height: 1.2em; font-size: 13.5px; font-weight: 600; color: #c4321f; }
+  .sx-gf1 { grid-template-columns: 1fr; }
+  .sx-gsw { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--muted); }
+  .sx-glink { padding: 0; margin-right: 12px; border: 0; background: none; font: inherit; font-weight: 600; color: var(--cobalt); cursor: pointer; }
+  .sx-gsent { grid-column: 1 / -1; margin: 0; font-size: 14px; line-height: 1.45; color: var(--text); }
+  .sx-gcode { font-size: 26px !important; letter-spacing: .35em; text-align: center; font-variant-numeric: tabular-nums; }
+  .sx-gpay { display: flex; flex-direction: column; gap: 12px; }
+  .sx-gpay[hidden], .sx-gf[hidden], .sx-gl[hidden] { display: none; }
+  .sx-gpb { display: flex; flex-direction: column; gap: 8px; }
+  .sx-gp { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1px solid #d2d2d7; background: #fff; font: inherit; font-size: 14.5px; color: var(--ink); cursor: pointer; text-align: left; transition: border-color .2s, background-color .2s; }
+  .sx-gp:hover { border-color: #1d1d1f; background: #f5f5f7; }
+  .sx-gp span { flex: none; font-weight: 700; }
+  .sx-acc { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,.6); } .sx-acc:empty { display: none; } .sx-acc a { color: #9db0ff; }
+  .sx-doffers { margin: 12px 0 0; font-size: 14px; color: rgba(255,255,255,.6); } .sx-doffers a { color: #9db0ff; }
+  .sx-dinline { margin-left: 6px; padding: 6px 12px; border-radius: 999px; border: 0; background: #fff; color: #000; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .sx-lockbar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 16px; padding: 10px 10px 10px 22px; border-radius: 999px; background: #000; color: #fff; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); width: max-content; max-width: calc(100vw - 24px); }
   .sx-lockbar[hidden] { display: none; }
   @media (max-width: 640px) { .sx-lockbar { border-radius: 20px; flex-direction: column; align-items: stretch; text-align: center; padding: 12px; gap: 8px; } }

@@ -22,6 +22,10 @@ export const SITE = {
   hourlyRate: '95 € HT',
   // Dossier de décision vendu à l'issue d'une simulation (montant encaissé réglé par le secret DOSSIER_AMOUNT_CENTS du Worker).
   dossierPrice: '19 € HT',
+  // Offres du compte client (montants encaissés réglés dans le Worker : PRICE_CREDIT_CENTS, PRICE_PACK_CENTS, PRICE_PRO_CENTS).
+  creditPrice: '19 € HT',
+  packPrice: '69 € HT',
+  proPrice: '390 € HT par an',
   hourlyNum: 95,
 };
 

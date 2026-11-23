@@ -1,0 +1,241 @@
+---
+// Espace client : connexion par code, crédits, formule, simulations et dossiers, achats, marque du cabinet (Pass Pro).
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../config';
+import { SIM_LIST } from '../../lib/sims.js';
+const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
+---
+<Base title="Mon espace client" description="Votre espace client Malaheim : simulations, dossiers de décision, crédits et formules." noindex>
+  <section class="ac wrap" id="ac" data-names={JSON.stringify(names)}>
+    <header class="ac-head">
+      <div>
+        <p class="ac-k">Espace client</p>
+        <h1 class="ac-t" id="ac-t">Mon espace</h1>
+        <p class="ac-s" id="ac-s"></p>
+      </div>
+      <button type="button" class="ac-btn ac-ghost" id="ac-out" hidden>Se déconnecter</button>
+    </header>
+    <p class="ac-msg" id="ac-msg" role="status"></p>
+
+    <div class="ac-login" id="ac-login" hidden>
+      <form id="ac-lf" class="ac-card" novalidate>
+        <h2>Connexion</h2>
+        <p>Saisissez l’adresse e-mail de votre compte : nous vous envoyons un code à 6 chiffres.</p>
+        <label for="ac-email">E-mail</label><input id="ac-email" type="email" autocomplete="email" maxlength="120" />
+        <button type="submit" class="ac-btn">Recevoir mon code</button>
+        <p class="ac-note">Pas encore de compte ? Votre première simulation complète est offerte : <a href="/simulateurs/">choisissez un simulateur</a>.</p>
+        <p class="ac-err" id="ac-lmsg" role="status"></p>
+      </form>
+      <form id="ac-cf" class="ac-card" novalidate hidden>
+        <h2>Votre code</h2>
+        <p>Un code vient de partir à <b id="ac-sent"></b>. Il est valable 15 minutes.</p>
+        <label for="ac-code">Code reçu par e-mail</label><input id="ac-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="ac-code" />
+        <button type="submit" class="ac-btn">Me connecter</button>
+        <p class="ac-err" id="ac-cmsg" role="status"></p>
+      </form>
+    </div>
+
+    <div id="ac-main" hidden>
+      <div class="ac-tiles">
+        <div class="ac-tile"><span>Crédits disponibles</span><b id="t-credits"></b><small id="t-credits-s"></small></div>
+        <div class="ac-tile"><span>Formule</span><b id="t-plan"></b><small id="t-plan-s"></small></div>
+        <div class="ac-tile"><span>Simulation offerte</span><b id="t-free"></b><small id="t-free-s"></small></div>
+      </div>
+
+      <h2 class="ac-h2">Mes simulations</h2>
+      <div class="ac-list" id="ac-list"></div>
+
+      <h2 class="ac-h2" id="formules">Formules</h2>
+      <div class="ac-offers">
+        <div class="ac-offer">
+          <h3>Une simulation</h3><p class="ac-price">{SITE.creditPrice}</p>
+          <ul><li>Une simulation complète, réglable 7 jours</li><li>Son dossier de décision, PDF et Excel</li><li>Prix déduit du kit de consultation</li></ul>
+          <button type="button" class="ac-btn" data-buy="credit">Acheter</button>
+        </div>
+        <div class="ac-offer ac-feat">
+          <h3>Pack de 5</h3><p class="ac-price">{SITE.packPrice}</p>
+          <ul><li>Cinq simulations complètes avec dossiers</li><li>Toutes familles de logiciels</li><li>Valable 12 mois</li></ul>
+          <button type="button" class="ac-btn" data-buy="pack">Acheter</button>
+        </div>
+        <div class="ac-offer">
+          <h3>Pass Pro</h3><p class="ac-price">{SITE.proPrice}</p>
+          <ul><li>Simulations et dossiers illimités</li><li>Dossiers à votre nom et à votre logo</li><li>Pour remettre à vos propres clients</li></ul>
+          <button type="button" class="ac-btn" data-buy="pro">Acheter</button>
+        </div>
+      </div>
+      <p class="ac-err" id="ac-bmsg" role="status"></p>
+
+      <div class="ac-brand" id="ac-brand" hidden>
+        <h2 class="ac-h2">Votre marque sur les dossiers</h2>
+        <form id="ac-bf" class="ac-card ac-bcard" novalidate>
+          <div><label for="ac-cab">Nom du cabinet</label><input id="ac-cab" maxlength="80" /></div>
+          <div><label for="ac-logo">Logo (PNG, JPEG ou SVG, 200 Ko au maximum)</label><input id="ac-logo" type="file" accept="image/png,image/jpeg,image/svg+xml" /></div>
+          <div class="ac-prev"><img id="ac-limg" alt="" hidden /><button type="button" class="ac-link" id="ac-ldel" hidden>Retirer le logo</button></div>
+          <button type="submit" class="ac-btn">Enregistrer</button>
+          <p class="ac-err" id="ac-brmsg" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id)!;
+  const names = JSON.parse($('ac').dataset.names || '{}');
+  const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const dfr = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const api = async (path: string, data?: any) => {
+    try {
+      const r = await fetch(path, data === undefined ? { credentials: 'same-origin' } : { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+      const j = await r.json().catch(() => ({})); return { status: r.status, ...j };
+    } catch { return { status: 0, ok: false, error: 'Connexion impossible.' }; }
+  };
+  const params = new URLSearchParams(location.search);
+  const retour = (() => { const r = params.get('retour') || ''; return /^\/[A-Za-z0-9/_?=&.%-]*$/.test(r) ? r : ''; })();
+  const msg = (t: string) => { $('ac-msg').innerHTML = t; };
+  let me: any = null; let email = ''; let logo = '';
+
+  const render = () => {
+    const a = me.account;
+    $('ac-login').hidden = true; $('ac-main').hidden = false; $('ac-out').hidden = false;
+    $('ac-t').textContent = `Bonjour ${a.name || ''}`.trim();
+    $('ac-s').textContent = [a.company, a.email].filter(Boolean).join(', ');
+    $('t-credits').textContent = String(a.credits);
+    $('t-credits-s').textContent = a.credits && a.creditsUntil ? `Valables jusqu’au ${dfr(a.creditsUntil)}` : 'Un crédit ouvre une simulation complète avec son dossier';
+    $('t-plan').textContent = a.pro ? 'Pass Pro' : 'Standard';
+    $('t-plan-s').textContent = a.pro ? `Jusqu’au ${dfr(a.proUntil)}` : 'Simulations et dossiers à l’unité';
+    $('t-free').textContent = a.freeUsed ? 'Utilisée' : 'Disponible';
+    $('t-free-s').textContent = a.freeUsed ? 'Les suivantes utilisent un crédit ou le Pass Pro' : 'Ouvrez n’importe quel simulateur';
+    const sims = me.sims || [];
+    $('ac-list').innerHTML = sims.length ? sims.map((s: any) => `<div class="ac-row">
+        <div class="ac-r1"><b>${esc(names[s.sim] || s.code)}</b><span>${esc(s.code)}, ouverte le ${dfr(s.created)}, référence ${esc(s.ref)}</span></div>
+        <span class="ac-chip ${s.active ? 'on' : ''}">${s.active ? `Réglable jusqu’au ${dfr(s.until)}` : 'Terminée'}</span>
+        <div class="ac-r2">
+          <a class="ac-link" href="/simulateurs/${esc(s.sim)}/${s.q ? `?${esc(s.q)}` : ''}">${s.active ? 'Reprendre' : 'Revoir'}</a>
+          ${s.dossier ? `<a class="ac-btn ac-sm" href="/dossier/?id=${esc(s.id)}">Ouvrir le dossier</a>` : `<button type="button" class="ac-btn ac-sm ac-ghost" data-unlock="${esc(s.id)}">Débloquer le dossier</button>`}
+        </div>
+      </div>`).join('') : `<p class="ac-empty">Aucune simulation pour l’instant. <a href="/simulateurs/">Choisissez un simulateur</a> : la première simulation complète est offerte.</p>`;
+    $('ac-brand').hidden = !a.pro;
+    if (a.pro) { ($('ac-cab') as HTMLInputElement).value = a.cabinet || ''; logo = me.logo || ''; showLogo(); }
+  };
+  const showLogo = () => { const img = $('ac-limg') as HTMLImageElement; img.hidden = !logo; if (logo) img.src = logo; $('ac-ldel').hidden = !logo; };
+
+  const load = async () => {
+    me = await api('/api/me');
+    if (me.account) render();
+    else { $('ac-login').hidden = false; $('ac-main').hidden = true; $('ac-out').hidden = true; $('ac-t').textContent = 'Mon espace client'; $('ac-s').textContent = ''; }
+    return me.account;
+  };
+
+  const checkout = async (product: string, simId = '') => {
+    $('ac-bmsg').textContent = 'Ouverture du paiement sécurisé…';
+    const j = await api('/api/checkout', { product, simId, back: simId ? `/dossier/?id=${simId}` : '/compte/' });
+    if (j.ok && j.url) { location.href = j.url; return; }
+    $('ac-bmsg').innerHTML = j.reason === 'not_configured' ? 'Le paiement en ligne ouvre très prochainement. Écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a> en attendant.' : esc(j.error || 'Le paiement n’a pas pu s’ouvrir.');
+  };
+  document.querySelectorAll<HTMLElement>('[data-buy]').forEach((b) => b.addEventListener('click', () => checkout(b.dataset.buy!)));
+  $('ac-list').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest('[data-unlock]') as HTMLElement | null; if (!b) return;
+    const id = b.dataset.unlock!;
+    const j = await api('/api/sim/dossier', { id });
+    if (j.ok && j.id) { location.href = `/dossier/?id=${j.id}`; return; }
+    if (j.need === 'confirm') {
+      const k = await api('/api/sim/dossier', { id, confirm: true });
+      if (k.ok && k.id) { location.href = `/dossier/?id=${k.id}`; return; }
+    }
+    checkout('credit', id);
+  });
+
+  ($('ac-lf') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault(); email = ($('ac-email') as HTMLInputElement).value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { $('ac-lmsg').textContent = 'Saisissez une adresse e-mail valide.'; return; }
+    $('ac-lmsg').textContent = 'Envoi du code…';
+    const j = await api('/api/auth/start', { mode: 'login', email });
+    if (!j.ok) { $('ac-lmsg').textContent = j.error || 'Envoi impossible.'; return; }
+    $('ac-lmsg').textContent = ''; $('ac-sent').textContent = email; $('ac-lf').hidden = true; $('ac-cf').hidden = false;
+    ($('ac-code') as HTMLInputElement).value = j.devCode || '';
+    $('ac-cmsg').textContent = j.devCode ? `Mode test, envoi des e-mails non branché : le code est ${j.devCode}.` : '';
+    ($('ac-code') as HTMLInputElement).focus();
+  });
+  ($('ac-cf') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault(); const code = ($('ac-code') as HTMLInputElement).value.trim();
+    const j = await api('/api/auth/verify', { email, code });
+    if (!j.ok) { $('ac-cmsg').textContent = j.error || 'Code incorrect.'; return; }
+    if (retour) { location.href = retour; return; }
+    await load();
+  });
+  $('ac-out').addEventListener('click', async () => { await api('/api/auth/logout', {}); location.href = '/compte/'; });
+
+  ($('ac-logo') as HTMLInputElement).addEventListener('change', (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
+    if (f.size > 200000) { $('ac-brmsg').textContent = 'Logo trop lourd : 200 Ko au maximum.'; return; }
+    const r = new FileReader(); r.onload = () => { logo = String(r.result); showLogo(); $('ac-brmsg').textContent = ''; }; r.readAsDataURL(f);
+  });
+  $('ac-ldel').addEventListener('click', () => { logo = ''; showLogo(); });
+  ($('ac-bf') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const j = await api('/api/account/brand', { cabinet: ($('ac-cab') as HTMLInputElement).value.trim(), logo });
+    $('ac-brmsg').textContent = j.ok ? 'Enregistré : vos prochains dossiers portent votre nom et votre logo.' : (j.error || 'Enregistrement impossible.');
+  });
+
+  (async () => {
+    const pay = params.get('paiement');
+    if (pay) {
+      msg('Confirmation de votre paiement…');
+      const j = await api(`/api/checkout/confirm?session_id=${encodeURIComponent(pay)}`);
+      if (j.ok) {
+        msg(j.product === 'pro' ? 'Paiement confirmé : votre Pass Pro est actif pour 12 mois.' : j.product === 'pack' ? 'Paiement confirmé : 5 crédits ont été ajoutés à votre compte.' : 'Paiement confirmé : votre crédit est disponible.');
+        history.replaceState(null, '', '/compte/');
+        if (retour && retour !== '/compte/') { setTimeout(() => { location.href = retour; }, 1400); }
+      } else msg(esc(j.error || 'Paiement non confirmé pour l’instant. Actualisez la page dans quelques secondes.'));
+    }
+    await load();
+  })();
+</script>
+
+<style is:global>
+  .ac [hidden] { display: none !important; }
+  .ac { padding-block: 56px 96px; max-width: 980px; }
+  .ac-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 18px; }
+  .ac-k { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .ac-t { margin: 4px 0 0; font-size: clamp(34px, 4vw, 48px); letter-spacing: -0.045em; line-height: 1.05; }
+  .ac-s { margin: 8px 0 0; color: var(--muted); }
+  .ac-msg { margin: 0 0 18px; font-weight: 600; color: var(--ink); } .ac-msg:empty { display: none; }
+  .ac-btn { display: inline-flex; align-items: center; justify-content: center; font: inherit; font-size: 15px; font-weight: 600; padding: 12px 22px; border-radius: 999px; border: 0; background: #000; color: #fff !important; cursor: pointer; text-decoration: none !important; white-space: nowrap; }
+  .ac-ghost { background: #fff; color: #000 !important; box-shadow: inset 0 0 0 1px #d2d2d7; }
+  .ac-sm { font-size: 13.5px; padding: 8px 14px; }
+  .ac-link { padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--cobalt); cursor: pointer; }
+  .ac-login { display: grid; max-width: 480px; }
+  .ac-card { background: var(--pearl); border-radius: 28px; padding: 30px; display: flex; flex-direction: column; gap: 10px; }
+  .ac-card h2 { margin: 0; font-size: 24px; letter-spacing: -0.03em; } .ac-card p { margin: 0 0 6px; color: var(--muted); }
+  .ac-card label { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .ac-card input { padding: 12px 14px; border: 1px solid #d2d2d7; border-radius: 12px; background: #fff; font: inherit; font-size: 16px; }
+  .ac-card input:focus-visible { outline: 2px solid #2448f5; border-color: transparent; }
+  .ac-code { font-size: 26px !important; letter-spacing: .35em; text-align: center; }
+  .ac-card[hidden] { display: none; }
+  .ac-note { font-size: 13.5px; }
+  .ac-err { margin: 6px 0 0; min-height: 1.2em; font-size: 14px; font-weight: 600; color: #c4321f; }
+  .ac-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 760px) { .ac-tiles { grid-template-columns: 1fr; } .ac-head { flex-direction: column; align-items: flex-start; } }
+  .ac-tile { background: var(--pearl); border-radius: 24px; padding: 22px 24px; display: flex; flex-direction: column; gap: 4px; }
+  .ac-tile span { font-size: 13.5px; font-weight: 600; color: var(--dim); } .ac-tile b { font-size: 32px; letter-spacing: -0.04em; } .ac-tile small { font-size: 13px; color: var(--muted); }
+  .ac-h2 { margin: 52px 0 16px; font-size: 26px; letter-spacing: -0.035em; }
+  .ac-list { display: flex; flex-direction: column; }
+  .ac-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line-soft); }
+  .ac-row:last-child { border-bottom: 1px solid var(--line-soft); }
+  @media (max-width: 760px) { .ac-row { grid-template-columns: 1fr; gap: 8px; } }
+  .ac-r1 { display: flex; flex-direction: column; gap: 2px; } .ac-r1 span { font-size: 13.5px; color: var(--muted); }
+  .ac-r2 { display: flex; align-items: center; gap: 16px; }
+  .ac-chip { justify-self: start; font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--pearl); color: var(--muted); }
+  .ac-chip.on { background: #eef1ff; color: #2448f5; }
+  .ac-empty { color: var(--muted); }
+  .ac-offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 860px) { .ac-offers { grid-template-columns: 1fr; } }
+  .ac-offer { background: var(--pearl); border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 8px; }
+  .ac-offer h3 { margin: 0; font-size: 20px; letter-spacing: -0.03em; color: inherit; }
+  .ac-price { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.04em; }
+  .ac-offer ul { margin: 4px 0 14px; padding-left: 18px; color: var(--text); font-size: 14.5px; line-height: 1.5; flex: 1; }
+  .ac-feat { background: #000; color: #fff; } .ac-feat ul { color: rgba(255,255,255,.75); } .ac-feat .ac-btn { background: #fff; color: #000 !important; }
+  .ac-bcard { max-width: 560px; } .ac-bcard > div:not(.ac-prev) { display: flex; flex-direction: column; gap: 6px; } .ac-bcard input { width: 100%; box-sizing: border-box; }
+  .ac-prev { display: flex; align-items: center; gap: 16px; } .ac-prev img { max-height: 56px; max-width: 220px; object-fit: contain; background: #fff; padding: 6px 10px; border-radius: 10px; }
+</style>

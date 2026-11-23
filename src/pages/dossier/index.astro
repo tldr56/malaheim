@@ -39,7 +39,9 @@ import { SITE } from '../../config';
   const pc = (x: number) => `${Math.round(x * 100)} %`;
   const beTxt = (be: number, H: number) => (Number.isFinite(be) ? `${be} mois` : `au-delà de ${H} ans`);
   const LV: Record<string, string> = { go: 'Feu vert', prep: 'À sécuriser', wait: 'À revoir' };
-  const logo = () => ($('dz-logo') as HTMLTemplateElement).innerHTML;
+  let brand: any = null; // marque du cabinet (Pass Pro) : nom et logo à la place de ceux de Malaheim
+  const logo = () => (brand && brand.logo ? `<img src="${esc(brand.logo)}" alt="${esc(brand.cabinet || '')}" class="dz-blogo">` : ($('dz-logo') as HTMLTemplateElement).innerHTML);
+  const issuer = () => (brand && brand.cabinet ? brand.cabinet : 'MALAHEIM Consulting');
   const status = (t: string) => { $('dz-status').innerHTML = t; };
 
   // Lecture des réponses à partir de la chaîne de paramètres de la simulation
@@ -163,7 +165,7 @@ import { SITE } from '../../config';
         <div><small>Rentabilisé après le lancement</small><b>${beTxt(be, H)}</b></div>
         <div><small>Valeur nette sur ${H} ans</small><b>${sMoney(mc.net.p50)}</b></div>
       </div>
-      <p class="cv-f">Établi par MALAHEIM Consulting à partir de vos réponses et de valeurs publiées sur les marchés européen et nord-américain. Ordres de grandeur en euros hors taxes, à confirmer par des offres d’éditeurs.</p>
+      <p class="cv-f">Établi par ${esc(issuer())}${brand ? ' avec les simulateurs Malaheim' : ''} à partir de vos réponses et de valeurs publiées sur les marchés européen et nord-américain. Ordres de grandeur en euros hors taxes, à confirmer par des offres d’éditeurs.</p>
     </section>`);
 
     // 2. Synthèse
@@ -246,7 +248,7 @@ import { SITE } from '../../config';
       <ol class="qs">${questionsFor(ctx.slug).map((x: string) => `<li>${esc(x)}</li>`).join('')}</ol>
       <h3>Prochaines étapes</h3>
       <ol class="ns">${NEXT_STEPS.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol>
-      <p class="dn dn-k">Ce dossier vaut ${esc(root.dataset.price || '')} : ce montant est déduit du kit de consultation ${esc(model.code)} (${esc(root.dataset.kit || '')}). Indiquez la référence ${esc(ctx.ref)} lors de votre commande.</p>
+      ${brand ? '' : `<p class="dn dn-k">Ce dossier vaut ${esc(root.dataset.price || '')} : ce montant est déduit du kit de consultation ${esc(model.code)} (${esc(root.dataset.kit || '')}). Indiquez la référence ${esc(ctx.ref)} lors de votre commande.</p>`}
     </section>`);
 
     // 9. Hypothèses et sources
@@ -266,7 +268,7 @@ import { SITE } from '../../config';
     </section>`);
 
     const n = pages.length;
-    $('dz-pages').innerHTML = pages.map((p, k) => p.replace('</section>', `<footer class="dp-f"><span>MALAHEIM Consulting, malaheim.com</span><span>Page ${k + 1} sur ${n}</span></footer></section>`)).join('');
+    $('dz-pages').innerHTML = pages.map((p, k) => p.replace('</section>', `<footer class="dp-f"><span>${brand ? `${esc(issuer())}, réalisé avec malaheim.com` : 'MALAHEIM Consulting, malaheim.com'}</span><span>Page ${k + 1} sur ${n}</span></footer></section>`)).join('');
     root.classList.toggle('demo', !!ctx.demo);
     $('dz-h').textContent = `Dossier de décision ${model.code}`;
     $('dz-sub').textContent = ctx.demo ? 'Exemple sur une entreprise fictive' : `${ctx.company ? `${ctx.company}, ` : ''}référence ${ctx.ref}`;
@@ -356,13 +358,13 @@ import { SITE } from '../../config';
       ['Paramètre', 'Valeur retenue', 'Repère publié', 'Source', 'Lien'].map((v) => ({ v, s: S.head })), ...model.sources.map((s: any) => [s[0], s[1], s[2], s[3], s[4] || ''])];
 
     const intro: any[] = [[{ v: `Dossier de décision ${model.code}, modèle de calcul`, s: S.title }], [],
-      ['Entreprise', ctx.company || ''], ['Référence', ctx.ref], ['Établi le', ctx.date || new Date().toLocaleDateString('fr-FR')], ['Solution adaptée', r.tier.name], ['Verdict', current.v.title], [],
+      ['Entreprise', ctx.company || ''], ['Établi par', issuer()], ['Référence', ctx.ref], ['Établi le', ctx.date || new Date().toLocaleDateString('fr-FR')], ['Solution adaptée', r.tier.name], ['Verdict', current.v.title], [],
       [{ v: 'Mode d’emploi', s: S.bold }],
       ['1. Feuille Budget', 'Remplacez les montants bleus par ceux des offres reçues.'],
       ['2. Feuille Gains', 'Ajustez les gains à vos propres mesures.'],
       ['3. Feuille Rentabilité', 'Modifiez la durée du projet, la montée en charge, la croissance ou le taux d’actualisation : l’échéancier, la valeur actuelle nette et le retour sur investissement se recalculent.'],
       ['4. Feuilles Risque, Scénarios et Hypothèses', 'Valeurs issues de la simulation, pour mémoire.'], [],
-      [{ v: 'MALAHEIM Consulting, malaheim.com. Ordres de grandeur indicatifs en euros hors taxes.', s: S.note }]];
+      [{ v: `${issuer()}, avec les simulateurs malaheim.com. Ordres de grandeur indicatifs en euros hors taxes.`, s: S.note }]];
 
     const data = buildXlsx([
       { name: 'Lisez-moi', cols: [34, 90], rows: intro },
@@ -383,17 +385,19 @@ import { SITE } from '../../config';
   $('dz-xlsx').addEventListener('click', () => { if (current && !current.ctx.demo) excel(); });
 
   const p = new URLSearchParams(location.search);
-  const ex = p.get('exemple'); const sid = p.get('session_id');
+  const ex = p.get('exemple'); const id = p.get('id');
   if (ex !== null) {
     render({ slug: SIMS[ex] ? ex : 'wms', query: '', company: 'Exemple SAS, entreprise fictive', ref: 'EXEMPLE', demo: true });
-  } else if (sid) {
-    status('Vérification de votre paiement…');
-    fetch(`/api/dossier?session_id=${encodeURIComponent(sid)}`).then((x) => x.json()).then((j) => {
-      if (!j.ok || !SIMS[j.sim]) throw new Error(j.error || 'refus');
+  } else if (id) {
+    status('Ouverture de votre dossier…');
+    fetch(`/api/dossier?id=${encodeURIComponent(id)}`, { credentials: 'same-origin' }).then((x) => x.json().then((j) => ({ s: x.status, j }))).then(({ s, j }) => {
+      if (s === 401) { status(`Connectez-vous à <a href="/compte/?retour=${encodeURIComponent(location.pathname + location.search)}">votre espace client</a> pour ouvrir ce dossier.`); return; }
+      if (!j.ok || !SIMS[j.sim]) { status(`${esc(j.error || 'Dossier introuvable.')} <a href="/compte/">Mon espace client</a>`); return; }
+      brand = j.brand || null;
       render({ slug: j.sim, query: j.q, company: j.company, ref: j.ref, date: j.date });
-    }).catch(() => status(`Nous n’avons pas pu retrouver ce dossier. Si vous venez de payer, actualisez la page dans quelques secondes, ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a> avec votre reçu.`));
+    }).catch(() => status('Connexion impossible. Actualisez la page dans un instant.'));
   } else {
-    status('Aucun dossier à afficher. Lancez une simulation, ou consultez <a href="/dossier/?exemple=wms">un exemple de dossier</a>.');
+    status('Aucun dossier à afficher. Retrouvez vos dossiers dans <a href="/compte/">votre espace client</a>, ou consultez <a href="/dossier/?exemple=wms">un exemple de dossier</a>.');
     $('dz-sub').textContent = '';
   }
 </script>
@@ -419,6 +423,8 @@ import { SITE } from '../../config';
   .demo .dp::after { content: 'EXEMPLE'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; font-weight: 800; letter-spacing: .08em; color: rgba(36,72,245,.06); pointer-events: none; }
   .dp-h { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 1.5px solid #1d1d1f; font-size: 11px; color: #6e6e73; }
   .dp-logo svg { height: 26px; width: auto; color: #1d1d1f; display: block; }
+  .dp-logo .dz-blogo { height: 26px; width: auto; max-width: 160px; object-fit: contain; display: block; }
+  .cv-logo .dz-blogo { height: 64px; width: auto; max-width: 260px; object-fit: contain; display: block; background: #fff; padding: 8px 12px; border-radius: 10px; }
   .dp-t { margin: 0 0 12px; font-size: 26px; letter-spacing: -0.035em; line-height: 1.1; }
   .dp h3 { margin: 18px 0 8px; font-size: 15px; letter-spacing: -0.02em; }
   .dp p { margin: 0 0 8px; }
