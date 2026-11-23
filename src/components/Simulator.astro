@@ -173,6 +173,7 @@ const H = model.horizon;
 
   {v3 && (
     <section class="wrap sx-vsec" aria-labelledby="t-verdict">
+      <p class="sx-lk"><span class="sx-lkt">Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.</span><button type="button" class="sx-lkb">Débloquer gratuitement</button></p>
       <div class="sx-vgrid">
         <div class="sx-vcard sr-up" id="v-card">
           <span class="sx-vbadge" id="v-badge"><i aria-hidden="true"></i><span id="v-blab"></span></span>
@@ -230,6 +231,7 @@ const H = model.horizon;
       <div class="wrap">
         <h2 id="t-risk" class="sx-h2 sr-up">Le risque, chiffré</h2>
         <p class="sx-sub sr-up">Votre projet rejoué 1 000 fois, avec les dépassements, les retards et les écarts de gains observés sur le marché.</p>
+        <p class="sx-lk"><span class="sx-lkt">Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.</span><button type="button" class="sx-lkb">Débloquer gratuitement</button></p>
         <div class="sx-stats sr-up">
           <div class="sx-stat"><span class="sx-sk">Budget le plus probable</span><span class="sx-sv" id="s-p50"></span><span class="sx-ss" id="s-p50s"></span></div>
           <div class="sx-stat"><span class="sx-sk">Risque de dépasser le scénario central</span><span class="sx-sv" id="s-over"></span><span class="sx-ss">Part des simulations au-dessus</span></div>
@@ -255,6 +257,7 @@ const H = model.horizon;
     <section class="wrap sx-mkt" aria-labelledby="t-mkt">
       <h2 id="t-mkt" class="sx-h2 sr-up">Votre projet face au marché</h2>
       <p class="sx-sub sr-up">Vos chiffres placés sur les fourchettes publiées par les études internationales. Le point noir, c’est vous.</p>
+      <p class="sx-lk"><span class="sx-lkt">Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.</span><button type="button" class="sx-lkb">Débloquer gratuitement</button></p>
       <div id="g-bench" class="sx-bench sr-up"></div>
     </section>
 
@@ -262,6 +265,7 @@ const H = model.horizon;
       <div class="wrap">
         <h2 id="t-cmp" class="sx-h2 sr-up">Comparer les scénarios</h2>
         <p class="sx-sub sr-up">Les alternatives les plus proches, calculées avec vos réponses. Modifiez vos réponses puis gardez jusqu’à deux scénarios pour les mettre côte à côte.</p>
+        <p class="sx-lk"><span class="sx-lkt">Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.</span><button type="button" class="sx-lkb">Débloquer gratuitement</button></p>
         <div class="sx-scroll sx-cscroll sr-up"><table id="g-cmp"></table></div>
       </div>
     </section>
@@ -269,6 +273,7 @@ const H = model.horizon;
 
   <section class="wrap sx-watch" aria-labelledby="t-watch">
     <h2 id="t-watch" class="sx-h2 sr-up">Points de vigilance pour votre profil</h2>
+    <p class="sx-lk"><span class="sx-lkt">Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.</span><button type="button" class="sx-lkb">Débloquer gratuitement</button></p>
     <ol id="r-watch" class="sx-wlist"></ol>
   </section>
 
@@ -521,7 +526,7 @@ const H = model.horizon;
       const xm = X(b.value);
       const rng = (x: any) => (x.lo === x.hi ? fmtB(x.lo, b.fmt) : `${fmtB(x.lo, b.fmt)} à ${fmtB(x.hi, b.fmt)}`);
       const lanes = b.bands.map((x: any, k: number) => `<span class="bl${x.mine ? ' mine' : ''}${x.lo === x.hi ? ' pt' : ''}" style="top:${k * 12}px;left:${X(x.lo)}%;${x.lo === x.hi ? '' : `width:${Math.max(1, X(x.hi) - X(x.lo))}%`}" title="${esc(x.label)} : ${rng(x)}"></span>`).join('');
-      const chips = b.bands.map((x: any) => `<span class="bc${x.mine ? ' mine' : ''}"><i></i>${esc(x.label)} : ${rng(x)}</span>`).join('');
+      const chips = b.bands.map((x: any) => `<span class="bc${x.mine ? ' mine' : ''}"><i></i>${esc(x.label)} : <em>${rng(x)}</em></span>`).join('');
       const al = xm > 82 ? 'r' : xm < 18 ? 'l' : 'c';
       return `<div class="br-row">
         <div class="br-h"><strong>${esc(b.label)}</strong><span>${esc(b.sub)}</span></div>
@@ -690,7 +695,7 @@ const H = model.horizon;
   }
 
   // Comptes clients : première simulation complète offerte, les suivantes avec un crédit, un pack ou le Pass Pro
-  const GATED = '.sx-bar,.sx-legend,.sx-kpis,.sx-pay,.sx-chart,.sx-actions,.sx-vsec,.sx-risk,.sx-mkt,.sx-cmp,.sx-watch';
+  const GATED = '.sx-actions,.sx-cscroll';
   const lockbar = $('lockbar'); const gate = $('gate');
   let acct: any = null; let simRec: any = null; let pendingEmail = ''; let lastStart: any = null;
   const setLocked = (on: boolean) => {
@@ -706,10 +711,13 @@ const H = model.horizon;
     gate.querySelectorAll<HTMLElement>('[data-pane]').forEach((el) => { el.hidden = el.dataset.pane !== name; });
     $('gate-list').hidden = name === 'code' || name === 'login';
     $('lockbar-go').textContent = name === 'pay' ? 'Voir les formules' : 'Créer mon accès';
+    root.querySelectorAll<HTMLElement>('.sx-lkt').forEach((el) => { el.textContent = name === 'pay' ? 'Un chiffre en clair ici. Tout le reste s’affiche avec une simulation complète et son dossier.' : 'Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.'; });
+    root.querySelectorAll<HTMLElement>('.sx-lkb').forEach((el) => { el.textContent = name === 'pay' ? 'Voir les formules' : 'Débloquer gratuitement'; });
   };
   gate.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('[data-go]') as HTMLElement | null; if (b) pane(b.dataset.go!); });
   const goGate = () => { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => (gate.querySelector('[data-pane]:not([hidden]) input:not([type=checkbox]):not([tabindex="-1"])') as HTMLInputElement | null)?.focus({ preventScroll: true }), 500); };
   $('lockbar-go').addEventListener('click', goGate);
+  root.querySelectorAll('.sx-lkb').forEach((b) => b.addEventListener('click', goGate));
 
   const api = async (path: string, data?: any) => {
     try {
@@ -1137,7 +1145,23 @@ const H = model.horizon;
 
   /* Accès sur inscription */
   .simx:not(.locked) .sx-gate { display: none; }
-  .simx.locked :is(.sx-bar, .sx-legend, .sx-kpis, .sx-pay, .sx-chart, .sx-actions, .sx-vsec, .sx-risk, .sx-mkt, .sx-cmp, .sx-watch) { filter: blur(7px); opacity: .55; pointer-events: none; user-select: none; transition: filter .5s, opacity .5s; }
+  /* Aperçu caviardé : la structure et les libellés restent lisibles, les chiffres sont masqués, un chiffre par section reste en clair */
+  .simx { --rdc: rgba(29, 29, 31, .5); }
+  .sx-res, .sx-wait { --rdc: rgba(255, 255, 255, .72); }
+  .simx.locked :is(.sx-legend dd, .sx-kpi .sx-v:not(#r-delay), .sx-kpi .sx-s[id], .sx-payv, .sx-pill, .sx-vlist li:not(:first-child), #w-year, #w-note, .sx-stat .sx-sv:not(#s-over), .sx-stat .sx-ss[id], #g-rtab td, .sx-tor .tv, .sx-tor .tbase, .br-row:not(:first-child) .br-m b, .br-row:not(:first-child) .bc em, #g-cmp tbody tr:not(:first-child) td, .sx-wlist li:not(:first-child)) { color: transparent !important; text-shadow: 0 0 9px var(--rdc); user-select: none; transition: color .5s, text-shadow .5s; }
+  .simx.locked :is(#g-hist, #r-chart) text { filter: blur(4px); }
+  .simx.locked :is(#g-hist, #r-chart, .sx-tor, .sx-bench .br-t, .sx-bar, .sx-actions, .sx-cscroll) { pointer-events: none; }
+  .simx.locked .sx-actions { opacity: .35; }
+  .simx.locked :is(#r-delay, #s-over, #w-month, .sx-vlist li:first-child, .br-row:first-child .br-m b, .sx-wlist li:first-child) { position: relative; }
+  .simx.locked :is(#s-over, #w-month)::after { content: 'Votre chiffre'; display: inline-block; vertical-align: middle; margin-left: 10px; font-size: 11px; line-height: 1.4; font-weight: 700; letter-spacing: 0; padding: 3px 8px; border-radius: 999px; background: #2448f5; color: #fff; white-space: nowrap; }
+  .sx-lk { display: none; }
+  .simx.locked .sx-lk { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 14px; margin: -18px auto 34px; width: fit-content; max-width: 100%; padding: 8px 8px 8px 18px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #d2d2d7; font-size: 14px; color: var(--text); }
+  .simx.locked .sx-vsec .sx-lk { margin: 0 auto 24px; }
+  .sx-lkt { position: relative; padding-left: 20px; }
+  .sx-lkt::before { content: ''; position: absolute; left: 0; top: 50%; width: 10px; height: 8px; margin-top: -2px; border-radius: 2px; background: var(--ink); }
+  .sx-lkt::after { content: ''; position: absolute; left: 2px; top: 50%; width: 6px; height: 6px; margin-top: -8px; border: 2px solid var(--ink); border-bottom: 0; border-radius: 4px 4px 0 0; box-sizing: border-box; }
+  .sx-lkb { font: inherit; font-size: 13.5px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 0; background: #000; color: #fff; cursor: pointer; }
+  @media (max-width: 640px) { .simx.locked .sx-lk { border-radius: 20px; padding: 12px 14px; text-align: center; } }
   .sx-gate { background: #fff; color: var(--ink); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
   .sx-gt { font-size: 21px; letter-spacing: -0.03em; line-height: 1.2; }
   .sx-gl { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
