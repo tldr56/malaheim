@@ -103,15 +103,11 @@ async function authStart(req, env) {
   if (!isEmail(email)) return json({ ok: false, error: 'Saisissez une adresse e-mail valide.' }, 400);
   const D = await db(env); const now = Date.now();
   let a = await D.prepare('SELECT * FROM accounts WHERE email = ?').bind(email).first();
-  if (d.mode === 'login') {
-    if (!a) return json({ ok: false, error: 'Aucun compte avec cette adresse. Utilisez le formulaire d’inscription.', unknown: true }, 400);
-  } else {
-    const name = clean(d.name, 80), company = clean(d.company, 100), role = clean(d.role, 60);
-    if (name.length < 2 || company.length < 2 || !role) return json({ ok: false, error: 'Complétez les champs obligatoires.' }, 400);
-    if (a) await D.prepare('UPDATE accounts SET name = ?, company = ?, role = ?, phone = COALESCE(NULLIF(?, \'\'), phone), optin = MAX(optin, ?) WHERE email = ?').bind(name, company, role, clean(d.phone, 30), d.optin ? 1 : 0, email).run();
-    else await D.prepare('INSERT INTO accounts (email, name, company, role, phone, optin, created) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(email, name, company, role, clean(d.phone, 30), d.optin ? 1 : 0, now).run();
+  // L'e-mail suffit : le compte est créé s'il n'existe pas, sinon c'est une connexion
+  if (!a) {
+    await D.prepare('INSERT INTO accounts (email, name, company, role, phone, optin, created) VALUES (?, \'\', \'\', \'\', \'\', ?, ?)').bind(email, d.optin ? 1 : 0, now).run();
     a = await D.prepare('SELECT * FROM accounts WHERE email = ?').bind(email).first();
-  }
+  } else if (d.optin) await D.prepare('UPDATE accounts SET optin = 1 WHERE email = ?').bind(email).run();
   const prev = await D.prepare('SELECT sent FROM codes WHERE email = ?').bind(email).first();
   if (prev && now - prev.sent < 40000) return json({ ok: false, error: 'Un code vient d’être envoyé. Patientez quelques secondes avant d’en demander un autre.' }, 429);
   const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
@@ -147,6 +143,17 @@ async function authVerify(req, env) {
     });
   }
   return json({ ok: true, account: view(a) }, 200, { 'set-cookie': setSession(token, 180 * 86400) });
+}
+
+// Nom et entreprise facultatifs, demandés au moment où ils servent (couverture du dossier)
+async function profile(req, env) {
+  if (req.method !== 'POST' || !sameOrigin(req)) return json({ ok: false }, 405);
+  const a = await account(req, env); if (!a) return json({ ok: false, error: 'Connectez-vous.' }, 401);
+  let d; try { d = await body(req); } catch { return json({ ok: false }, 400); }
+  const company = clean(d.company, 100), name = clean(d.name, 80);
+  await (await db(env)).prepare('UPDATE accounts SET company = ?, name = COALESCE(NULLIF(?, \'\'), name) WHERE email = ?').bind(company, name, a.email).run();
+  if (company && company !== a.company) await google(env, { type: 'profil', email: a.email, company, name: name || a.name });
+  return json({ ok: true, company });
 }
 
 async function logout(req, env) {
@@ -333,7 +340,7 @@ const ROUTES = {
   '/api/lead': lead, '/api/auth/start': authStart, '/api/auth/verify': authVerify, '/api/auth/logout': logout, '/api/me': me,
   '/api/sim/open': simOpen, '/api/sim/save': simSave, '/api/sim/dossier': simDossier,
   '/api/checkout': checkout, '/api/checkout/confirm': confirm, '/api/stripe/webhook': webhook,
-  '/api/dossier': dossier, '/api/account/brand': brand,
+  '/api/dossier': dossier, '/api/account/brand': brand, '/api/account/profile': profile,
 };
 
 export default {

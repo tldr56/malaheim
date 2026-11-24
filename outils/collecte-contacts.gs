@@ -36,6 +36,17 @@ function doPost(e) {
       });
       return sortie({ ok: true });
     }
+    if (d.type === 'profil') {
+      // Entreprise indiquée plus tard (couverture du dossier) : complète la ligne du contact
+      const sc = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ONGLETS.unlock[0]);
+      if (sc && sc.getLastRow() > 1) {
+        const mails = sc.getRange(2, 3, sc.getLastRow() - 1, 1).getValues();
+        for (let i = mails.length - 1; i >= 0; i--) if (String(mails[i][0]).toLowerCase() === String(d.email).toLowerCase()) {
+          sc.getRange(i + 2, 4).setValue(texte(d.company)); if (d.name) sc.getRange(i + 2, 2).setValue(texte(d.name)); break;
+        }
+      }
+      return sortie({ ok: true });
+    }
     const [nom, entetes] = ONGLETS[ONGLETS[d.type] ? d.type : 'unlock'];
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sh = ss.getSheetByName(nom) || ss.insertSheet(nom);
@@ -61,8 +72,8 @@ function doPost(e) {
     sh.appendRow([date, d.name, d.email, d.company, d.role, d.phone, d.optin ? 'oui' : 'non', d.freeEmail ? 'oui' : 'non', d.code, d.tier, d.budget, d.verdict, d.country, d.link, d.summary].map(texte));
     MailApp.sendEmail({
       to: NOTIFIER,
-      subject: `Nouveau contact simulateur ${d.code} : ${d.company} (${d.role})`,
-      body: `${d.name}\n${d.email}${d.phone ? `\n${d.phone}` : ''}\n${d.company}, ${d.role}\nNouveautés : ${d.optin ? 'oui' : 'non'}\n\n${d.summary}`,
+      subject: `Nouveau compte simulateur ${d.code} : ${d.company || d.email.split('@')[1]}`,
+      body: `${d.email}${d.freeEmail ? ' (adresse personnelle)' : ''}${d.company ? `\n${d.company}` : ''}\nNouveautés : ${d.optin ? 'oui' : 'non'}\n\n${d.summary}`,
     });
     let mailed = false;
     if (ENVOYER_RECAP) {

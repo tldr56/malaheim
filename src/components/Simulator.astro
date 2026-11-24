@@ -34,6 +34,12 @@ const H = model.horizon;
     </div>
     <span class="sx-nav-p" id="sx-nav-p" aria-hidden="true"></span>
   </nav>
+  <aside class="sx-inv" id="sx-inv" hidden aria-live="polite">
+    <button type="button" class="sx-invx" id="sx-invx" aria-label="Fermer"></button>
+    <strong>Présenter ce résultat à votre direction&#8239;?</strong>
+    <p>Votre dossier de décision de 10 pages est prêt : synthèse, budget, risque, questions aux éditeurs et modèle Excel. {SITE.creditPrice}, satisfait ou remboursé.</p>
+    <div><button type="button" class="sx-btn" id="sx-invgo">Voir mon dossier</button><a href={`/dossier/?exemple=${slug}`}>Voir un exemple</a></div>
+  </aside>
   <button type="button" class="sx-cue" id="sx-cue" hidden><span>La suite de votre analyse</span><small>{v3 ? 'Verdict, risque, marché et scénarios' : 'Points de vigilance et méthode'}</small><i aria-hidden="true"></i></button>
   <header class="sx-hero wrap">
     <p class="sx-k rise">Simulateur {model.code} gratuit, aperçu immédiat</p>
@@ -107,36 +113,20 @@ const H = model.horizon;
           <li>Le rapport PDF et le lien partageable</li>
           <li>Votre espace client et l’historique de vos simulations</li>
         </ul>
-        <form id="gate-form" class="sx-gf" data-pane="sign" novalidate>
-          <div class="sx-gfi"><label for="g-name">Nom et prénom</label><input id="g-name" name="name" autocomplete="name" required maxlength="80" /></div>
-          <div class="sx-gfi"><label for="g-email">E-mail professionnel</label><input id="g-email" name="email" type="email" autocomplete="email" required maxlength="120" placeholder="prenom.nom@entreprise.fr" /></div>
-          <div class="sx-gfi"><label for="g-company">Entreprise</label><input id="g-company" name="company" autocomplete="organization" required maxlength="100" /></div>
-          <div class="sx-gfi"><label for="g-role">Fonction</label>
-            <select id="g-role" name="role" required>
-              <option value="">Choisir</option>
-              <option>Direction générale</option>
-              <option>Direction supply chain ou logistique</option>
-              <option>Responsable d’entrepôt ou d’exploitation</option>
-              <option>Achats</option>
-              <option>Finance</option>
-              <option>Informatique</option>
-              <option>Consultant ou intégrateur</option>
-              <option>Autre</option>
-            </select>
+        <form id="gate-form" class="sx-gf sx-gf1" data-pane="sign" novalidate>
+          <p class="sx-gsub">Créez votre compte gratuit : votre simulation est enregistrée, vous la retrouvez et l’ajustez quand vous voulez.</p>
+          <div class="sx-gfi"><label for="g-email">Votre e-mail</label>
+            <div class="sx-gin"><input id="g-email" name="email" type="email" autocomplete="email" required maxlength="120" placeholder="vous@entreprise.fr" /><button type="submit" class="sx-btn sx-gbtn" id="g-btn">Recevoir mon code</button></div>
           </div>
-          <div class="sx-gfi"><label for="g-phone">Téléphone <span>facultatif</span></label><input id="g-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" /></div>
           <div class="sx-hp" aria-hidden="true"><label for="g-web">Site web</label><input id="g-web" name="website" tabindex="-1" autocomplete="off" /></div>
+          <ul class="sx-gtrust">
+            <li>Ni nom d’entreprise ni téléphone demandés</li>
+            <li>Vos réponses restent privées, jamais transmises aux éditeurs</li>
+            <li>Pas de mot de passe : un code à 6 chiffres par e-mail</li>
+          </ul>
           <label class="sx-gopt"><input id="g-optin" type="checkbox" /><span>Recevoir les nouveaux guides et simulateurs, une à deux fois par mois</span></label>
-          <button type="submit" class="sx-btn sx-gbtn" id="g-btn">Recevoir mon code d’accès</button>
-          <p class="sx-gn">Un code à 6 chiffres vous est envoyé par e-mail pour créer votre espace client. Nous pouvons vous recontacter au sujet de votre projet ; vous pouvez vous y opposer à tout moment. Vos données ne sont ni vendues ni cédées. <a href="/confidentialite/">Confidentialité</a></p>
-          <p class="sx-gsw">Déjà un compte ? <button type="button" class="sx-glink" data-go="login">Se connecter</button></p>
+          <p class="sx-gn">Adresse professionnelle conseillée, sans obligation. Vos données ne sont ni vendues ni cédées ; nous pouvons vous écrire au sujet de votre simulation, un mot suffit pour l’arrêter. <a href="/confidentialite/">Confidentialité</a></p>
           <p class="sx-gmsg" id="gate-msg" role="status"></p>
-        </form>
-        <form id="gate-login" class="sx-gf sx-gf1" data-pane="login" novalidate hidden>
-          <div class="sx-gfi"><label for="g-lemail">E-mail</label><input id="g-lemail" type="email" autocomplete="email" maxlength="120" /></div>
-          <button type="submit" class="sx-btn sx-gbtn">Recevoir mon code</button>
-          <p class="sx-gsw">Pas encore de compte ? <button type="button" class="sx-glink" data-go="sign">Créer mon compte</button></p>
-          <p class="sx-gmsg" id="login-msg" role="status"></p>
         </form>
         <form id="gate-code" class="sx-gf sx-gf1" data-pane="code" novalidate hidden>
           <p class="sx-gsent">Un code à 6 chiffres vient de partir à <b id="g-sent"></b>. Il est valable 15 minutes.</p>
@@ -222,7 +212,8 @@ const H = model.horizon;
             <li><b>Les 10 questions à poser aux éditeurs</b><span>Celles qui font tomber les offres trop belles</span></li>
             <li><b>Le modèle de calcul Excel</b><span>À compléter avec les offres reçues, tout se recalcule</span></li>
           </ul>
-          <div class="sx-dbuy"><span class="sx-dprice">{SITE.creditPrice}</span><span class="sx-dnote">Déduits du kit de consultation.<br />Accès immédiat, PDF et Excel.</span></div>
+          <div class="sx-dbuy"><span class="sx-dprice">{SITE.creditPrice}</span><span class="sx-dnote">Le prix d’un quart d’heure de consultant,<br />pour plusieurs jours de travail. Déduits du kit.</span></div>
+          <p class="sx-dguar"><span aria-hidden="true"></span>Satisfait ou remboursé pendant 14 jours, sans justification. Accès immédiat, PDF et Excel.</p>
           <p class="sx-doffers">Pack de 5 simulations avec dossiers : {SITE.packPrice}. Pass Pro, illimité et à votre logo : {SITE.proPrice}. <a href="/compte/">Voir les formules</a></p>
           <div class="sx-dact">
             <button type="button" class="sx-dbtn" id="dos-buy">Recevoir mon dossier</button>
@@ -362,7 +353,7 @@ const H = model.horizon;
   <div class="sx-lockbar" id="lockbar" hidden>
     <button type="button" class="sx-lbn" id="lockbar-next" aria-label="Voir la suite de l’analyse" title="Voir la suite de l’analyse"><i aria-hidden="true"></i></button>
     <span>Votre première simulation complète est offerte : risque, marché, scénarios et PDF.</span>
-    <button type="button" class="sx-btn" id="lockbar-go">Créer mon accès</button>
+    <button type="button" class="sx-btn" id="lockbar-go">Créer mon compte gratuit</button>
   </div>
 
   <div class="sx-report" id="sx-report" aria-hidden="true">
@@ -723,12 +714,12 @@ const H = model.horizon;
   };
   setLocked(true);
   if ('IntersectionObserver' in window) new IntersectionObserver((en) => { lockbar.hidden = !root.classList.contains('locked') || en[0].isIntersecting; }).observe(gate);
-  const TITLES: Record<string, string> = { sign: 'Votre première simulation complète est offerte', login: 'Connexion à votre espace client', code: 'Vérifiez votre adresse e-mail', pay: 'Lancez une nouvelle simulation complète' };
+  const TITLES: Record<string, string> = { sign: 'Votre première simulation complète est offerte', code: 'Vérifiez votre adresse e-mail', pay: 'Lancez une nouvelle simulation complète' };
   const pane = (name: string) => {
     gate.dataset.step = name; $('gate-t').textContent = TITLES[name];
     gate.querySelectorAll<HTMLElement>('[data-pane]').forEach((el) => { el.hidden = el.dataset.pane !== name; });
-    $('gate-list').hidden = name === 'code' || name === 'login';
-    $('lockbar-go').textContent = name === 'pay' ? 'Voir les formules' : 'Créer mon accès';
+    $('gate-list').hidden = name === 'code';
+    $('lockbar-go').textContent = name === 'pay' ? 'Voir les formules' : 'Créer mon compte gratuit';
     root.querySelectorAll<HTMLElement>('.sx-lkt').forEach((el) => { el.textContent = name === 'pay' ? 'Un chiffre en clair ici. Tout le reste s’affiche avec une simulation complète et son dossier.' : 'Un chiffre en clair ici. Tout le reste s’affiche avec votre simulation offerte.'; });
     root.querySelectorAll<HTMLElement>('.sx-lkb').forEach((el) => { el.textContent = name === 'pay' ? 'Voir les formules' : 'Débloquer gratuitement'; });
   };
@@ -813,13 +804,28 @@ const H = model.horizon;
     msg.textContent = 'Ouverture du paiement sécurisé…';
     const j = await api('/api/checkout', { product, simId, back });
     if (j.ok && j.url) { location.href = j.url; return; }
-    if (j.status === 401) { msg.textContent = 'Connectez-vous d’abord.'; pane('login'); goGate(); return; }
+    if (j.status === 401) { msg.textContent = 'Connectez-vous d’abord.'; pane('sign'); goGate(); return; }
     msg.innerHTML = j.reason === 'not_configured'
       ? `Le paiement en ligne ouvre très prochainement. En attendant, <a href="/dossier/?exemple=${model.slug}">découvrez l’exemple complet</a> ou écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a>.`
       : esc(j.error || 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant.');
   };
 
+  // Invitation au dossier après un vrai temps de travail sur la simulation
+  let engaged = 0, invDone = false;
+  try { invDone = sessionStorage.getItem('mlh-inv') === '1'; } catch {}
+  const inv = $('sx-inv');
+  const closeInv = () => { inv.hidden = true; invDone = true; try { sessionStorage.setItem('mlh-inv', '1'); } catch {} };
+  const maybeInvite = () => {
+    if (invDone || !V3 || !acct || !simRec || simRec.dossier || acct.pro || root.classList.contains('locked')) return;
+    if (engaged < 3) return;
+    const d = $('dossier').getBoundingClientRect(); if (d.top < innerHeight && d.bottom > 0) return;
+    inv.hidden = false; invDone = true; try { sessionStorage.setItem('mlh-inv', '1'); } catch {}
+  };
+  $('sx-invx').addEventListener('click', closeInv);
+  $('sx-invgo').addEventListener('click', () => { closeInv(); $('dossier').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  root.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('#sx-pin')) { engaged += 2; setTimeout(maybeInvite, 1200); } });
   root.addEventListener('change', () => {
+    engaged++; setTimeout(maybeInvite, 1500);
     if (!acct) return;
     clearTimeout(utmr); utmr = setTimeout(() => sendUsage('simulation'), 25000);
     if (simRec && simRec.active !== false) { clearTimeout(stmr); stmr = setTimeout(() => api('/api/sim/save', { id: simRec.id, q: qNow() }), 2500); }
@@ -830,7 +836,7 @@ const H = model.horizon;
   const start = async (payload: any, msg: HTMLElement) => {
     msg.textContent = 'Envoi du code…';
     const j = await api('/api/auth/start', payload);
-    if (!j.ok) { msg.innerHTML = esc(j.error || 'Envoi impossible.') + (j.unknown ? ' <button type="button" class="sx-glink" data-go="sign">Créer mon compte</button>' : ''); return false; }
+    if (!j.ok) { msg.innerHTML = esc(j.error || 'Envoi impossible.') + (''); return false; }
     lastStart = payload; pendingEmail = payload.email; msg.textContent = '';
     $('g-sent').textContent = pendingEmail; ($('g-code') as HTMLInputElement).value = j.devCode || '';
     $('code-msg').textContent = j.devCode ? `Mode test, envoi des e-mails non branché : le code est ${j.devCode}.` : '';
@@ -838,18 +844,9 @@ const H = model.horizon;
     return true;
   };
   ($('gate-form') as HTMLFormElement).addEventListener('submit', async (e) => {
-    e.preventDefault(); const gmsg = $('gate-msg');
-    const name = val('g-name'), email = val('g-email'), company = val('g-company'), role = val('g-role');
-    if (name.length < 2) { gmsg.textContent = 'Indiquez votre nom et votre prénom.'; return; }
+    e.preventDefault(); const gmsg = $('gate-msg'); const email = val('g-email');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { gmsg.textContent = 'Saisissez une adresse e-mail valide.'; return; }
-    if (company.length < 2) { gmsg.textContent = 'Indiquez votre entreprise.'; return; }
-    if (!role) { gmsg.textContent = 'Choisissez votre fonction.'; return; }
-    await start({ mode: 'signup', name, email, company, role, phone: val('g-phone'), optin: (document.getElementById('g-optin') as HTMLInputElement).checked, website: val('g-web') }, gmsg);
-  });
-  ($('gate-login') as HTMLFormElement).addEventListener('submit', async (e) => {
-    e.preventDefault(); const email = val('g-lemail');
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { $('login-msg').textContent = 'Saisissez une adresse e-mail valide.'; return; }
-    await start({ mode: 'login', email }, $('login-msg'));
+    await start({ email, optin: (document.getElementById('g-optin') as HTMLInputElement).checked, website: val('g-web') }, gmsg);
   });
   $('g-resend').addEventListener('click', () => { if (lastStart) start(lastStart, $('code-msg')); });
   ($('gate-code') as HTMLFormElement).addEventListener('submit', async (e) => {
@@ -1160,6 +1157,21 @@ const H = model.horizon;
   .sx-dbuy { margin-top: 32px; display: flex; align-items: center; gap: 18px; }
   .sx-dprice { font-family: var(--display); font-weight: 700; font-size: 52px; letter-spacing: -0.05em; line-height: 1; }
   .sx-dnote { font-size: 14px; line-height: 1.4; color: rgba(255,255,255,.6); }
+  .sx-dguar { margin: 16px 0 0; display: flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(255,255,255,.85); }
+  .sx-dguar span { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #1f8a4c; position: relative; }
+  .sx-dguar span::after { content: ''; position: absolute; left: 8px; top: 4px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .sx-inv { position: fixed; right: 24px; bottom: 24px; z-index: 45; width: min(380px, calc(100vw - 32px)); box-sizing: border-box; padding: 22px 22px 18px; border-radius: 22px; background: #fff; color: var(--ink); box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 24px 60px rgba(0,0,0,.28); animation: cue-in-l .5s var(--ease) both; }
+  .sx-inv[hidden] { display: none; }
+  .sx-inv strong { display: block; font-size: 18px; letter-spacing: -0.02em; padding-right: 28px; }
+  .sx-inv p { margin: 8px 0 16px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+  .sx-inv div { display: flex; align-items: center; gap: 16px; }
+  .sx-inv .sx-btn { background: #000; color: #fff; }
+  .sx-inv a { color: var(--ink); font-size: 14px; }
+  .sx-invx { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--pearl); cursor: pointer; }
+  .sx-invx::before, .sx-invx::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: #000; transform: translate(-50%, -50%) rotate(45deg); }
+  .sx-invx::after { transform: translate(-50%, -50%) rotate(-45deg); }
+  @media (max-width: 640px) { .sx-inv { right: 16px; bottom: 16px; } }
+  @media print { .sx-inv { display: none !important; } }
   .sx-dact { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
   .sx-dbtn { font: inherit; font-size: 16px; font-weight: 600; padding: 15px 28px; border-radius: 999px; border: 0; background: #fff; color: #000; cursor: pointer; transition: transform .3s var(--ease); }
   .sx-dbtn:hover { transform: scale(1.03); } .sx-dbtn:disabled { opacity: .5; cursor: default; transform: none; }
@@ -1244,12 +1256,21 @@ const H = model.horizon;
   .sx-gate { background: #fff; color: var(--ink); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
   .sx-gt { font-size: 21px; letter-spacing: -0.03em; line-height: 1.2; }
   .sx-gl { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
-  @media (max-width: 560px) { .sx-gl { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .sx-gl { grid-template-columns: 1fr; } .sx-gl li:nth-child(n+5) { display: none; } }
   .sx-gl li { position: relative; padding-left: 22px; font-size: 13.5px; line-height: 1.35; color: var(--text); }
   .sx-gl li::before { content: ''; position: absolute; left: 2px; top: 3px; width: 5px; height: 9px; border: solid #2448f5; border-width: 0 2px 2px 0; transform: rotate(45deg); }
   .sx-gf { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
   @media (max-width: 560px) { .sx-gf { grid-template-columns: 1fr; } }
   .sx-gfi { display: flex; flex-direction: column; gap: 5px; }
+  .sx-gsub { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--text); }
+  .sx-gin { display: flex; gap: 8px; }
+  .sx-gin input { flex: 1; min-width: 0; }
+  .sx-gin .sx-gbtn { flex: none; width: auto; margin: 0; padding-inline: 18px; }
+  @media (max-width: 560px) { .sx-gin { flex-direction: column; } .sx-gin .sx-gbtn { width: 100%; } }
+  .sx-gtrust { margin: 2px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .sx-gtrust li { position: relative; padding-left: 24px; font-size: 13px; line-height: 1.35; color: var(--text); }
+  .sx-gtrust li::before { content: ''; position: absolute; left: 0; top: 0; width: 16px; height: 16px; border-radius: 50%; background: #e8f5ec; }
+  .sx-gtrust li::after { content: ''; position: absolute; left: 6px; top: 3px; width: 4px; height: 8px; border: solid #1f8a4c; border-width: 0 2px 2px 0; transform: rotate(45deg); }
   .sx-gfi label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
   .sx-gfi label span { font-weight: 400; color: var(--dim); }
   .sx-gfi input, .sx-gfi select { width: 100%; padding: 11px 13px; border: 1px solid #d2d2d7; border-radius: 12px; background: #fff; font: inherit; font-size: 15px; color: var(--ink); }

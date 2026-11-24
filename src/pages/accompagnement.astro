@@ -18,14 +18,30 @@ const why = [
 ];
 const lags = ['', 'lag1', 'lag2'];
 ---
-<Base title="Tarifs" description={`Kit de consultation à ${SITE.kitPrice}, relecture de cahier des charges à ${SITE.reviewPrice}, accompagnement à ${SITE.hourlyRate} de l'heure au temps réellement passé. Une offre adaptée à toutes les tailles d'entreprise.`}>
+<Base title="Tarifs" description={`Kit de consultation à ${SITE.kitPrice}, relecture de cahier des charges à ${SITE.reviewPrice}, accompagnement à ${SITE.hourlyRate} de l'heure au temps réellement passé. Simulation offerte, dossier de décision à ${SITE.creditPrice}. Une offre pensée pour les PME et ETI.`}>
   <section class="wrap stack" style="padding-block: 72px 56px; gap: 18px; max-width: 900px; margin-inline: auto">
     <p class="eyebrow rise">Tarifs</p>
-    <h1 class="h1 rise d1" style="font-size: clamp(40px, 5vw, 64px)">Trois marches, vous ne montez que si besoin</h1>
-    <p class="lead rise d2">Qui que vous soyez, quelle que soit la taille de votre entreprise, vous ne payez que ce dont vous avez besoin. Vous commencez seul avec le kit, vous demandez une relecture si vous voulez un second avis, et vous faites appel à un expert à l'heure pour les moments qui comptent.</p>
+    <h1 class="h1 rise d1" style="font-size: clamp(40px, 5vw, 64px)">Un coût connu à chaque étape</h1>
+    <p class="lead rise d2">Pensé pour les PME et ETI qui n’ont pas d’équipe dédiée aux projets logiciels. Vous décidez d’abord avec les simulateurs, puis vous ne payez que ce dont vous avez besoin : le kit pour avancer seul, une relecture pour un second avis, un expert à l’heure pour les moments qui comptent.</p>
+  </section>
+
+  <section class="wrap tf" aria-labelledby="titre-decider" style="padding-bottom: 72px">
+    <div class="tf-head">
+      <p class="eyebrow">Étape 1, décider</p>
+      <h2 id="titre-decider" class="h2">Savoir si le projet tient, avant d’engager un euro</h2>
+      <p class="lead" style="font-size: 17px">Budget poste par poste, risque chiffré sur 1 000 simulations, comparaison au marché et scénarios, pour votre cas. Le dossier de décision en fait un document de 10 pages prêt pour la direction.</p>
+    </div>
+    <div class="tf-grid">
+      <a class="tf-c" href="/simulateurs/"><span class="tf-k">Pour commencer</span><b class="tf-p">Offerte</b><strong>Votre première simulation complète</strong><span>Avec un compte gratuit, par simple e-mail. Réglable pendant 7 jours.</span></a>
+      <a class="tf-c tf-on" href="/simulateurs/"><span class="tf-k">Pour décider</span><b class="tf-p">{SITE.creditPrice}</b><strong>Une simulation et son dossier de décision</strong><span>PDF de 10 pages et modèle Excel. Déduits du kit de la même famille.</span></a>
+      <a class="tf-c" href="/compte/"><span class="tf-k">Pour comparer</span><b class="tf-p">{SITE.packPrice}</b><strong>Pack de 5 simulations avec dossiers</strong><span>Plusieurs projets ou plusieurs sites, valable 12 mois.</span></a>
+      <a class="tf-c" href="/compte/"><span class="tf-k">Cabinets et intégrateurs</span><b class="tf-p">{SITE.proPrice.replace(' par an', '')}<small> / an</small></b><strong>Pass Pro</strong><span>Simulations et dossiers illimités, à votre nom et à votre logo.</span></a>
+    </div>
+    <p class="tf-g">Satisfait ou remboursé pendant 14 jours, sans justification, sur toutes les offres en ligne.</p>
   </section>
 
   <section class="wrap" style="padding-bottom: 96px">
+    <p class="eyebrow" style="text-align: center; margin-bottom: 24px">Étape 2, choisir et déployer</p>
     <Offer />
   </section>
 
@@ -77,6 +93,19 @@ const lags = ['', 'lag1', 'lag2'];
 </Base>
 
 <style>
+  .tf-head { max-width: 760px; display: grid; gap: 14px; margin-bottom: 32px; }
+  .tf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  @media (max-width: 1000px) { .tf-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .tf-grid { grid-template-columns: 1fr; } }
+  .tf-c { display: flex; flex-direction: column; gap: 8px; padding: 24px 22px; border-radius: 22px; background: var(--pearl); color: var(--ink); text-decoration: none !important; transition: transform .3s var(--ease); }
+  .tf-c:hover { transform: translateY(-3px); }
+  .tf-c.tf-on { background: #000; color: #fff; }
+  .tf-k { font-size: 12.5px; font-weight: 600; color: var(--muted); } .tf-on .tf-k { color: rgba(255,255,255,.6); }
+  .tf-p { font-size: 30px; letter-spacing: -0.04em; line-height: 1.1; } .tf-p small { font-size: 15px; font-weight: 500; letter-spacing: 0; }
+  .tf-c strong { font-size: 16px; letter-spacing: -0.01em; }
+  .tf-c > span:last-child { font-size: 14px; line-height: 1.45; color: var(--muted); } .tf-on > span:last-child { color: rgba(255,255,255,.7); }
+  .tf-g { margin: 18px 0 0; font-size: 14px; color: var(--muted); }
+
   .est { padding: 8px 22px; overflow-x: auto; }
   .est table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 460px; }
   .est th { text-align: left; font-size: 12px; letter-spacing: 0; color: var(--dim); font-weight: 600; padding: 12px 8px; border-bottom: 1px solid var(--line); }

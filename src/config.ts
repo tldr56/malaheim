@@ -14,7 +14,7 @@ export const SITE = {
   // Adresse e-mail de contact affichee sur le site.
   contactEmail: 'contact@malaheim.com',
   kitName: 'Kit Consultation WMS',
-  // Offre en trois marches, adaptée à toutes les tailles d'entreprise : le kit, la relecture, puis l'accompagnement à l'heure au réel.
+  // Offre en trois marches, pensée pour les PME et ETI : le kit, la relecture, puis l'accompagnement à l'heure au réel.
   kitPrice: '149 € HT',
   kitPriceNum: '149',
   kitFrom: '149 € HT',

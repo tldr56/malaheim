@@ -20,6 +20,11 @@ import { SITE } from '../../config';
       </div>
       <a class="dz-btn" id="dz-run" href="/simulateurs/">Lancer ma simulation</a>
     </div>
+    <form class="dz-co" id="dz-co" hidden novalidate>
+      <label for="dz-coi"><b>Nom à afficher sur la couverture</b><span>Facultatif. Il figure seulement sur votre dossier et n’est jamais transmis aux éditeurs.</span></label>
+      <div class="dz-coin"><input id="dz-coi" maxlength="100" autocomplete="organization" placeholder="Votre entreprise" /><button type="submit" class="dz-btn">Appliquer</button></div>
+      <p class="dz-comsg" id="dz-comsg" role="status"></p>
+    </form>
     <p class="dz-status" id="dz-status" role="status"></p>
     <div class="dz-pages" id="dz-pages"></div>
     <template id="dz-logo"><Logo variant="full" /></template>
@@ -271,7 +276,7 @@ import { SITE } from '../../config';
     $('dz-pages').innerHTML = pages.map((p, k) => p.replace('</section>', `<footer class="dp-f"><span>${brand ? `${esc(issuer())}, réalisé avec malaheim.com` : 'MALAHEIM Consulting, malaheim.com'}</span><span>Page ${k + 1} sur ${n}</span></footer></section>`)).join('');
     root.classList.toggle('demo', !!ctx.demo);
     $('dz-h').textContent = `Dossier de décision ${model.code}`;
-    $('dz-sub').textContent = ctx.demo ? 'Exemple sur une entreprise fictive' : `${ctx.company ? `${ctx.company}, ` : ''}référence ${ctx.ref}`;
+    $('dz-sub').textContent = ctx.demo ? 'Exemple sur une entreprise fictive' : `${ctx.company ? `${ctx.company}, référence` : 'Référence'} ${ctx.ref}`;
     ($('dz-pdf') as HTMLButtonElement).disabled = false;
     ($('dz-xlsx') as HTMLButtonElement).disabled = !!ctx.demo;
     if (ctx.demo) { $('dz-ex').hidden = false; ($('dz-run') as HTMLAnchorElement).href = `/simulateurs/${model.slug}/`; ($('dz-xlsx') as HTMLButtonElement).title = 'Livré avec votre dossier'; }
@@ -394,7 +399,17 @@ import { SITE } from '../../config';
       if (s === 401) { status(`Connectez-vous à <a href="/compte/?retour=${encodeURIComponent(location.pathname + location.search)}">votre espace client</a> pour ouvrir ce dossier.`); return; }
       if (!j.ok || !SIMS[j.sim]) { status(`${esc(j.error || 'Dossier introuvable.')} <a href="/compte/">Mon espace client</a>`); return; }
       brand = j.brand || null;
-      render({ slug: j.sim, query: j.q, company: j.company, ref: j.ref, date: j.date });
+      const ctx0 = { slug: j.sim, query: j.q, company: j.company, ref: j.ref, date: j.date };
+      render(ctx0);
+      const co = $('dz-co') as HTMLFormElement; const coi = $('dz-coi') as HTMLInputElement;
+      coi.value = j.company || ''; co.hidden = false; co.classList.toggle('set', !!j.company);
+      co.addEventListener('submit', async (e) => {
+        e.preventDefault(); const company = coi.value.trim(); const m = $('dz-comsg'); m.textContent = 'Enregistrement…';
+        const r = await fetch('/api/account/profile', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ company }) }).then((x) => x.json()).catch(() => ({ ok: false }));
+        if (!r.ok) { m.textContent = 'Enregistrement impossible, réessayez.'; return; }
+        ctx0.company = company; render(ctx0); co.classList.toggle('set', !!company);
+        m.textContent = company ? 'Nom appliqué au dossier et à vos prochains dossiers.' : 'Nom retiré du dossier.';
+      });
     }).catch(() => status('Connexion impossible. Actualisez la page dans un instant.'));
   } else {
     status('Aucun dossier à afficher. Retrouvez vos dossiers dans <a href="/compte/">votre espace client</a>, ou consultez <a href="/dossier/?exemple=wms">un exemple de dossier</a>.');
@@ -407,6 +422,13 @@ import { SITE } from '../../config';
   .dz-bar { position: sticky; top: 64px; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px max(20px, calc((100vw - 900px) / 2)); background: rgba(245,245,247,.92); backdrop-filter: blur(12px); }
   .dz-t { display: flex; flex-direction: column; } .dz-t strong { font-size: 17px; letter-spacing: -0.02em; } .dz-t span { font-size: 13px; color: var(--muted); }
   .dz-act { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dz-co { max-width: 900px; margin: 18px auto 0; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; background: #fff; border-radius: 18px; box-shadow: inset 0 0 0 1px #e3e3e8; box-sizing: border-box; }
+  .dz-co label { display: flex; flex-direction: column; gap: 2px; font-size: 14px; } .dz-co label span { font-size: 12.5px; color: var(--muted); }
+  .dz-coin { display: flex; gap: 8px; flex: 1 1 320px; max-width: 420px; }
+  .dz-coin input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 14px; border-radius: 12px; border: 1px solid #d2d2d7; }
+  .dz-comsg { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--muted); } .dz-comsg:empty { display: none; }
+  @media print { .dz-co { display: none !important; } }
+  @media screen and (max-width: 640px) { .dz-co { margin: 12px 12px 0; } .dz-coin { max-width: none; } }
   .dz-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 999px; border: 0; background: #000; color: #fff; cursor: pointer; text-decoration: none !important; white-space: nowrap; }
   .dz-btn:hover { color: #fff; }
   .dz-btn:disabled { opacity: .35; cursor: default; }

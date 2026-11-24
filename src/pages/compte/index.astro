@@ -19,11 +19,11 @@ const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
 
     <div class="ac-login" id="ac-login" hidden>
       <form id="ac-lf" class="ac-card" novalidate>
-        <h2>Connexion</h2>
-        <p>Saisissez l’adresse e-mail de votre compte : nous vous envoyons un code à 6 chiffres.</p>
+        <h2>Connexion ou création de compte</h2>
+        <p>Saisissez votre adresse e-mail : nous vous envoyons un code à 6 chiffres. Pas de mot de passe, ni nom d’entreprise ni téléphone demandés.</p>
         <label for="ac-email">E-mail</label><input id="ac-email" type="email" autocomplete="email" maxlength="120" />
         <button type="submit" class="ac-btn">Recevoir mon code</button>
-        <p class="ac-note">Pas encore de compte ? Votre première simulation complète est offerte : <a href="/simulateurs/">choisissez un simulateur</a>.</p>
+        <p class="ac-note">Nouveau ? Le compte est créé à la première connexion, et votre première simulation complète est offerte : <a href="/simulateurs/">choisissez un simulateur</a>.</p>
         <p class="ac-err" id="ac-lmsg" role="status"></p>
       </form>
       <form id="ac-cf" class="ac-card" novalidate hidden>

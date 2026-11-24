@@ -73,7 +73,7 @@ const faq = [
   { q: 'Que propose Malaheim ?', a: "Deux choses : des outils pour choisir le bon logiciel supply chain (guides, simulateurs, kits de consultation) et du conseil en transformation digitale, du diagnostic au déploiement." },
   { q: 'Quels kits de consultation proposez-vous ?', a: "Sept kits, un par famille de logiciels : WMS, TMS, ERP, S&OP et planification, automatisation et WCS, OMS, données et pilotage. Chacun contient un cahier des charges de 130 à 268 exigences, des scénarios de démonstration, une grille de dépouillement, une check-list contractuelle en 30 points et un plan de recette." },
   { q: "Je ne sais pas de quel logiciel j'ai besoin. Par où commencer ?", a: "Cliquez en haut de cette page sur le problème qui vous ressemble le plus. Si plusieurs vous ressemblent, choisissez la dernière case : un appel gratuit de 30 minutes suffit pour trouver le premier chantier." },
-  { q: 'Malaheim peut-il accompagner mon entreprise ?', a: "Oui, de la TPE au grand groupe, partout en France et à distance, en français ou en anglais. L'offre s'adapte à votre taille : le kit si vous avancez seul, la relecture pour un second avis, l'accompagnement à l'heure pour un besoin précis ou un projet complet." },
+  { q: 'Malaheim peut-il accompagner mon entreprise ?', a: "Oui. L'offre est pensée pour les PME et ETI, et s'adapte aussi aux plus petites structures comme aux groupes, partout en France et à distance, en français ou en anglais. Vous ne payez que ce qui sert : le kit si vous avancez seul, la relecture pour un second avis, l'accompagnement à l'heure pour un besoin précis ou un projet complet." },
   { q: "Combien coûte l'accompagnement ?", a: `Le kit coûte ${SITE.kitPrice}. La relecture de votre cahier des charges coûte ${SITE.reviewPrice}, prix du kit déduit. Au-delà, l'accompagnement est facturé ${SITE.hourlyRate} de l'heure, au temps réellement passé, avec une estimation écrite avant de commencer.` },
   { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
   { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur issus de sources publiées, citées sur chaque page. Ils servent à cadrer un budget, pas à remplacer un devis." },
@@ -88,13 +88,13 @@ const jsonLd = {
   description: 'Choix de logiciels supply chain et conseil en transformation digitale.',
 };
 ---
-<Base title="Accueil" description="Malaheim Consulting accompagne toutes les entreprises, de la TPE au groupe, dans le choix et le déploiement de leurs logiciels supply chain, à un prix adapté : kits à 149 € HT, expert à l'heure." jsonLd={jsonLd} dock={false}>
+<Base title="Accueil" description="MALAHEIM Consulting accompagne les PME et ETI dans le choix et le déploiement de leurs logiciels supply chain, à coût maîtrisé : simulation offerte, dossier de décision à 19 € HT, kits à 149 € HT, expert à l'heure." jsonLd={jsonLd} dock={false}>
 
   <section id="orientation" class="hero" aria-labelledby="titre-accueil">
     <div class="wrap hero-head">
       <p class="hero-k rise">Malaheim Consulting</p>
       <h1 id="titre-accueil" class="hero-title rise d1">Quel est votre problème&#8239;?</h1>
-      <p class="hero-lead rise d2">Le bon logiciel supply chain, au juste prix, quelle que soit la taille de votre entreprise.</p>
+      <p class="hero-lead rise d2">Le bon logiciel supply chain pour votre PME ou ETI : la méthode des grands projets, à un coût maîtrisé.</p>
     </div>
 
     <div class="wrap">
@@ -241,8 +241,13 @@ const jsonLd = {
     <div class="wrap">
       <div class="sec-head">
         <h2 id="titre-prix" class="h2 sr-up">Vous ne payez que ce dont vous avez besoin.</h2>
-        <p class="lead sr-up lag1">De la TPE au groupe, chacun monte la marche qui lui convient.</p>
+        <p class="lead sr-up lag1">PME ou ETI, vous décidez d’abord, gratuitement, puis vous montez seulement la marche qui vous convient, à un prix connu d’avance.</p>
       </div>
+      <a class="decide sr-up" href="/simulateurs/">
+        <span class="decide-k">D’abord, décider</span>
+        <span class="decide-t">Votre première simulation complète est offerte. Le dossier de décision de 10 pages, prêt pour la direction : {SITE.creditPrice}.</span>
+        <span class="decide-go">Lancer un simulateur</span>
+      </a>
       <div class="steps">
         <a class="step sr-up" href="/kits/">
           <span class="step-k">Avancer seul</span>
@@ -285,7 +290,7 @@ const jsonLd = {
           <span class="b-go">Voir les 7 kits</span>
         </a>
         <a class="card card-lift b-sim sr-up lag1" href="/simulateurs/">
-          <span class="b-k">7 simulateurs gratuits</span>
+          <span class="b-k">7 simulateurs, 1re simulation offerte</span>
           <h3 class="b-t">Combien va coûter votre projet ?</h3>
           <div class="b-meter" aria-hidden="true">
             <div class="m-row"><span>Intégration</span><span class="m-bar"><i style="--w: 86%"></i></span></div>
@@ -605,6 +610,10 @@ const jsonLd = {
 
   /* Les trois marches */
   .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .decide { display: flex; align-items: center; gap: 12px 28px; flex-wrap: wrap; margin-bottom: 20px; padding: 22px 28px; border-radius: 24px; background: #000; color: #fff; text-decoration: none !important; }
+  .decide-k { flex: none; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.14); }
+  .decide-t { flex: 1 1 360px; font-size: 17px; line-height: 1.4; letter-spacing: -0.01em; }
+  .decide-go { flex: none; font-size: 14.5px; font-weight: 600; padding: 11px 20px; border-radius: 999px; background: #fff; color: #000; }
   @media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
   .step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 48px 32px 40px; background: #fff; border-radius: 28px; text-decoration: none !important; color: var(--text); transition: transform .6s var(--ease), box-shadow .6s var(--ease); }
   .step:hover { transform: scale(1.015); box-shadow: var(--shadow-hover); color: var(--text); }

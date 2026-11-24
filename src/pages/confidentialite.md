@@ -15,7 +15,7 @@ Robin Thomas-Le Déoré, entrepreneur individuel (EI) exerçant sous le nom comm
 
 | Données | Finalité | Base légale | Durée de conservation |
 |---|---|---|---|
-| Nom, e-mail professionnel, entreprise, fonction, téléphone facultatif, réponses et résultats des simulateurs | Gestion de votre compte client (connexion, simulations enregistrées, crédits), envoi du récapitulatif, suivi des simulations réalisées et prise de contact au sujet de votre projet | Intérêt légitime (répondre à votre demande et prospection professionnelle en lien avec votre fonction), avec droit d'opposition à tout moment | 3 ans après le dernier contact |
+| Adresse e-mail, nom de l'entreprise si vous choisissez de l'afficher sur votre dossier, réponses et résultats des simulateurs | Gestion de votre compte client (connexion, simulations enregistrées, crédits), envoi du récapitulatif et de messages liés à vos simulations, suivi de l'utilisation des simulateurs | Exécution du contrat pour le compte ; intérêt légitime pour les messages liés à vos simulations, avec droit d'opposition à tout moment ; consentement pour l'envoi des nouveautés (case à cocher) | 3 ans après le dernier contact |
 | Adresse e-mail | Envoi des nouveaux guides et simulateurs, si vous avez coché la case prévue | Consentement | Jusqu'au retrait du consentement |
 | Nom, société, adresse de facturation, numéro de TVA, réponses au simulateur, historique des achats et des crédits | Vente et mise à disposition des simulations, des dossiers de décision, du pack, du Pass Pro, du kit et des prestations | Exécution du contrat | 10 ans (obligation comptable) |
 | Nom et logo du cabinet (titulaires du Pass Pro) | Personnalisation des dossiers | Exécution du contrat | Durée du Pass Pro, puis 3 ans |
