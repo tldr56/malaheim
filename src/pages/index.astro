@@ -92,16 +92,23 @@ const jsonLd = {
 
   <section id="orientation" class="hero" aria-labelledby="titre-accueil">
     <div class="wrap hero-head">
-      <p class="hero-k rise">Malaheim Consulting</p>
-      <h1 id="titre-accueil" class="hero-title rise d1">Quel est votre problème&#8239;?</h1>
-      <p class="hero-lead rise d2">Le bon logiciel supply chain pour votre PME ou ETI : la méthode des grands projets, à un coût maîtrisé.</p>
+      <p class="hero-k rise">Pour les PME et ETI</p>
+      <h1 id="titre-accueil" class="hero-title rise d1">La méthode des grands projets, <span class="hero-em">au budget d’une PME.</span></h1>
+      <p class="hero-lead rise d2">Choisissez et déployez votre WMS, TMS ou ERP sans payer des semaines de cabinet. Vous décidez gratuitement, vous avancez avec un kit, un expert intervient à l’heure, seulement si besoin.</p>
+      <ul class="hero-prices rise d3" aria-label="Nos prix">
+        <li><b>Offerte</b><span>la simulation</span></li>
+        <li><b>{SITE.creditPrice}</b><span>le dossier de décision</span></li>
+        <li class="on"><b>{SITE.kitPrice}</b><span>toute la consultation en kit</span></li>
+        <li><b>{SITE.hourlyRate}</b><span>l’expert, à l’heure</span></li>
+      </ul>
+      <p class="hero-note rise d3">Le kit complet coûte moins de deux heures d’expert. Aucun forfait, aucun engagement.</p>
     </div>
 
     <div class="wrap">
       <div class="stage">
         <div class="glow" aria-hidden="true"><i></i><i></i></div>
         <div class="tiles" role="group" aria-label="Votre problème">
-          <p class="tiles-k">Choisissez ce qui vous ressemble</p>
+          <p class="tiles-k"><b>Quel est votre problème&#8239;?</b> Choisissez ce qui vous ressemble.</p>
           {pains.map((p, i) => (
             <button type="button" class="tile-btn rise" style={`animation-delay: ${0.7 + i * 0.07}s`} data-for={p.slug} aria-pressed="false" aria-controls="reponse">
               <span class="tb-code">{p.code}</span>
@@ -271,6 +278,18 @@ const jsonLd = {
           <span class="step-go">Voir les tarifs</span>
         </a>
       </div>
+      <a class="kitband sr-up" href="/kits/#kt-wms">
+        <div class="kb-h"><span class="kb-k">Dans chaque kit à {SITE.kitPrice}</span><b>Toute votre consultation, en six documents prêts à l’emploi</b></div>
+        <ol class="kb-l">
+          <li><i>1</i>Le cahier des charges, exigences déjà rédigées</li>
+          <li><i>2</i>Le format de réponse, coût sur 5 ans imposé</li>
+          <li><i>3</i>Les scénarios de démonstration, sur vos données</li>
+          <li><i>4</i>La grille de notation, règles écrites</li>
+          <li><i>5</i>La check-list du contrat, 30 points</li>
+          <li><i>6</i>Le plan de recette, exceptions comprises</li>
+        </ol>
+        <span class="kb-go">Voir le kit étape par étape</span>
+      </a>
     </div>
   </section>
 
@@ -469,7 +488,15 @@ const jsonLd = {
   .hero { padding-block: 56px 40px; }
   .hero-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 40px; }
   .hero-k { margin: 0; font-size: 19px; font-weight: 600; color: var(--muted); letter-spacing: -0.01em; }
-  .hero-title { margin: 0; font-size: clamp(46px, 7vw, 104px); line-height: 1; letter-spacing: -0.05em; font-weight: 700; }
+  .hero-title { margin: 0; max-width: 13em; font-size: clamp(40px, 6.2vw, 92px); line-height: 1.02; letter-spacing: -0.05em; font-weight: 700; text-wrap: balance; }
+  .hero-em { color: #2448f5; }
+  .hero-prices { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .hero-prices li { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 150px; padding: 14px 20px; border-radius: 18px; background: var(--pearl); }
+  .hero-prices li b { font-size: 24px; letter-spacing: -0.03em; }
+  .hero-prices li span { font-size: 13.5px; color: var(--muted); }
+  .hero-prices li.on { background: #000; color: #fff; } .hero-prices li.on span { color: rgba(255,255,255,.7); }
+  .hero-note { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+  @media (max-width: 640px) { .hero-prices { display: grid; grid-template-columns: 1fr 1fr; width: 100%; } .hero-prices li { min-width: 0; padding: 12px 10px; } .hero-prices li b { font-size: 20px; } .hero-prices li span { font-size: 12.5px; text-align: center; } }
   .hero-lead { margin: 8px 0 0; max-width: 26em; font-size: clamp(19px, 2vw, 26px); line-height: 1.3; letter-spacing: -0.02em; color: var(--muted); font-weight: 500; }
 
   /* La scène : un objet noir, comme un produit posé */
@@ -481,7 +508,7 @@ const jsonLd = {
   @keyframes drift { to { transform: translate(-80px, 60px) scale(1.15); } }
 
   .tiles { display: flex; flex-direction: column; }
-  .tiles-k { margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,.5); font-weight: 500; }
+  .tiles-k { margin: 0 0 10px; font-size: 15px; color: rgba(255,255,255,.6); font-weight: 500; } .tiles-k b { color: #fff; font-size: 20px; letter-spacing: -0.02em; margin-right: 6px; }
   .tile-btn { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 15px 6px; cursor: pointer; font: inherit; color: rgba(255,255,255,.62); background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.1); transition: color .35s, padding .5s var(--ease); }
   .tile-btn:last-child { border-bottom: 0; }
   .tile-btn:hover { color: #fff; padding-left: 12px; }
@@ -610,6 +637,15 @@ const jsonLd = {
 
   /* Les trois marches */
   .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .kitband { display: grid; grid-template-columns: 1fr 2fr auto; align-items: center; gap: 20px 32px; margin-top: 20px; padding: 26px 30px; border-radius: 24px; background: #fff; color: var(--ink); text-decoration: none !important; box-shadow: inset 0 0 0 1px #e3e3e8; transition: box-shadow .3s; }
+  .kitband:hover { box-shadow: inset 0 0 0 1px #000; }
+  .kb-h { display: grid; gap: 6px; } .kb-k { font-size: 13px; font-weight: 600; color: #2448f5; } .kb-h b { font-size: 19px; line-height: 1.25; letter-spacing: -0.02em; }
+  .kb-l { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+  .kb-l li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; line-height: 1.3; }
+  .kb-l i { flex: none; font-style: normal; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #000; color: #fff; font-size: 12px; font-weight: 700; }
+  .kb-go { font-size: 14.5px; font-weight: 600; padding: 11px 20px; border-radius: 999px; background: #000; color: #fff; white-space: nowrap; }
+  @media (max-width: 1000px) { .kitband { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .kb-l { grid-template-columns: 1fr; } .kb-go { justify-self: start; } }
   .decide { display: flex; align-items: center; gap: 12px 28px; flex-wrap: wrap; margin-bottom: 20px; padding: 22px 28px; border-radius: 24px; background: #000; color: #fff; text-decoration: none !important; }
   .decide-k { flex: none; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.14); }
   .decide-t { flex: 1 1 360px; font-size: 17px; line-height: 1.4; letter-spacing: -0.01em; }

@@ -1,0 +1,317 @@
+---
+// Vitrine didactique d'un kit : la consultation en 6 étapes, avec à chaque étape
+// l'aperçu du document fourni, le piège évité, puis « même si vous savez faire ».
+import { SITE } from '../config';
+
+interface Part { k: string; t: string; d: string }
+interface Props {
+  code: string; reqs: number; demos: number; tests: number; exceptions: number;
+  parts: Part[]; extract: { k: string; t: string; rows: string[][]; tip: string };
+  fill: string; buyHref: string; intro?: string; showBuy?: boolean;
+}
+const { code, reqs, demos, tests, exceptions, parts, extract, fill, buyHref, intro, showBuy = true } = Astro.props;
+const uid = `kt-${code.replace(/[^a-z]/gi, '').toLowerCase()}`;
+
+type Sample = { scen: { t: string; data: string; voir: string[] }; tests: string[][] };
+const SAMPLES: Record<string, Sample> = {
+  WMS: {
+    scen: { t: 'Rupture de stock en pleine vague de préparation', data: 'Vos 200 commandes d’un lundi de pic, sur vos emplacements réels', voir: ['Le manquant est réaffecté sans intervention', 'Le préparateur reçoit une consigne claire sur son terminal', 'La vague suivante n’est pas bloquée'] },
+    tests: [['REC-07', 'Réception avec un écart de quantité sur l’avis d’expédition', 'Écart signalé, stock réel retenu, litige créé', 'E'], ['PRE-12', 'Commande urgente insérée en cours de vague', 'Commande priorisée sans casser la vague', 'N'], ['EXP-21', 'Colis refusé au contrôle du poids', 'Colis bloqué, repris, tracé', 'E'], ['INT-04', 'Coupure de l’interface ERP pendant 30 minutes', 'Messages rejoués sans perte ni doublon', 'E']],
+  },
+  TMS: {
+    scen: { t: 'Votre grille tarifaire la plus complexe, chargée en direct', data: 'Votre grille réelle et 50 expéditions d’une semaine', voir: ['Le prix calculé est le vôtre, à l’euro près', 'Taxe gazole et options appliquées automatiquement', 'Le choix du transporteur est justifié'] },
+    tests: [['EXE-03', 'Transporteur qui refuse l’enlèvement', 'Réaffectation au suivant et alerte', 'E'], ['FAC-08', 'Facture reçue deux fois, par EDI et par e-mail', 'Doublon détecté, non payé', 'E'], ['SUI-11', 'Livraison avec réserve du client', 'Litige ouvert, preuve rattachée', 'E'], ['PLA-02', 'Tournée de 12 arrêts avec créneaux', 'Ordre et créneaux respectés', 'N']],
+  },
+  ERP: {
+    scen: { t: 'De la commande client à l’encaissement, avec un avoir partiel', data: 'Vos articles, vos clients et vos conditions tarifaires', voir: ['Prix et remises appliqués sans ressaisie', 'Facture électronique émise au bon format', 'Avoir partiel lettré automatiquement'] },
+    tests: [['VEN-05', 'Commande avec remise par quantité et franco de port', 'Prix et frais de port justes', 'N'], ['FAC-14', 'Facture électronique rejetée par la plateforme', 'Rejet visible, corrigé, renvoyé', 'E'], ['ACH-09', 'Réception fournisseur partielle avec écart de prix', 'Paiement bloqué, acheteur alerté', 'E'], ['FIN-03', 'Clôture mensuelle avec écritures de fin de période', 'Clôture tenue en 3 jours', 'N']],
+  },
+  'S&OP': {
+    scen: { t: 'Test à l’aveugle : prévoir vos 6 derniers mois de ventes', data: '3 ans de votre historique, les 6 derniers mois cachés à l’éditeur', voir: ['L’erreur de prévision est mesurée, pas annoncée', 'Promotions et ruptures traitées à part', 'Le résultat est comparé à votre méthode actuelle'] },
+    tests: [['PRV-04', 'Article nouveau sans historique', 'Prévision par analogie, signalée comme telle', 'E'], ['CAP-07', 'Ligne de production saturée', 'Arbitrage proposé, aucun plan infaisable', 'E'], ['SOP-02', 'Cycle mensuel complet en réunion', 'Un seul chiffre partagé par tous', 'N'], ['APP-10', 'Rupture fournisseur annoncée', 'Impact recalculé sur 12 semaines', 'E']],
+  },
+  WCS: {
+    scen: { t: 'Visite d’une installation de référence', data: 'Un site client comparable, sans le fournisseur dans la pièce', voir: ['Disponibilité réelle sur les 12 derniers mois', 'Délai réel d’intervention de la maintenance', 'Ce que le client referait autrement'] },
+    tests: [['ESS-03', 'Cadence à 110 % du débit nominal pendant 2 heures', 'Cadence tenue, erreurs sous le seuil', 'N'], ['ESS-09', 'Arrêt d’urgence en pleine charge', 'Redémarrage sans perte de colis', 'E'], ['ESS-14', 'Perte de communication avec le WMS', 'Mode dégradé, reprise propre', 'E'], ['ESS-17', 'Colis hors gabarit', 'Éjecté vers la zone d’anomalie', 'E']],
+  },
+  OMS: {
+    scen: { t: 'Simulation des règles : où servir 20 commandes réelles', data: 'Vos stocks par site et 20 commandes d’un jour de pic', voir: ['Le site choisi et la raison sont affichés', 'La commande n’est éclatée que si c’est nécessaire', 'La promesse de délai est tenue'] },
+    tests: [['ORC-02', 'Stock vendu en magasin entre la commande et la préparation', 'Réaffectation ou client prévenu', 'E'], ['RET-08', 'Retour en magasin d’une commande web', 'Remboursement et remise en stock', 'E'], ['PER-11', 'Pic à 10 fois le volume moyen', 'Temps de réponse tenu', 'N'], ['PAI-15', 'Paiement refusé après réservation du stock', 'Stock libéré aussitôt', 'E']],
+  },
+  DATA: {
+    scen: { t: 'Analyse de votre vrai fichier articles', data: 'Un export brut de votre référentiel, tel qu’il est', voir: ['Doublons et champs vides détectés automatiquement', 'Règle de qualité appliquée et mesurée', 'Chaque correction tracée, avec son auteur'] },
+    tests: [['REF-03', 'Article créé sans poids ni dimensions', 'Création bloquée ou alerte', 'E'], ['REF-07', 'Même fournisseur saisi deux fois', 'Fusion proposée', 'E'], ['IND-02', 'Taux de service recalculé', 'Même chiffre que la source', 'N'], ['IND-06', 'Source indisponible pendant la nuit', 'Tableau marqué « non à jour »', 'E']],
+  },
+};
+const sm = SAMPLES[code] || SAMPLES.WMS;
+const isWcs = code === 'WCS';
+const p = (k: string) => parts.find((x) => x.k === k) || parts[0];
+
+const steps = [
+  { n: '01', t: 'Décrire votre besoin', kit: `Parties 1 à 4 : ${reqs} exigences déjà rédigées, priorités pré-remplies`, trap: 'Chaque éditeur chiffre un projet différent, et les avenants arrivent après la signature.' },
+  { n: '02', t: 'Imposer le format de réponse', kit: `Partie 5 : ${p('Partie 5').t.toLowerCase()}`, trap: 'Des offres impossibles à comparer, et des coûts qui apparaissent en année 3.' },
+  { n: '03', t: isWcs ? 'Faire soutenir et visiter' : 'Faire démontrer', kit: `Annexe B : ${p('Annexe B').t.charAt(0).toLowerCase() + p('Annexe B').t.slice(1)}`, trap: isWcs ? 'Croire les cadences d’une plaquette, sans les avoir vues tourner chez un client.' : 'Une démonstration commerciale sur des données parfaites, qui ne prouve rien.' },
+  { n: '04', t: 'Noter et comparer', kit: `Annexe C : ${p('Annexe C').t.charAt(0).toLowerCase() + p('Annexe C').t.slice(1)}`, trap: 'Choisir au feeling, ou le moins cher, qui deviendra le plus cher.' },
+  { n: '05', t: 'Signer le bon contrat', kit: 'Annexe D : check-list contractuelle en 30 points', trap: 'Découvrir à la sortie que vos données ne sont pas récupérables, ou que la maintenance a doublé.' },
+  { n: '06', t: isWcs ? 'Réceptionner l’installation' : 'Recetter avant de démarrer', kit: `Annexe E : ${tests} ${isWcs ? 'essais' : 'cas'}, dont ${exceptions} d’exception`, trap: 'Démarrer sur des cas simples, et découvrir les exceptions en pleine production.' },
+];
+const money = [['Abonnement ou licences'], ['Intégration et paramétrage'], ['Interfaces'], ['Reprise des données'], ['Formation'], ['Maintenance et support']];
+const crit = [['Couverture fonctionnelle', 35], ['Coût sur 5 ans', 25], ['Méthode et équipe projet', 15], ['Technique et sécurité', 15], ['Solidité du fournisseur', 10]];
+const cand = [
+  { n: 'Candidat A', s: [4, 3, 4, 4, 4], note: '' },
+  { n: 'Candidat B', s: [3, 5, 3, 3, 3], note: 'Prix 38 % sous la moyenne : contrôle de sincérité déclenché' },
+  { n: 'Candidat C', s: [4, 4, 2, 3, 4], note: 'Exigence indispensable non couverte : éliminé', out: true },
+];
+const tot = (s: number[]) => (s.reduce((a, v, i) => a + v * (crit[i][1] as number), 0) / 100).toFixed(2).replace('.', ',');
+const contract = [
+  ['Périmètre', 'Chaque exigence cotée par l’éditeur devient un engagement du contrat'],
+  ['Prix', 'Abonnement figé 3 ans, indexation plafonnée, prix des utilisateurs supplémentaires écrit'],
+  ['Projet', 'Paiements liés à la recette validée, pas au calendrier'],
+  ['Service', 'Disponibilité garantie, délais d’intervention et pénalités chiffrés'],
+  ['Données', 'Vos données vous appartiennent, export complet à tout moment'],
+  ['Sortie', 'Réversibilité : format, délai et assistance prévus et chiffrés'],
+];
+const forget = [
+  'La réversibilité chiffrée, avant de signer',
+  'Un test de charge à votre pointe, pas à votre moyenne',
+  `Des cas d’exception en recette : ${Math.round((exceptions / tests) * 100)} % des cas du kit`,
+  'Le contrôle de sincérité d’une offre trop basse',
+  'Les pénalités de disponibilité et leurs plafonds',
+  'Le propriétaire de chaque donnée de référence',
+];
+const fillShort = fill.split(/[.,]/)[0];
+const vs = [
+  ['Rédiger le cahier des charges', 'Partir d’une page blanche, sur plusieurs semaines', `${fillShort}, ${reqs} exigences déjà rédigées`],
+  ['Comparer les offres', 'Formats différents, coûts cachés', 'Même grille financière sur 5 ans pour tous'],
+  [isWcs ? 'Soutenances et visites' : 'Démonstrations', 'Choisies par le fournisseur', isWcs ? 'Vos questions, chez un vrai client' : `${demos} scénarios imposés, sur vos données`],
+  ['Décider', 'Un débat d’opinions', 'Une note pondérée et des règles écrites'],
+  ['Contrat', 'Celui du fournisseur', '30 points vérifiés un par un'],
+  [isWcs ? 'Réception' : 'Recette', 'Les cas qui marchent', `${tests} ${isWcs ? 'essais' : 'cas'}, dont ${exceptions} d’exception`],
+  ['Coût', 'Des jours de conseil', `${SITE.kitPrice}, moins de deux heures d’expert`],
+];
+---
+<section class="kt" id={uid} aria-labelledby={`${uid}-t`}>
+  <div class="wrap">
+    <div class="kt-head">
+      <p class="eyebrow sr-down">Comment le kit vous sécurise</p>
+      <h2 id={`${uid}-t`} class="h2 sr-up">Votre consultation {code}, étape par étape</h2>
+      <p class="lead sr-up lag1">{intro || 'À chaque étape, le kit vous donne le document prêt à l’emploi et vous évite le piège qui coûte cher. Cliquez sur une étape pour voir ce que vous recevez.'}</p>
+    </div>
+
+    <div class="kt-grid">
+      <div class="kt-steps" role="tablist" aria-label="Étapes de la consultation">
+        {steps.map((s, i) => (
+          <button type="button" role="tab" class={`kt-step ${i === 0 ? 'on' : ''}`} id={`${uid}-tab${i}`} aria-controls={`${uid}-p${i}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-i={i}>
+            <span class="kt-n">{s.n}</span>
+            <span class="kt-st"><b>{s.t}</b><span>{s.kit}</span></span>
+          </button>
+        ))}
+      </div>
+
+      <div class="kt-view">
+        {steps.map((s, i) => (
+          <div class="kt-panel" role="tabpanel" id={`${uid}-p${i}`} aria-labelledby={`${uid}-tab${i}`} hidden={i !== 0}>
+            <div class="kt-doc">
+              <div class="kt-dh"><span>Kit Consultation {code}</span><span>{['Partie 3', 'Partie 5', 'Annexe B', 'Annexe C', 'Annexe D', 'Annexe E'][i]}</span></div>
+
+              {i === 0 && (<>
+                <p class="kt-dk">{extract.k}</p><h3 class="kt-dt">{extract.t}</h3>
+                <table class="kt-tb"><thead><tr><th>N°</th><th>Exigence</th><th>Prio.</th><th>Réponse</th></tr></thead>
+                  <tbody>{extract.rows.map((r) => <tr><td class="kt-id">{r[0]}</td><td>{r[1]}</td><td><span class={`kt-prio p${r[2]}`}>{r[2]}</span></td><td class="kt-rep">{r[3]}</td></tr>)}</tbody></table>
+                <p class="kt-legend">Priorité : I indispensable, S souhaité, O optionnel. Réponse imposée à l’éditeur : ST standard, PA paramétrage, SP spécifique, FE feuille de route.</p>
+                <div class="kt-tip"><b>Conseil d’expert inclus.</b> {extract.tip}</div>
+              </>)}
+
+              {i === 1 && (<>
+                <p class="kt-dk">Offre financière imposée, poste par poste</p><h3 class="kt-dt">Coût complet sur 5 ans</h3>
+                <table class="kt-tb kt-money"><thead><tr><th>Poste</th><th>An 1</th><th>An 2</th><th>An 3</th><th>An 4</th><th>An 5</th></tr></thead>
+                  <tbody>{money.map((m) => <tr><td>{m[0]}</td>{[1, 2, 3, 4, 5].map(() => <td><span class="kt-fill">à chiffrer</span></td>)}</tr>)}</tbody></table>
+                <p class="kt-dk" style="margin-top: 18px">Critères de choix annoncés aux candidats (exemple de pondération)</p>
+                <div class="kt-crit">{crit.map((c) => <div><span>{c[0]}</span><i style={`--w: ${c[1]}%`}></i><b>{c[1]} %</b></div>)}</div>
+                <div class="kt-tip"><b>Pourquoi c’est décisif.</b> Sans forfait global, chaque éditeur chiffre les mêmes postes : vous comparez enfin des offres comparables, et rien ne surgit en année 3.</div>
+              </>)}
+
+              {i === 2 && (<>
+                <p class="kt-dk">{isWcs ? 'Point de soutenance' : `Scénario imposé, 1 sur ${demos}`}</p><h3 class="kt-dt">{sm.scen.t}</h3>
+                <div class="kt-scen">
+                  <div><span>Données utilisées</span><b>{sm.scen.data}</b></div>
+                  <div><span>Ce que vous devez voir</span><ul>{sm.scen.voir.map((v) => <li>{v}</li>)}</ul></div>
+                  <div class="kt-rate"><span>Note de chaque observateur</span><b>{[0, 1, 2, 3, 4, 5].map((n) => <em class={n === 4 ? 'on' : ''}>{n}</em>)}</b></div>
+                </div>
+                <div class="kt-tip"><b>Signal d’alerte fourni.</b> Si le fournisseur refuse vos données ou change de scénario en cours de route, la grille vous dit quoi en conclure.</div>
+              </>)}
+
+              {i === 3 && (<>
+                <p class="kt-dk">Grille de dépouillement, notes sur 5</p><h3 class="kt-dt">Le choix se lit, il ne se débat pas</h3>
+                <table class="kt-tb kt-score"><thead><tr><th>Critère</th><th>Poids</th>{cand.map((c) => <th class={c.out ? 'out' : ''}>{c.n}</th>)}</tr></thead>
+                  <tbody>
+                    {crit.map((c, ci) => <tr><td>{c[0]}</td><td>{c[1]} %</td>{cand.map((d) => <td class={d.out ? 'out' : ''}>{d.s[ci]}</td>)}</tr>)}
+                    <tr class="kt-tot"><td>Note pondérée</td><td></td>{cand.map((d, di) => <td class={d.out ? 'out' : di === 0 ? 'win' : ''}>{d.out ? 'éliminé' : tot(d.s)}</td>)}</tr>
+                  </tbody></table>
+                <ul class="kt-flags">{cand.filter((c) => c.note).map((c) => <li class={c.out ? 'out' : ''}><b>{c.n}.</b> {c.note}</li>)}</ul>
+                <div class="kt-tip"><b>Règles écrites avant d’ouvrir les offres.</b> Élimination, contrôle des prix anormalement bas, questions aux références : la décision se défend devant votre direction.</div>
+              </>)}
+
+              {i === 4 && (<>
+                <p class="kt-dk">6 familles, 30 points à vérifier</p><h3 class="kt-dt">Ce que le contrat doit dire</h3>
+                <ul class="kt-check">{contract.map((c) => <li><span class="kt-box" aria-hidden="true"></span><div><b>{c[0]}</b><span>{c[1]}</span></div></li>)}</ul>
+                <div class="kt-tip"><b>Les points qui coûtent le plus cher</b> sont presque toujours ceux qu’on découvre trop tard : sortie, données, révision des prix.</div>
+              </>)}
+
+              {i === 5 && (<>
+                <p class="kt-dk">{tests} {isWcs ? 'essais' : 'cas'}, dont {exceptions} d’exception</p><h3 class="kt-dt">{isWcs ? 'Essais de réception' : 'Plan de recette'}</h3>
+                <table class="kt-tb kt-rec"><thead><tr><th>N°</th><th>Situation testée</th><th>Résultat attendu</th><th>Type</th></tr></thead>
+                  <tbody>{sm.tests.map((r) => <tr><td class="kt-id">{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td><span class={`kt-ty ${r[3] === 'E' ? 'e' : ''}`}>{r[3] === 'E' ? 'Exception' : 'Normal'}</span></td></tr>)}</tbody></table>
+                <div class="kt-tip"><b>Les incidents naissent dans les exceptions.</b> C’est pourquoi {Math.round((exceptions / tests) * 100)} % des cas du kit en sont, avec des critères de sortie de recette écrits.</div>
+              </>)}
+            </div>
+            <div class="kt-trap"><span class="kt-tri" aria-hidden="true">!</span><div><b>Le piège évité</b><span>{s.trap}</span></div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <p class="kt-more">Inclus aussi : référentiel de données, planning type, rôles de chacun, lettre et règlement de consultation prêts à envoyer. Word modifiable et PDF.</p>
+  </div>
+</section>
+
+<section class="kt-pro" aria-labelledby={`${uid}-pro`}>
+  <div class="wrap">
+    <div class="kt-head">
+      <p class="eyebrow sr-down">Même si vous savez faire</p>
+      <h2 id={`${uid}-pro`} class="h2 sr-up">Vous gagnez des semaines, et rien ne vous échappe</h2>
+      <p class="lead sr-up lag1">Le kit ne remplace pas votre expérience : il la met par écrit, vérifiée, et vous évite de repartir de zéro à chaque projet.</p>
+    </div>
+    <div class="kt-pg">
+      <div class="kt-forget sr-up">
+        <h3>Ce qu’on oublie, même avec de l’expérience</h3>
+        <ul>{forget.map((f) => <li>{f}</li>)}</ul>
+      </div>
+      <div class="kt-vs sr-up lag1">
+        <table>
+          <thead><tr><th></th><th>Sans le kit</th><th>Avec le kit</th></tr></thead>
+          <tbody>{vs.map((v, i) => <tr class={i === vs.length - 1 ? 'kt-vlast' : ''}><th>{v[0]}</th><td>{v[1]}</td><td>{v[2]}</td></tr>)}</tbody>
+        </table>
+      </div>
+    </div>
+    {showBuy && (
+      <div class="kt-buy sr-up">
+        <div><b>{SITE.kitPrice}</b><span>Téléchargement immédiat, satisfait ou remboursé 14 jours. Prix d’un dossier de décision déduit.</span></div>
+        <a class="btn btn-gold btn-lg" href={buyHref}>Acheter le kit</a>
+      </div>
+    )}
+  </div>
+</section>
+
+<script define:vars={{ uid }}>
+  const root = document.getElementById(uid);
+  if (root) {
+    const tabs = [...root.querySelectorAll('.kt-step')];
+    const panels = [...root.querySelectorAll('.kt-panel')];
+    const show = (i, focus) => {
+      tabs.forEach((t, j) => { const on = j === i; t.classList.toggle('on', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
+      panels.forEach((p, j) => { p.hidden = j !== i; });
+      if (focus) tabs[i].focus();
+      if (matchMedia('(max-width: 900px)').matches) tabs[i].scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => show(i, false));
+      t.addEventListener('keydown', (e) => {
+        const k = e.key; let n = -1;
+        if (k === 'ArrowDown' || k === 'ArrowRight') n = (i + 1) % tabs.length;
+        if (k === 'ArrowUp' || k === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+        if (n >= 0) { e.preventDefault(); show(n, true); }
+      });
+    });
+  }
+</script>
+
+<style>
+  .kt { padding: 120px 0 80px; background: var(--pearl); scroll-margin-top: 40px; }
+  .kt-pro { padding: 110px 0 120px; }
+  .kt-head { max-width: 780px; display: grid; gap: 14px; margin-bottom: 44px; }
+  .kt-grid { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 28px; align-items: start; }
+  .kt-steps { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 100px; }
+  .kt-step { display: flex; gap: 14px; align-items: flex-start; text-align: left; padding: 16px 18px; border: 0; border-radius: 18px; background: transparent; font: inherit; color: var(--ink); cursor: pointer; transition: background .25s, box-shadow .25s; }
+  .kt-step:hover { background: rgba(255,255,255,.6); }
+  .kt-step.on { background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+  .kt-n { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: #e3e3e8; color: var(--muted); transition: background .25s, color .25s; }
+  .kt-step.on .kt-n { background: #000; color: #fff; }
+  .kt-st { display: flex; flex-direction: column; gap: 3px; } .kt-st b { font-size: 16.5px; letter-spacing: -0.01em; } .kt-st span { font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+  .kt-panel { display: grid; gap: 14px; animation: kt-in .45s var(--ease) both; }
+  .kt-panel[hidden] { display: none; }
+  @keyframes kt-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .kt-doc { background: #fff; border-radius: 6px; padding: 30px 34px 28px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 30px 60px -24px rgba(0,0,0,.25); min-height: 440px; }
+  .kt-dh { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: var(--muted); letter-spacing: .02em; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid #ececf0; }
+  .kt-dk { margin: 0; font-size: 12.5px; font-weight: 600; color: #2448f5; }
+  .kt-dt { margin: 4px 0 16px; font-size: 22px; letter-spacing: -0.025em; }
+  .kt-tb { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .kt-tb th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid #e3e3e8; }
+  .kt-tb td { padding: 10px 8px; border-bottom: 1px solid #f0f0f3; vertical-align: top; line-height: 1.4; }
+  .kt-id { font-weight: 600; white-space: nowrap; font-size: 12.5px; }
+  .kt-prio { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 11.5px; font-weight: 700; background: #f0f0f3; }
+  .kt-prio.pI { background: #000; color: #fff; } .kt-prio.pS { background: #dfe5ff; color: #1a35c0; }
+  .kt-rep { font-weight: 600; color: #2448f5; }
+  .kt-legend { margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .kt-tip { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: #f4f6ff; font-size: 13.5px; line-height: 1.5; }
+  .kt-fill { display: inline-block; padding: 2px 6px; border-radius: 5px; background: #f4f4f6; color: #9a9aa2; font-size: 11.5px; white-space: nowrap; }
+  .kt-money td:first-child { font-weight: 500; }
+  .kt-crit { display: grid; gap: 7px; font-size: 13px; }
+  .kt-crit div { display: grid; grid-template-columns: 190px 1fr 44px; align-items: center; gap: 10px; }
+  .kt-crit i { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #2448f5 var(--w), #ececf0 var(--w)); }
+  .kt-crit b { text-align: right; font-size: 12.5px; }
+  .kt-scen { display: grid; gap: 14px; }
+  .kt-scen > div { display: grid; gap: 6px; } .kt-scen span { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .kt-scen b { font-size: 15px; font-weight: 600; }
+  .kt-scen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .kt-scen li { position: relative; padding-left: 26px; font-size: 14.5px; }
+  .kt-scen li::before { content: ''; position: absolute; left: 0; top: 2px; width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #c9c9d0; }
+  .kt-rate b { display: flex; gap: 6px; } .kt-rate em { font-style: normal; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; border: 1px solid #e3e3e8; font-size: 13px; }
+  .kt-rate em.on { background: #000; color: #fff; border-color: #000; }
+  .kt-score td, .kt-score th { text-align: center; } .kt-score td:first-child, .kt-score th:first-child { text-align: left; }
+  .kt-score .out { color: #b9b9c0; text-decoration: line-through; }
+  .kt-tot td { font-weight: 700; border-bottom: 0; padding-top: 12px; } .kt-tot .win { color: #fff; background: #000; border-radius: 8px; }
+  .kt-tot .out { text-decoration: none; color: #c0392b; font-weight: 600; }
+  .kt-flags { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; }
+  .kt-flags li { padding: 8px 12px; border-radius: 10px; background: #fff7e6; } .kt-flags li.out { background: #fdecea; }
+  .kt-check { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .kt-check li { display: flex; gap: 12px; align-items: flex-start; }
+  .kt-box { flex: none; width: 20px; height: 20px; border-radius: 5px; background: #000; position: relative; margin-top: 1px; }
+  .kt-box::after { content: ''; position: absolute; left: 7px; top: 3px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .kt-check div { display: flex; flex-direction: column; gap: 1px; } .kt-check b { font-size: 14.5px; } .kt-check span { font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+  .kt-ty { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: #eef7f1; color: #1f8a4c; white-space: nowrap; }
+  .kt-ty.e { background: #fdecea; color: #b03a2e; }
+  .kt-trap { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border-radius: 16px; background: #000; color: #fff; }
+  .kt-tri { flex: none; width: 28px; height: 28px; border-radius: 50%; background: #ff6b5a; color: #000; display: grid; place-items: center; font-weight: 800; }
+  .kt-trap div { display: flex; flex-direction: column; gap: 2px; } .kt-trap b { font-size: 13px; color: rgba(255,255,255,.65); } .kt-trap span { font-size: 15.5px; line-height: 1.4; }
+  .kt-more { margin: 26px 0 0; font-size: 14.5px; color: var(--muted); }
+  .kt-pg { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start; }
+  .kt-forget { padding: 30px; border-radius: 24px; background: #000; color: #fff; }
+  .kt-forget h3 { margin: 0 0 18px; font-size: 21px; letter-spacing: -0.02em; color: #fff; }
+  .kt-forget ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+  .kt-forget li { position: relative; padding-left: 30px; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.85); }
+  .kt-forget li::before { content: ''; position: absolute; left: 0; top: 1px; width: 18px; height: 18px; border-radius: 50%; background: #2448f5; }
+  .kt-forget li::after { content: ''; position: absolute; left: 6px; top: 4px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .kt-vs { border-radius: 24px; background: var(--pearl); padding: 12px 22px; overflow-x: auto; }
+  .kt-vs table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .kt-vs th, .kt-vs td { text-align: left; padding: 13px 10px; border-bottom: 1px solid #e3e3e8; vertical-align: top; line-height: 1.4; }
+  .kt-vs thead th { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .kt-vs thead th:last-child { color: #2448f5; }
+  .kt-vs tbody th { font-weight: 600; width: 30%; }
+  .kt-vs tbody td:nth-child(2) { color: #8a8a92; }
+  .kt-vs tbody td:last-child { font-weight: 600; }
+  .kt-vs tr.kt-vlast th, .kt-vs tr.kt-vlast td { border-bottom: 0; }
+  .kt-buy { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; padding: 22px 28px; border-radius: 24px; background: #000; color: #fff; }
+  .kt-buy div { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; } .kt-buy b { font-size: 32px; letter-spacing: -0.04em; } .kt-buy span { font-size: 14.5px; color: rgba(255,255,255,.7); }
+  @media (max-width: 900px) {
+    .kt { padding: 80px 0 60px; } .kt-pro { padding: 80px 0; }
+    .kt-grid { grid-template-columns: 1fr; gap: 16px; }
+    .kt-steps { position: static; flex-direction: row; overflow-x: auto; scrollbar-width: none; margin-inline: -20px; padding: 4px 20px 8px; scroll-snap-type: x mandatory; }
+    .kt-steps::-webkit-scrollbar { display: none; }
+    .kt-step { flex: 0 0 78%; scroll-snap-align: center; background: rgba(255,255,255,.55); }
+    .kt-doc { padding: 22px 18px; min-height: 0; }
+    .kt-tb { font-size: 12.5px; } .kt-money th:nth-child(n+4), .kt-money td:nth-child(n+4) { display: none; }
+    .kt-crit div { grid-template-columns: 1fr 70px 40px; }
+    .kt-pg { grid-template-columns: 1fr; }
+    .kt-vs tbody th { width: auto; }
+  }
+</style>

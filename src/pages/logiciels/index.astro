@@ -1,7 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { SOFTWARE } from '../../config';
+import { SOFTWARE, KITS } from '../../config';
 const lags = ['', 'lag1', 'lag2'];
+const SIMSLUG: Record<string, string> = { wms: 'wms', tms: 'tms', erp: 'erp', 'automatisation-wcs': 'automatisation', oms: 'oms', 'sop-planification': 'planification', 'donnees-pilotage': 'donnees' };
 ---
 <Base title="Les logiciels supply chain" description="WMS, TMS, ERP, automatisation, OMS, S&OP, données : ce que fait chaque logiciel supply chain, quand il devient utile, son budget et son délai, pour choisir le bon en premier.">
   <section class="dark">
@@ -18,16 +19,16 @@ const lags = ['', 'lag1', 'lag2'];
       <h2 id="titre-familles" class="h2 sr-up">Sept familles de logiciels</h2>
       <div class="row" style="gap: 20px">
         {SOFTWARE.map((s, i) => (
-          <a class={`card card-lift fam sr-up ${lags[i % 3]}`} href={`/logiciels/${s.slug}/`}>
+          <div class={`card card-lift fam sr-up ${lags[i % 3]}`}>
             <div class="row" style="justify-content: space-between; align-items: center; gap: 10px">
               <span class="code">{s.code}</span>
-              <span class="pill pill-on">{s.status === 'complet' ? 'Simulateur et kit' : 'Guide et kit'}</span>
+              <span class="pill pill-on">Simulateur, guide et kit</span>
             </div>
             <h3 class="fam-t">{s.name}</h3>
             <p class="fam-d">{s.does}.</p>
             <p class="fam-p"><span class="dim">Signal d'achat :</span> {s.problem.charAt(0).toLowerCase() + s.problem.slice(1)}.</p>
-            <span class="gold" style="font-size: 15px; font-weight: 500; margin-top: auto">Lire le guide de choix <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
+            <div class="fam-l"><a class="fam-sim" href={`/simulateurs/${SIMSLUG[s.slug]}/`}>Lancer le simulateur</a><a href={`/logiciels/${s.slug}/`}>Guide de choix</a><a href={`/kits/${KITS.find((k) => k.sw === s.slug)!.page}/`}>Kit</a></div>
+          </div>
         ))}
       </div>
     </div>
@@ -81,6 +82,8 @@ const lags = ['', 'lag1', 'lag2'];
   .fam { flex: 1 1 340px; padding: 26px; display: flex; flex-direction: column; gap: 10px; }
   .fam-t { font-family: var(--body); font-size: 20px; font-weight: 600; color: var(--text-strong); }
   .fam-d, .fam-p { margin: 0; color: var(--muted); font-size: 15px; }
+  .fam-l { margin-top: auto; padding-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 15px; font-weight: 500; }
+  .fam-l .fam-sim { padding: 9px 16px; border-radius: 999px; background: #000; color: #fff !important; text-decoration: none; }
   .pill { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); color: var(--dim); }
   .pill-on { border-color: rgba(63,125,78,.4); color: var(--good); background: rgba(63,125,78,.08); }
   .tbl-wrap { overflow-x: auto; padding: 4px 0; }

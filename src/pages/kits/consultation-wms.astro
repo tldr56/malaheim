@@ -2,7 +2,9 @@
 import { SIM_LIST } from '../../lib/sims.js';
 import Base from '../../layouts/Base.astro';
 import Offer from '../../components/Offer.astro';
-import { SITE } from '../../config';
+import KitTour from '../../components/KitTour.astro';
+import { SITE, KITS } from '../../config';
+const kw = KITS[0];
 const title = 'Kit Consultation WMS';
 const ready = Boolean(SITE.kitCheckoutUrl);
 const buyHref = SITE.kitCheckoutUrl || '/a-propos/#contact';
@@ -89,6 +91,8 @@ const jsonLd = {
       ))}
     </div>
   </section>
+
+  <KitTour code="WMS" reqs={kw.reqs} demos={kw.demos} tests={kw.tests} exceptions={kw.exceptions} parts={kw.parts} extract={kw.extract} fill={kw.fill} buyHref={buyHref} />
 
   <section class="section" aria-labelledby="titre-contenu">
     <div class="wrap stack" style="gap: 48px">
