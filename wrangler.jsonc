@@ -1,8 +1,9 @@
 {
   // Site statique Astro (dossier dist) servi par Cloudflare Workers, plus les routes /api/* des comptes clients.
   // La base D1 « malaheim-comptes » est créée automatiquement au premier déploiement.
-  // Secrets (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL, LEADS_TOKEN, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (facultatif).
-  // Montants facultatifs en centimes TTC : PRICE_CREDIT_CENTS (2280), PRICE_PACK_CENTS (8280), PRICE_PRO_CENTS (46800).
+  // Secrets (Worker malaheim, Settings, Variables and Secrets) : LEADS_URL, LEADS_TOKEN, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET.
+  // Variable STRIPE_TAX = auto : prix HT et TVA calculée par Stripe Tax (montants HT : PRICE_CREDIT_HT_CENTS 1900, PRICE_PACK_HT_CENTS 6900, PRICE_PRO_HT_CENTS 39000).
+  // Sans STRIPE_TAX : montants TTC fixes PRICE_CREDIT_CENTS (2280), PRICE_PACK_CENTS (8280), PRICE_PRO_CENTS (46800).
   "name": "malaheim",
   "compatibility_date": "2026-11-01",
   "main": "./worker/index.js",

@@ -12,19 +12,26 @@
 // Base de données : D1, liée sous le nom DB (créée automatiquement au premier déploiement).
 // Secrets (Cloudflare, Worker malaheim, Settings, Variables and Secrets) :
 //   LEADS_URL, LEADS_TOKEN    script Google (Sheet des contacts, envoi des codes et des e-mails)
-//   STRIPE_SECRET_KEY         clé secrète Stripe
-//   STRIPE_WEBHOOK_SECRET     facultatif, secret de signature du webhook Stripe
-// Variables facultatives, montants encaissés en centimes TTC :
-//   PRICE_CREDIT_CENTS (2280), PRICE_PACK_CENTS (8280), PRICE_PRO_CENTS (46800)
+//   STRIPE_SECRET_KEY         clé Stripe : clé restreinte rk_ conseillée en production (sk_ accepté)
+//   STRIPE_WEBHOOK_SECRET     secret de signature du webhook Stripe (indispensable en production)
+// Variables :
+//   STRIPE_TAX = auto         active Stripe Tax : prix HT, TVA calculée par Stripe (autoliquidation pour
+//                             les entreprises de l'UE avec numéro de TVA). Ne l'activer qu'après avoir
+//                             saisi l'adresse du siège et l'immatriculation France dans Stripe, Tax.
+//   Montants HT avec STRIPE_TAX=auto, en centimes : PRICE_CREDIT_HT_CENTS (1900), PRICE_PACK_HT_CENTS (6900),
+//   PRICE_PRO_HT_CENTS (39000). Sans STRIPE_TAX, montants TTC fixes : PRICE_CREDIT_CENTS (2280),
+//   PRICE_PACK_CENTS (8280), PRICE_PRO_CENTS (46800).
+// Chaque paiement crée un client Stripe et une facture numérotée envoyée par e-mail (mentions légales
+// de la facture : Stripe, Settings, Invoices).
 
 const DAY = 86400000;
 const WINDOW = 7 * DAY; // durée pendant laquelle une simulation reste réglable librement
 const FREE = ['gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.fr', 'outlook.com', 'outlook.fr', 'live.com', 'live.fr', 'yahoo.com', 'yahoo.fr', 'icloud.com', 'me.com', 'orange.fr', 'wanadoo.fr', 'free.fr', 'sfr.fr', 'laposte.net', 'gmx.fr', 'gmx.com', 'aol.com', 'protonmail.com', 'proton.me', 'bbox.fr', 'neuf.fr'];
 const SIMS = { wms: 'WMS', tms: 'TMS', erp: 'ERP', automatisation: 'automatisation', oms: 'OMS', planification: 'S&OP', donnees: 'données' };
 const PRODUCTS = {
-  credit: { env: 'PRICE_CREDIT_CENTS', def: 2280, name: 'Simulation complète avec dossier de décision', desc: 'Une simulation complète, réglable pendant 7 jours, avec son dossier de décision (PDF et modèle Excel).' },
-  pack: { env: 'PRICE_PACK_CENTS', def: 8280, name: 'Pack de 5 simulations avec dossiers', desc: 'Cinq simulations complètes avec leurs dossiers de décision, valables 12 mois.' },
-  pro: { env: 'PRICE_PRO_CENTS', def: 46800, name: 'Pass Pro, 12 mois', desc: 'Simulations et dossiers illimités pendant 12 mois, dossiers à votre nom et à votre logo.' },
+  credit: { env: 'PRICE_CREDIT_CENTS', def: 2280, ht: 1900, name: 'Simulation complète avec dossier de décision', desc: 'Une simulation complète, réglable pendant 7 jours, avec son dossier de décision (PDF et modèle Excel).' },
+  pack: { env: 'PRICE_PACK_CENTS', def: 8280, ht: 6900, name: 'Pack de 5 simulations avec dossiers', desc: 'Cinq simulations complètes avec leurs dossiers de décision, valables 12 mois.' },
+  pro: { env: 'PRICE_PRO_CENTS', def: 46800, ht: 39000, name: 'Pass Pro, 12 mois', desc: 'Simulations et dossiers illimités pendant 12 mois, dossiers à votre nom et à votre logo.' },
 };
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const frDate = (t) => { const d = new Date(t); return `${d.getUTCDate()} ${MOIS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
@@ -228,12 +235,17 @@ async function simDossier(req, env) {
 }
 
 // ---------------------------------------------------------------- Paiements Stripe
+const STRIPE_VERSION = '2026-11-18.endive';
 const stripe = (env, path, form) => fetch(`https://api.stripe.com/v1/${path}`, {
   method: form ? 'POST' : 'GET',
-  headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, ...(form ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) },
+  headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'stripe-version': STRIPE_VERSION, ...(form ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) },
   body: form,
 });
-const amount = (env, p) => parseInt(env[PRODUCTS[p].env] || (p === 'credit' && env.DOSSIER_AMOUNT_CENTS) || PRODUCTS[p].def, 10);
+const taxAuto = (env) => String(env.STRIPE_TAX || '').toLowerCase() === 'auto';
+const htEnv = (p) => PRODUCTS[p].env.replace('_CENTS', '_HT_CENTS');
+const amount = (env, p) => taxAuto(env)
+  ? parseInt(env[htEnv(p)] || PRODUCTS[p].ht, 10)
+  : parseInt(env[PRODUCTS[p].env] || (p === 'credit' && env.DOSSIER_AMOUNT_CENTS) || PRODUCTS[p].def, 10);
 
 async function checkout(req, env) {
   if (req.method !== 'POST' || !sameOrigin(req)) return json({ ok: false }, 405);
@@ -258,6 +270,18 @@ async function checkout(req, env) {
   p.set('metadata[acces_immediat]', new Date().toISOString());
   p.set('billing_address_collection', 'required');
   p.set('tax_id_collection[enabled]', 'true');
+  p.set('integration_identifier', 'malaheim-simulateurs-qkzvtrwh');
+  // Client Stripe et facture numérotée pour chaque paiement (envoyée par e-mail si activé dans Stripe)
+  p.set('customer_creation', 'always');
+  p.set('invoice_creation[enabled]', 'true');
+  p.set('invoice_creation[invoice_data][description]', PRODUCTS[product].name);
+  p.set('invoice_creation[invoice_data][metadata][product]', product);
+  p.set('invoice_creation[invoice_data][metadata][acces_immediat]', p.get('metadata[acces_immediat]'));
+  // Stripe Tax : prix HT, TVA ajoutée selon le client (20 % en France, autoliquidation entreprise UE)
+  if (taxAuto(env)) {
+    p.set('automatic_tax[enabled]', 'true');
+    p.set('line_items[0][price_data][tax_behavior]', 'exclusive');
+  }
   p.set('custom_text[submit][message]', 'Accès immédiat dans votre espace client. Vous avez demandé cet accès immédiat et renoncé au droit de rétractation (article L221-28, 13° du Code de la consommation). Conditions de vente sur malaheim.com.');
   const r = await stripe(env, 'checkout/sessions', p.toString());
   const s = await r.json().catch(() => ({}));
@@ -306,13 +330,20 @@ async function confirm(req, env) {
 async function webhook(req, env) {
   if (!env.STRIPE_WEBHOOK_SECRET) return json({ ok: false }, 404);
   const raw = await req.text(); const sig = req.headers.get('stripe-signature') || '';
-  const parts = Object.fromEntries(sig.split(',').map((x) => x.split('=')));
-  if (!parts.t || !parts.v1 || Math.abs(Date.now() / 1000 - Number(parts.t)) > 600) return json({ ok: false }, 400);
+  // En-tête : t=horodatage, v1=signature (plusieurs v1 possibles pendant un renouvellement du secret)
+  const items = sig.split(',').map((x) => { const i = x.indexOf('='); return [x.slice(0, i).trim(), x.slice(i + 1).trim()]; });
+  const t = (items.find(([k]) => k === 't') || [])[1];
+  const v1s = items.filter(([k]) => k === 'v1').map(([, v]) => v);
+  if (!t || !v1s.length || Math.abs(Date.now() / 1000 - Number(t)) > 300) return json({ ok: false }, 400);
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.STRIPE_WEBHOOK_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const mac = [...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${parts.t}.${raw}`)))].map((b) => b.toString(16).padStart(2, '0')).join('');
-  if (mac !== parts.v1) return json({ ok: false }, 400);
+  const mac = [...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${raw}`)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const same = (a, b) => { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+  if (!v1s.some((v) => same(mac, v))) return json({ ok: false }, 400);
   const ev = JSON.parse(raw);
-  if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') await apply(env, ev.data.object, new URL(req.url).origin);
+  if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
+    const r = await apply(env, ev.data.object, new URL(req.url).origin);
+    if (!r.ok) console.log('Webhook Stripe sans livraison', ev.type, ev.data.object.id, r.error);
+  }
   return json({ ok: true });
 }
 
