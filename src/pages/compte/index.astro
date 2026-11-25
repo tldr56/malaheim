@@ -2,6 +2,7 @@
 // Espace client : connexion par code, crédits, formule, simulations et dossiers, achats, marque du cabinet (Pass Pro).
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../config';
+import ConsentDialog from '../../components/ConsentDialog.astro';
 import { SIM_LIST } from '../../lib/sims.js';
 const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
 ---
@@ -59,11 +60,12 @@ const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
         </div>
         <div class="ac-offer">
           <h3>Pass Pro</h3><p class="ac-price">{SITE.proPrice}</p>
-          <ul><li>Simulations et dossiers illimités</li><li>Dossiers à votre nom et à votre logo</li><li>Pour remettre à vos propres clients</li></ul>
+          <ul><li>Simulations et dossiers illimités</li><li>Dossiers à votre nom et à votre logo</li><li>Remboursé sous 14 jours si moins de deux dossiers ouverts</li></ul>
           <button type="button" class="ac-btn" data-buy="pro">Acheter</button>
         </div>
       </div>
       <p class="ac-err" id="ac-bmsg" role="status"></p>
+      <p class="ac-note">Entreprise qui ne paie pas par carte ? Pack et Pass Pro payables par virement sur facture : <a href="mailto:contact@malaheim.com?subject=Paiement%20sur%20facture">écrivez-nous</a> avec votre bon de commande.</p>
 
       <div class="ac-brand" id="ac-brand" hidden>
         <h2 class="ac-h2">Votre marque sur les dossiers</h2>
@@ -77,6 +79,7 @@ const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
       </div>
     </div>
   </section>
+  <ConsentDialog />
 </Base>
 
 <script>
@@ -128,8 +131,9 @@ const names = Object.fromEntries(SIM_LIST.map((m) => [m.slug, m.name]));
   };
 
   const checkout = async (product: string, simId = '') => {
+    const ask = (window as any).mlhConsent; if (ask && !(await ask())) { $('ac-bmsg').textContent = ''; return; }
     $('ac-bmsg').textContent = 'Ouverture du paiement sécurisé…';
-    const j = await api('/api/checkout', { product, simId, back: simId ? `/dossier/?id=${simId}` : '/compte/' });
+    const j = await api('/api/checkout', { product, simId, back: simId ? `/dossier/?id=${simId}` : '/compte/', consent: true });
     if (j.ok && j.url) { location.href = j.url; return; }
     $('ac-bmsg').innerHTML = j.reason === 'not_configured' ? 'Le paiement en ligne ouvre très prochainement. Écrivez-nous à <a href="mailto:contact@malaheim.com">contact@malaheim.com</a> en attendant.' : esc(j.error || 'Le paiement n’a pas pu s’ouvrir.');
   };

@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Trust from '../components/Trust.astro';
 import Logo from '../components/Logo.astro';
 import { SITE, SOFTWARE, GUIDES, KITS } from '../config';
 import { SIM_LIST, defaults as simDefaults, simulate as simRun, money as simMoney } from '../lib/sims.js';
@@ -77,7 +78,7 @@ const faq = [
   { q: "Combien coûte l'accompagnement ?", a: `Le kit coûte ${SITE.kitPrice}. La relecture de votre cahier des charges coûte ${SITE.reviewPrice}, prix du kit déduit. Au-delà, l'accompagnement est facturé ${SITE.hourlyRate} de l'heure, au temps réellement passé, avec une estimation écrite avant de commencer.` },
   { q: 'Vos recommandations sont-elles indépendantes ?', a: "Oui. Aucun éditeur ne paie pour être cité ou recommandé, et aucune donnée n'est transmise à des éditeurs ou des intégrateurs." },
   { q: 'Les chiffres sont-ils fiables ?', a: "Ce sont des ordres de grandeur issus de sources publiées, citées sur chaque page. Ils servent à cadrer un budget, pas à remplacer un devis." },
-  { q: 'Et si un kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
+  { q: 'Et si un kit ne me convient pas ?', a: "Vous le voyez avant d'acheter : chaque page kit détaille le contenu étape par étape, avec un extrait réel des exigences. Le kit étant un fichier livré immédiatement, il n'est pas remboursé ; s'il comporte une erreur ou un défaut, nous le corrigeons ou le remboursons." },
 ];
 const lags = ['', 'lag1', 'lag2', 'lag3', 'lag4', 'lag5'];
 const jsonLd = {
@@ -350,6 +351,8 @@ const jsonLd = {
       </div>
     </div>
   </section>
+
+  <Trust />
 
   <section class="section" aria-labelledby="titre-faq">
     <div class="wrap faq-wrap">

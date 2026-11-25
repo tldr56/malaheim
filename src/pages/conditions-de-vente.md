@@ -27,7 +27,7 @@ Les simulations, le pack, le Pass Pro et le kit sont payés en ligne par carte b
 
 L'accès complet aux simulateurs suppose la création d'un compte client gratuit, confirmé par un code envoyé par e-mail. Chaque compte bénéficie d'une première simulation complète offerte, réglable pendant 7 jours.
 
-Chaque simulation suivante utilise un crédit. Un crédit ouvre une simulation complète d'une famille de logiciels, réglable pendant 7 jours, accompagnée de son dossier de décision. Le crédit peut aussi servir à obtenir le dossier de décision de la simulation offerte. Les crédits sont achetés à l'unité ou par pack de cinq ; ils sont valables 12 mois à compter de l'achat, non remboursables passé le délai de la garantie prévue à l'article 6 bis, et ne sont ni cessibles ni convertibles en argent.
+Chaque simulation suivante utilise un crédit. Un crédit ouvre une simulation complète d'une famille de logiciels, réglable pendant 7 jours, accompagnée de son dossier de décision. Le crédit peut aussi servir à obtenir le dossier de décision de la simulation offerte. Les crédits sont achetés à l'unité ou par pack de cinq ; ils sont valables 12 mois à compter de l'achat, non remboursables sauf dans les cas prévus à l'article 6 bis, et ne sont ni cessibles ni convertibles en argent.
 
 Le Pass Pro donne accès, pendant 12 mois à compter de l'achat, à des simulations et dossiers de décision en nombre illimité, et permet de faire figurer le nom et le logo du titulaire sur les dossiers. Il n'est pas reconduit automatiquement.
 
@@ -41,11 +41,21 @@ Le kit est mis à disposition en téléchargement immédiatement après le paiem
 
 ## 6. Droit de rétractation
 
-Pour les clients consommateurs, le droit de rétractation ne s'applique pas au contenu numérique fourni immédiatement après le paiement, dès lors que le client a donné son accord exprès à cette exécution et renoncé à ce droit, conformément à l'article L221-28 du Code de la consommation. Les clients professionnels ne bénéficient pas d'un droit de rétractation.
+Les simulations, dossiers de décision, crédits, packs, Pass Pro et kits sont des contenus numériques fournis sans support matériel, dont l'accès est ouvert immédiatement après le paiement.
 
-## 6 bis. Garantie satisfait ou remboursé
+Avant tout paiement, le client coche une case par laquelle il demande l'accès immédiat au contenu et reconnaît qu'il perd ainsi son droit de rétractation. Pour les clients consommateurs, ce droit ne peut donc plus être exercé une fois l'accès ouvert, conformément à l'article L221-28, 13° du Code de la consommation. Une confirmation de la commande, rappelant cet accord, est envoyée par e-mail.
 
-Indépendamment du droit de rétractation, les simulations, le pack, le Pass Pro et le kit bénéficient d'une garantie commerciale : tout client, professionnel ou consommateur, peut en demander le remboursement intégral dans les 14 jours suivant l'achat, sans justification, par simple message à [contact@malaheim.com](mailto:contact@malaheim.com).
+Les clients professionnels qui achètent en ligne ne bénéficient pas d'un droit de rétractation.
+
+Avant tout achat, le client peut consulter un exemple complet du dossier de décision et le détail du contenu de chaque kit, étape par étape.
+
+## 6 bis. Garanties
+
+**Conformité.** Si un fichier livré est défectueux, incomplet ou comporte une erreur de calcul, MALAHEIM Consulting le corrige ou, à défaut, rembourse l'achat concerné, sur simple message à [contact@malaheim.com](mailto:contact@malaheim.com). Les garanties légales de conformité restent applicables aux clients consommateurs.
+
+**Pass Pro.** Le Pass Pro est remboursé intégralement sur demande dans les 14 jours suivant l'achat, si moins de deux dossiers de décision ont été ouverts avec le compte pendant cette période.
+
+Les simulations, dossiers, crédits, packs et kits ne font pas l'objet d'un remboursement en dehors de ces cas.
 
 ## 7. Licence d'utilisation
 

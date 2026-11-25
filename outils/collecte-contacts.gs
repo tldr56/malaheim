@@ -61,7 +61,7 @@ function doPost(e) {
       if (d.email) MailApp.sendEmail({
         to: d.email, replyTo: NOTIFIER, name: 'MALAHEIM Consulting',
         subject: `Merci pour votre achat : ${d.code}`,
-        body: `Bonjour,\n\nMerci pour votre achat (${d.code}, référence ${d.ref}). Il est disponible dans votre espace client :\n${d.link}\n\nVous vous y connectez avec votre adresse e-mail et un code envoyé à chaque connexion. Vos simulations et vos dossiers de décision (PDF et modèle Excel) y restent accessibles.\n\nLe prix d’un dossier est déduit du kit de consultation de la même famille : indiquez sa référence lors de votre commande.\n\nPour toute question, répondez simplement à cet e-mail.\n\nMALAHEIM Consulting\nhttps://www.malaheim.com`,
+        body: `Bonjour,\n\nMerci pour votre achat (${d.code}, référence ${d.ref}). Il est disponible dans votre espace client :\n${d.link}\n\nVous vous y connectez avec votre adresse e-mail et un code envoyé à chaque connexion. Vos simulations et vos dossiers de décision (PDF et modèle Excel) y restent accessibles.\n\nLe prix d’un dossier est déduit du kit de consultation de la même famille : indiquez sa référence lors de votre commande.\n\nComme vous l’avez demandé avant le paiement, l’accès au contenu numérique a été ouvert immédiatement ; vous avez ainsi renoncé à votre droit de rétractation (article L221-28, 13° du Code de la consommation). Si un fichier comporte une erreur ou un défaut, répondez à cet e-mail : nous le corrigeons ou le remboursons.\n\nPour toute question, répondez simplement à cet e-mail.\n\nMALAHEIM Consulting\nhttps://www.malaheim.com`,
       });
       return sortie({ ok: true });
     }

@@ -1,0 +1,49 @@
+---
+// Accord exprès d'accès immédiat et renonciation au droit de rétractation (L221-28, 13°),
+// demandés avant chaque paiement. window.mlhConsent() renvoie true si la case est cochée et validée.
+---
+<dialog class="cd" id="mlh-consent" aria-labelledby="cd-t">
+  <form method="dialog" class="cd-in" id="cd-form">
+    <p class="cd-k">Avant le paiement</p>
+    <h2 id="cd-t">Accès immédiat à votre achat</h2>
+    <p class="cd-p">Il s’agit d’un contenu numérique, ouvert dans votre espace client dès le paiement. Vous pouvez consulter avant un <a href="/dossier/?exemple=wms" target="_blank" rel="noopener">exemple complet de dossier</a> et le contenu détaillé des <a href="/kits/" target="_blank" rel="noopener">kits</a>.</p>
+    <label class="cd-c"><input type="checkbox" id="cd-ok" /><span>Je demande l’accès immédiat au contenu et je reconnais perdre ainsi mon droit de rétractation.</span></label>
+    <p class="cd-n">Si un fichier comporte une erreur ou un défaut, nous le corrigeons ou le remboursons. Le Pass Pro est remboursable sous 14 jours si moins de deux dossiers ont été ouverts. <a href="/conditions-de-vente/" target="_blank" rel="noopener">Conditions de vente</a>.</p>
+    <div class="cd-b">
+      <button type="button" class="cd-x" id="cd-cancel">Annuler</button>
+      <button type="submit" class="cd-go" id="cd-go" disabled>Continuer vers le paiement</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const dlg = document.getElementById('mlh-consent') as HTMLDialogElement | null;
+  if (dlg) {
+    const ok = document.getElementById('cd-ok') as HTMLInputElement;
+    const go = document.getElementById('cd-go') as HTMLButtonElement;
+    ok.addEventListener('change', () => { go.disabled = !ok.checked; });
+    let resolve: ((v: boolean) => void) | null = null;
+    const done = (v: boolean) => { if (resolve) { resolve(v); resolve = null; } if (dlg.open) dlg.close(); };
+    document.getElementById('cd-cancel')!.addEventListener('click', () => done(false));
+    (document.getElementById('cd-form') as HTMLFormElement).addEventListener('submit', (e) => { e.preventDefault(); done(ok.checked); });
+    dlg.addEventListener('cancel', () => done(false));
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) done(false); });
+    (window as any).mlhConsent = () => new Promise<boolean>((r) => { resolve = r; ok.checked = false; go.disabled = true; dlg.showModal(); });
+  }
+</script>
+
+<style>
+  .cd { border: 0; padding: 0; border-radius: 24px; width: min(520px, calc(100vw - 32px)); box-shadow: 0 30px 80px rgba(0,0,0,.35); color: var(--ink); }
+  .cd::backdrop { background: rgba(0,0,0,.45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .cd-in { padding: 28px 28px 22px; display: grid; gap: 14px; }
+  .cd-k { margin: 0; font-size: 13px; font-weight: 600; color: #2448f5; }
+  .cd h2 { margin: -6px 0 0; font-size: 24px; letter-spacing: -0.03em; }
+  .cd-p, .cd-n { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+  .cd-n { font-size: 13px; }
+  .cd-c { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: var(--pearl); font-size: 14.5px; line-height: 1.45; cursor: pointer; }
+  .cd-c input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: #000; }
+  .cd-b { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+  .cd-b button { font: inherit; font-size: 14.5px; font-weight: 600; padding: 12px 20px; border-radius: 999px; border: 0; cursor: pointer; }
+  .cd-x { background: var(--pearl); color: var(--ink); }
+  .cd-go { background: #000; color: #fff; } .cd-go:disabled { opacity: .35; cursor: not-allowed; }
+</style>

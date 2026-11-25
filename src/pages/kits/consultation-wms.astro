@@ -1,6 +1,7 @@
 ---
 import { SIM_LIST } from '../../lib/sims.js';
 import Base from '../../layouts/Base.astro';
+import Trust from '../../components/Trust.astro';
 import Offer from '../../components/Offer.astro';
 import KitTour from '../../components/KitTour.astro';
 import { SITE, KITS } from '../../config';
@@ -30,13 +31,13 @@ const parts = [
   { k: 'Annexe E', t: 'Plan de recette', d: '72 cas de test avec résultat attendu et classification des anomalies.' },
   { k: 'Annexe F', t: 'Planning, rôles, courriers', d: 'Planning type sur 57 semaines, RACI, lettre et règlement de consultation.' },
 ];
-const kitItems = ['268 exigences commentées sur 20 domaines', "18 flux d'interface, 12 scénarios de démonstration", 'Check-list contractuelle en 30 points', 'Plan de recette en 72 cas', 'Word et PDF, satisfait ou remboursé 14 jours'];
+const kitItems = ['268 exigences commentées sur 20 domaines', "18 flux d'interface, 12 scénarios de démonstration", 'Check-list contractuelle en 30 points', 'Plan de recette en 72 cas', 'Word et PDF, accès immédiat'];
 const faq = [
   { q: 'En quoi est-ce différent d’un modèle gratuit trouvé en ligne ?', a: "Un modèle gratuit liste des fonctions. Ce kit impose une méthode : priorités pré-remplies, cotation obligatoire par l'éditeur, offre financière décomposée, scénarios de démonstration et grille de notation. Chaque domaine porte un conseil issu de projets réels." },
   { q: 'Le kit convient-il à mon entreprise ?', a: "Il convient aux entrepôts de toutes tailles, en distribution, industrie, e-commerce ou prestation logistique, et d'abord à ceux qui n'ont pas de service achats pour mener un appel d'offres. Les domaines hors de votre périmètre se suppriment en quelques minutes." },
   { q: 'Sous quel format est-il livré ?', a: "En Word, entièrement modifiable, et en PDF. Vous envoyez les parties 1 à 5 aux éditeurs et gardez les annexes pour vous." },
   { q: 'Combien de temps faut-il pour le remplir ?', a: 'Deux à quatre jours de travail, surtout pour réunir la volumétrie. Les 268 exigences sont déjà rédigées : il reste à ajuster les priorités.' },
-  { q: 'Et si le kit ne me convient pas ?', a: "Vous êtes remboursé sur simple demande dans les 14 jours suivant l'achat, sans justification." },
+  { q: 'Et si le kit ne me convient pas ?', a: "Vous le voyez avant d'acheter : le contenu de chaque étape est détaillé sur cette page, avec un extrait réel des exigences. Le kit étant un fichier livré immédiatement, il n'est pas remboursé ; en revanche, s'il comporte une erreur ou un défaut, nous le corrigeons ou le remboursons." },
   { q: "Je n'ai ni service achats ni DSI, est-ce un problème ?", a: "Non, c'est précisément pour vous que le kit est fait. Les exigences sont rédigées, les priorités pré-remplies, les courriers prêts à envoyer. Il faut quelques jours d'un responsable logistique ou d'un dirigeant, pas une équipe." },
   { q: "Et si j'ai besoin d'aide en cours de route ?", a: `Deux options : la relecture de votre cahier des charges (${SITE.reviewPrice}, prix du kit déduit), ou l'accompagnement à l'heure (${SITE.hourlyRate} de l'heure, au temps réellement passé, sans forfait minimum).` },
 ];
@@ -61,7 +62,7 @@ const jsonLd = {
           <a class="btn btn-gold btn-lg" href={buyHref}>Acheter le kit, {SITE.kitPrice} <span class="arrow" aria-hidden="true">→</span></a>
           <a class="btn btn-line btn-lg" href="#formules">Me faire accompagner</a>
         </div>
-        <p class="dim rise d4" style="margin: 0; font-size: 14px">Satisfait ou remboursé 14 jours. Paiement sécurisé, téléchargement immédiat, facture à votre société. <a href={`/simulateurs/${SIM_LIST.find((m) => m.sw === 'wms')!.slug}/`}>Estimer d’abord votre budget avec le simulateur gratuit</a>.</p>
+        <p class="dim rise d4" style="margin: 0; font-size: 14px">Paiement sécurisé, téléchargement immédiat, facture à votre société, virement possible. <a href={`/simulateurs/${SIM_LIST.find((m) => m.sw === 'wms')!.slug}/`}>Estimer d’abord votre budget avec le simulateur gratuit</a>.</p>
       </div>
       <div class="card slide-in paper">
         <span class="paper-k">Extrait, partie 3.9</span>
@@ -124,6 +125,8 @@ const jsonLd = {
       {!ready && <p class="dim center" style="margin: 0; text-align: center; font-size: 14px">La vente en ligne ouvre très prochainement. Pour réserver votre kit dès maintenant, <a href="/a-propos/#contact">écrivez-nous</a>.</p>}
     </div>
   </section>
+
+  <Trust dark />
 
   <section class="section" aria-labelledby="titre-faq">
     <div class="wrap row" style="gap: 56px; align-items: flex-start">

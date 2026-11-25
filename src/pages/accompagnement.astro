@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Trust from '../components/Trust.astro';
 import Offer from '../components/Offer.astro';
 import { SITE } from '../config';
 const bookHref = SITE.bookingUrl || '/a-propos/#contact';
@@ -37,7 +38,7 @@ const lags = ['', 'lag1', 'lag2'];
       <a class="tf-c" href="/compte/"><span class="tf-k">Pour comparer</span><b class="tf-p">{SITE.packPrice}</b><strong>Pack de 5 simulations avec dossiers</strong><span>Plusieurs projets ou plusieurs sites, valable 12 mois.</span></a>
       <a class="tf-c" href="/compte/"><span class="tf-k">Cabinets et intégrateurs</span><b class="tf-p">{SITE.proPrice.replace(' par an', '')}<small> / an</small></b><strong>Pass Pro</strong><span>Simulations et dossiers illimités, à votre nom et à votre logo.</span></a>
     </div>
-    <p class="tf-g">Satisfait ou remboursé pendant 14 jours, sans justification, sur toutes les offres en ligne.</p>
+    <p class="tf-g">Voyez avant d’acheter : <a href="/dossier/?exemple=wms">exemple complet de dossier</a> et contenu détaillé de chaque kit en accès libre. Pass Pro remboursé sous 14 jours si moins de deux dossiers ouverts. Entreprises : paiement par virement sur facture possible, <a href="/a-propos/#contact">écrivez-nous</a>.</p>
   </section>
 
   <section class="wrap" style="padding-bottom: 96px">
@@ -64,6 +65,8 @@ const lags = ['', 'lag1', 'lag2'];
       </div>
     </div>
   </section>
+
+  <Trust dark />
 
   <section class="section" aria-labelledby="titre-pourquoi">
     <div class="wrap stack" style="gap: 36px">

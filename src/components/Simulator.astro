@@ -3,6 +3,7 @@
 import { SIMS, SIM_LIST, defaults, simulate, money } from '../lib/sims.js';
 import { SITE, KITS } from '../config';
 import Logo from './Logo.astro';
+import ConsentDialog from './ConsentDialog.astro';
 
 interface Props { slug: string }
 const { slug } = Astro.props;
@@ -17,6 +18,7 @@ const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math
 const v3 = model.version === 3;
 const H = model.horizon;
 ---
+<ConsentDialog />
 <div class="simx" data-slug={slug}>
   <nav class="sx-nav" aria-label="Sections du simulateur">
     <div class="wrap sx-nav-in">
@@ -37,7 +39,7 @@ const H = model.horizon;
   <aside class="sx-inv" id="sx-inv" hidden aria-live="polite">
     <button type="button" class="sx-invx" id="sx-invx" aria-label="Fermer"></button>
     <strong>Présenter ce résultat à votre direction&#8239;?</strong>
-    <p>Votre dossier de décision de 10 pages est prêt : synthèse, budget, risque, questions aux éditeurs et modèle Excel. {SITE.creditPrice}, satisfait ou remboursé.</p>
+    <p>Votre dossier de décision de 10 pages est prêt : synthèse, budget, risque, questions aux éditeurs et modèle Excel. {SITE.creditPrice}, avec un exemple complet à consulter avant.</p>
     <div><button type="button" class="sx-btn" id="sx-invgo">Voir mon dossier</button><a href={`/dossier/?exemple=${slug}`}>Voir un exemple</a></div>
   </aside>
   <button type="button" class="sx-cue" id="sx-cue" hidden><span>La suite de votre analyse</span><small>{v3 ? 'Verdict, risque, marché et scénarios' : 'Points de vigilance et méthode'}</small><i aria-hidden="true"></i></button>
@@ -213,7 +215,7 @@ const H = model.horizon;
             <li><b>Le modèle de calcul Excel</b><span>À compléter avec les offres reçues, tout se recalcule</span></li>
           </ul>
           <div class="sx-dbuy"><span class="sx-dprice">{SITE.creditPrice}</span><span class="sx-dnote">Le prix d’un quart d’heure de consultant,<br />pour plusieurs jours de travail. Déduits du kit.</span></div>
-          <p class="sx-dguar"><span aria-hidden="true"></span>Satisfait ou remboursé pendant 14 jours, sans justification. Accès immédiat, PDF et Excel.</p>
+          <p class="sx-dguar"><span aria-hidden="true"></span>Voyez avant d’acheter : l’exemple complet est en accès libre. Accès immédiat, PDF et Excel.</p>
           <p class="sx-doffers">Pack de 5 simulations avec dossiers : {SITE.packPrice}. Pass Pro, illimité et à votre logo : {SITE.proPrice}. <a href="/compte/">Voir les formules</a></p>
           <div class="sx-dact">
             <button type="button" class="sx-dbtn" id="dos-buy">Recevoir mon dossier</button>
@@ -801,8 +803,9 @@ const H = model.horizon;
     simRec = null; setLocked(true); payPane(j); return false;
   };
   const checkout = async (product: string, simId: string, back: string, msg: HTMLElement) => {
+    const ask = (window as any).mlhConsent; if (ask && !(await ask())) { msg.textContent = ''; return; }
     msg.textContent = 'Ouverture du paiement sécurisé…';
-    const j = await api('/api/checkout', { product, simId, back });
+    const j = await api('/api/checkout', { product, simId, back, consent: true });
     if (j.ok && j.url) { location.href = j.url; return; }
     if (j.status === 401) { msg.textContent = 'Connectez-vous d’abord.'; pane('sign'); goGate(); return; }
     msg.innerHTML = j.reason === 'not_configured'

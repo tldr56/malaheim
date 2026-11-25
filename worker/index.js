@@ -240,6 +240,8 @@ async function checkout(req, env) {
   const a = await account(req, env); if (!a) return json({ ok: false, need: 'auth' }, 401);
   let d; try { d = await body(req); } catch { return json({ ok: false }, 400); }
   const product = PRODUCTS[d.product] ? d.product : 'credit';
+  // Accès immédiat demandé et renonciation au droit de rétractation, cochés avant le paiement (L221-28, 13°)
+  if (d.consent !== true) return json({ ok: false, reason: 'consent', error: 'Cochez la case d’accès immédiat pour continuer.' }, 400);
   if (!env.STRIPE_SECRET_KEY) return json({ ok: false, reason: 'not_configured' });
   const host = new URL(req.url).origin;
   const back = /^\/[A-Za-z0-9/_?=&.%-]*$/.test(String(d.back || '')) ? d.back : '/compte/';
@@ -253,9 +255,10 @@ async function checkout(req, env) {
   p.set('success_url', `${host}/compte/?paiement={CHECKOUT_SESSION_ID}&retour=${encodeURIComponent(back)}`);
   p.set('cancel_url', `${host}${back}`);
   p.set('metadata[email]', a.email); p.set('metadata[product]', product); p.set('metadata[sim]', clean(d.simId, 40));
+  p.set('metadata[acces_immediat]', new Date().toISOString());
   p.set('billing_address_collection', 'required');
   p.set('tax_id_collection[enabled]', 'true');
-  p.set('custom_text[submit][message]', 'Crédit ou formule ajouté à votre espace client dès le paiement. Offre réservée aux professionnels, conditions de vente sur malaheim.com.');
+  p.set('custom_text[submit][message]', 'Accès immédiat dans votre espace client. Vous avez demandé cet accès immédiat et renoncé au droit de rétractation (article L221-28, 13° du Code de la consommation). Conditions de vente sur malaheim.com.');
   const r = await stripe(env, 'checkout/sessions', p.toString());
   const s = await r.json().catch(() => ({}));
   if (!r.ok || !s.url) { console.log('Stripe a refusé la session', r.status, JSON.stringify(s.error || {})); return json({ ok: false, reason: 'stripe' }); }

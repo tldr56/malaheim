@@ -1,0 +1,75 @@
+---
+// Preuves de confiance : recommandations clients (extraits, publiées sur Malt) et engagements du cabinet.
+import { KITS } from '../config';
+interface Props { dark?: boolean; title?: string }
+const total = KITS.reduce((n, k) => n + k.reqs, 0).toLocaleString('fr-FR');
+const { dark = false, title = 'Ce qu’en disent nos clients' } = Astro.props;
+const quotes = [
+  {
+    tag: 'Choix d’un WMS',
+    q: '« […] un travail remarquable en combinant expertise métier, capacité de structuration et accompagnement des équipes. […] un cahier des charges particulièrement qualitatif, unanimement reconnu par les parties prenantes. »',
+    who: 'A. L.', role: 'Leader Delivery, AVEM',
+  },
+  {
+    tag: 'Formation Data et IA',
+    q: '« […] une vraie connaissance du terrain et cela se voit. Pas de grands discours théoriques, mais des retours d’expérience pratiques et directement exploitables. »',
+    who: 'G. P.', role: 'Directeur général, Agoriade',
+  },
+];
+const proofs = [
+  { n: '0 €', t: 'de commission éditeur', d: 'Aucun éditeur ne paie pour être cité ou recommandé.' },
+  { n: '48 h', t: 'pour vous répondre', d: 'Un interlocuteur qui connaît votre dossier, pas un standard.' },
+  { n: total, t: 'exigences déjà rédigées', d: 'Une méthode forgée en logistique, industrie, conseil et banque.' },
+];
+---
+<section class={`tr ${dark ? 'tr-dark' : ''}`} aria-labelledby="tr-t">
+  <div class="wrap">
+    <div class="tr-head">
+      <p class="eyebrow sr-down">Ils nous ont confié leur projet</p>
+      <h2 id="tr-t" class="h2 sr-up">{title}</h2>
+    </div>
+    <div class="tr-grid">
+      {quotes.map((x, i) => (
+        <figure class={`tr-q sr-up ${i ? 'lag1' : ''}`}>
+          <span class="tr-tag">{x.tag}</span>
+          <blockquote>{x.q}</blockquote>
+          <figcaption><span class="tr-av" aria-hidden="true">{x.who.replace(/[ .]/g, '')}</span><span><b>{x.who}</b><span>{x.role}</span></span></figcaption>
+        </figure>
+      ))}
+    </div>
+    <p class="tr-src">Extraits de recommandations publiées sur la plateforme Malt.</p>
+    <div class="tr-proofs">
+      {proofs.map((p, i) => (
+        <div class={`tr-p sr-up ${['', 'lag1', 'lag2'][i]}`}><b>{p.n}</b><span class="tr-pt">{p.t}</span><span class="tr-pd">{p.d}</span></div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .tr { padding: 110px 0; }
+  .tr-dark { background: #000; color: #fff; }
+  .tr-head { display: grid; gap: 12px; margin-bottom: 36px; max-width: 760px; }
+  .tr-dark .eyebrow { color: rgba(255,255,255,.6); }
+  .tr-dark .h2 { color: #fff; }
+  .tr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .tr-q { margin: 0; padding: 32px 32px 28px; border-radius: 26px; background: var(--pearl); display: flex; flex-direction: column; gap: 18px; }
+  .tr-dark .tr-q { background: #141416; }
+  .tr-tag { align-self: flex-start; font-size: 12.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: #fff; color: #2448f5; }
+  .tr-dark .tr-tag { background: rgba(255,255,255,.08); color: #9fb0ff; }
+  .tr-q blockquote { margin: 0; font-size: clamp(18px, 1.7vw, 21px); line-height: 1.45; letter-spacing: -0.015em; font-weight: 500; flex: 1; }
+  .tr-q figcaption { display: flex; align-items: center; gap: 12px; }
+  .tr-av { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: #0b4f5c; color: #fff; font-size: 14px; font-weight: 700; }
+  .tr-q figcaption > span:last-child { display: flex; flex-direction: column; } .tr-q figcaption b { font-size: 15px; } .tr-q figcaption span span { font-size: 13.5px; color: var(--muted); }
+  .tr-dark .tr-q figcaption span span { color: rgba(255,255,255,.6); }
+  .tr-src { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+  .tr-dark .tr-src { color: rgba(255,255,255,.5); }
+  .tr-proofs { margin-top: 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border-radius: 22px; overflow: hidden; background: #e3e3e8; }
+  .tr-dark .tr-proofs { background: rgba(255,255,255,.12); }
+  .tr-p { display: flex; flex-direction: column; gap: 4px; padding: 24px 26px; background: #fff; }
+  .tr-dark .tr-p { background: #000; }
+  .tr-p b { font-size: 34px; letter-spacing: -0.04em; line-height: 1.05; }
+  .tr-pt { font-size: 15px; font-weight: 600; } .tr-pd { font-size: 14px; color: var(--muted); line-height: 1.4; }
+  .tr-dark .tr-pd { color: rgba(255,255,255,.6); }
+  @media (max-width: 860px) { .tr { padding: 80px 0; } .tr-grid, .tr-proofs { grid-template-columns: 1fr; } }
+</style>
