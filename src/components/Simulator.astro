@@ -1,6 +1,6 @@
 ---
 // Moteur commun des simulateurs : rendu des questions côté serveur, calcul et graphique côté navigateur.
-import { SIMS, SIM_LIST, defaults, simulate, money } from '../lib/sims.js';
+import { SIMS, SIM_LIST, defaults, simulate, analyse, money } from '../lib/sims.js';
 import { SITE, KITS } from '../config';
 import Logo from './Logo.astro';
 import ConsentDialog from './ConsentDialog.astro';
@@ -16,6 +16,41 @@ const others = SIM_LIST.filter((m) => m.slug !== slug);
 const preview = (m) => { const d = defaults(m); return simulate(m, d.i, d.a); };
 const pos = (f) => (f.log ? Math.round((1000 * Math.log(f.value / f.min)) / Math.log(f.max / f.min)) : f.value);
 const v3 = model.version === 3;
+// Aperçu du résultat complet, calculé par le moteur sur l'exemple par défaut, affiché dès l'arrivée
+const EX = (() => {
+  if (!v3) return null;
+  const d = defaults(model); const A: any = analyse(model, d.i, d.a); const r = A.r; const mc = r.mc;
+  const rng = (lo: number, hi: number) => { const a = money(lo), b = money(hi); return a.endsWith(' k€') && b.endsWith(' k€') ? `${a.replace(' k€', '')} à ${b}` : `${a} à ${b}`; };
+  const W = 150, Hh = 46;
+  const bins = mc.hist.bins as number[]; const bmax = Math.max(...bins, 1);
+  const cut = Math.floor(((r.initial - mc.hist.lo) / (mc.hist.hi - mc.hist.lo || 1)) * bins.length);
+  const hist = bins.map((v, k) => ({ x: k * (W / bins.length), h: Math.max(1.5, (v / bmax) * Hh), over: k >= cut }));
+  const step = Math.max(1, Math.round(r.cumCost.length / 40));
+  const ser = (arr: number[]) => arr.filter((_, k) => k % step === 0 || k === arr.length - 1);
+  const cc = ser(r.cumCost), cg = ser(r.cumGain); const cmax = Math.max(...cc, ...cg, 1);
+  const line = (arr: number[]) => arr.map((v, k) => `${((k / (arr.length - 1)) * W).toFixed(1)},${(Hh - (v / cmax) * Hh).toFixed(1)}`).join(' ');
+  const beX = r.breakEven ? (r.breakEven / r.cumCost.length) * W : null;
+  const dom = [mc.hist.lo, mc.hist.hi]; const px = (v: number) => Math.max(0, Math.min(100, ((v - dom[0]) / (dom[1] - dom[0] || 1)) * 100));
+  const b0 = (A.bench || [])[0];
+  let mkt = null as any;
+  if (b0 && b0.bands && b0.bands.length) {
+    const lo = Math.min(...b0.bands.map((x: any) => x.lo)), hi = Math.max(...b0.bands.map((x: any) => x.hi));
+    const f = (v: number) => b0.log ? (Math.log(Math.max(v, lo)) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)) : (v - lo) / (hi - lo || 1);
+    const mine = b0.bands.find((x: any) => x.mine) || b0.bands[0];
+    const val = b0.fmt === 'money' ? money(b0.value) : b0.fmt === 'pct' ? `${(Math.round(b0.value * 10) / 10).toLocaleString('fr-FR')} %` : String(Math.round(b0.value));
+    mkt = { label: b0.label, val, mine: mine.label, bands: b0.bands.map((x: any) => ({ l: f(x.lo) * 100, w: Math.max(2, (f(x.hi) - f(x.lo)) * 100), on: x === mine })), dot: Math.max(0, Math.min(100, f(b0.value) * 100)) };
+  }
+  const ex = model.fields.filter((f: any) => f.type === 'range').slice(0, 3).map((f: any) => `${Number(f.value).toLocaleString('fr-FR')} ${f.unit}`).join(', ');
+  const wm = A.inaction.monthly;
+  return {
+    verdict: A.verdict, pWithin: Math.round(mc.pWithin * 100),
+    budget: rng(mc.budget.p10, mc.budget.p90), central: money(r.initial), p90: money(mc.budget.p90), bl: px(mc.budget.p10), bw: px(mc.budget.p90) - px(mc.budget.p10), bc: px(r.initial),
+    over: Math.round(mc.pOver * 100), hist, W, Hh,
+    be: r.breakEven, net: money(r.net), netNeg: r.net < 0, costLine: line(cc), gainLine: line(cg), beX,
+    mkt, wait: money(wm), waitYear: money(A.inaction.year), waitBars: Array.from({ length: 12 }, (_, k) => (k + 1) / 12),
+    ex, factor: A.sens && A.sens[0] ? A.sens[0].label : '',
+  };
+})();
 const H = model.horizon;
 ---
 <ConsentDialog />
@@ -48,6 +83,56 @@ const H = model.horizon;
     <h1 class="sx-title rise d1">{model.title}</h1>
     <p class="sx-lead rise d2">{model.lead}</p>
   </header>
+
+  {EX && (
+    <section class="wrap sx-show rise d3" aria-labelledby="sx-show-t">
+      <div class="sx-show-h">
+        <h2 id="sx-show-t">Ce que vous obtenez, en un coup d’œil</h2>
+        <p>Exemple réel calculé par le simulateur pour {EX.ex}. <a href="#estimation" class="sx-show-go">Faire ma simulation</a></p>
+      </div>
+      <div class="sx-tiles">
+        <a class="sx-tile" href="#verdict">
+          <span class="sx-tk">Verdict</span>
+          <span class={`sx-tdot ${EX.verdict.level}`} aria-hidden="true"></span>
+          <b class="sx-tv sm">{EX.verdict.title}</b>
+          <span class="sx-ts">Rentabilisé dans {EX.pWithin}&#8239;% des 1&#8239;000 scénarios simulés</span>
+        </a>
+        <a class="sx-tile" href="#estimation">
+          <span class="sx-tk">Budget probable</span>
+          <b class="sx-tv">{EX.budget}</b>
+          <span class="sx-tbar" aria-hidden="true"><i style={`left: ${EX.bl}%; width: ${EX.bw}%`}></i><em style={`left: ${EX.bc}%`}></em></span>
+          <span class="sx-ts">8 chances sur 10, poste par poste. Central : {EX.central}</span>
+        </a>
+        <a class="sx-tile" href="#risque">
+          <span class="sx-tk">Risque de dépassement</span>
+          <b class="sx-tv">{EX.over} %</b>
+          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true">{EX.hist.map((h) => <rect x={h.x} y={EX.Hh - h.h} width={EX.W / EX.hist.length - 1} height={h.h} rx="1" class={h.over ? 'ov' : ''} />)}</svg>
+          <span class="sx-ts">Des 1&#8239;000 tirages dépassent le budget central. Pour être couvert 9 fois sur 10 : {EX.p90}</span>
+        </a>
+        <a class="sx-tile" href="#estimation">
+          <span class="sx-tk">Retour sur investissement</span>
+          <b class="sx-tv">{EX.be ? `${EX.be} mois` : 'Non atteint'}</b>
+          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true"><polyline points={EX.costLine} class="c" /><polyline points={EX.gainLine} class="g" />{EX.beX && <line x1={EX.beX} x2={EX.beX} y1="0" y2={EX.Hh} class="be" />}</svg>
+          <span class="sx-ts">Point mort après le lancement. Valeur nette à {H} ans : {EX.net}</span>
+        </a>
+        {EX.mkt && (
+          <a class="sx-tile" href="#marche">
+            <span class="sx-tk">Face au marché</span>
+            <b class="sx-tv">{EX.mkt.val}</b>
+            <span class="sx-tband" aria-hidden="true">{EX.mkt.bands.map((x) => <i class={x.on ? 'on' : ''} style={`left: ${x.l}%; width: ${x.w}%`}></i>)}<em style={`left: ${EX.mkt.dot}%`}></em></span>
+            <span class="sx-ts">{EX.mkt.label}, segment « {EX.mkt.mine} », sources citées</span>
+          </a>
+        )}
+        <a class="sx-tile" href="#verdict">
+          <span class="sx-tk">Coût de l’attente</span>
+          <b class="sx-tv">{EX.wait}</b>
+          <span class="sx-twait" aria-hidden="true">{EX.waitBars.map((v) => <i style={`height: ${Math.round(v * 100)}%`}></i>)}</span>
+          <span class="sx-ts">Perdus chaque mois de report, {EX.waitYear} sur un an</span>
+        </a>
+      </div>
+      <p class="sx-show-f">Et aussi : les {EX.factor ? '7 facteurs qui font bouger la rentabilité' : 'facteurs clés'}, le comparateur de scénarios, les points de vigilance et le dossier de décision de 10 pages.</p>
+    </section>
+  )}
 
   <div class="wrap sx-grid" id="estimation">
     <form class="sx-form rise d3" aria-label="Vos données" onsubmit="return false">
@@ -715,7 +800,14 @@ const H = model.horizon;
     if (!on) lockbar.hidden = true;
   };
   setLocked(true);
-  if ('IntersectionObserver' in window) new IntersectionObserver((en) => { lockbar.hidden = !root.classList.contains('locked') || en[0].isIntersecting; }).observe(gate);
+  // La barre d'inscription n'apparaît qu'une fois le visiteur arrivé au simulateur (après l'aperçu du résultat)
+  let gateIn = false;
+  const lbUpd = () => {
+    const est = document.getElementById('estimation'); const reached = !est || est.getBoundingClientRect().top < innerHeight * 0.55;
+    lockbar.hidden = !root.classList.contains('locked') || gateIn || !reached;
+  };
+  if ('IntersectionObserver' in window) new IntersectionObserver((en) => { gateIn = en[0].isIntersecting; lbUpd(); }).observe(gate);
+  addEventListener('scroll', lbUpd, { passive: true });
   const TITLES: Record<string, string> = { sign: 'Votre première simulation complète est offerte', code: 'Vérifiez votre adresse e-mail', pay: 'Lancez une nouvelle simulation complète' };
   const pane = (name: string) => {
     gate.dataset.step = name; $('gate-t').textContent = TITLES[name];
@@ -749,7 +841,8 @@ const H = model.horizon;
       bar.style.transform = `scaleX(${Math.min(1, Math.max(0, -r.top / (total || 1)))})`;
       const nextTop = firstNext ? firstNext.getBoundingClientRect().top : 0;
       if (nextTop < innerHeight * 0.85) seen = true;
-      cue.hidden = seen || !lockbar.hidden || scrollY > 1400;
+      const sh = root.querySelector('.sx-show'); const showIn = sh ? sh.getBoundingClientRect().bottom > 80 : false;
+      cue.hidden = seen || showIn || !lockbar.hidden;
       lockbar.classList.toggle('peek', !seen);
     };
     const req = () => { if (!tick) { tick = true; requestAnimationFrame(upd); } };
@@ -896,10 +989,46 @@ const H = model.horizon;
 
 <style is:global>
   .simx { padding-bottom: 0; }
-  .sx-hero { padding-block: 72px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+  .sx-show { margin-bottom: 44px; }
+  .sx-show-h { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 24px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sx-show-h h2 { margin: 0; font-size: 19px; letter-spacing: -0.02em; }
+  .sx-show-h p { margin: 0; font-size: 14px; color: var(--muted); }
+  .sx-show-go { font-weight: 600; margin-left: 6px; white-space: nowrap; }
+  .sx-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; border-radius: 26px; overflow: hidden; background: #262629; box-shadow: 0 30px 60px -30px rgba(0,0,0,.45); }
+  .sx-tile { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px 18px 18px; background: #000; color: #fff; text-decoration: none !important; min-height: 196px; transition: background .25s; }
+  .sx-tile:hover { background: #111114; }
+  .sx-tile::after { content: ''; position: absolute; right: 16px; top: 22px; width: 7px; height: 7px; border-top: 1.5px solid rgba(255,255,255,.35); border-right: 1.5px solid rgba(255,255,255,.35); transform: rotate(45deg); transition: border-color .25s, transform .25s; }
+  .sx-tile:hover::after { border-color: #fff; transform: translateX(2px) rotate(45deg); }
+  .sx-tk { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.55); padding-right: 14px; }
+  .sx-tv { font-size: clamp(20px, 1.75vw, 26px); line-height: 1.1; letter-spacing: -0.035em; }
+  .sx-tv.sm { font-size: 16.5px; line-height: 1.25; letter-spacing: -0.015em; }
+  .sx-ts { margin-top: auto; font-size: 12.5px; line-height: 1.4; color: rgba(255,255,255,.6); }
+  .sx-tdot { width: 14px; height: 14px; border-radius: 50%; background: #34c759; box-shadow: 0 0 0 5px rgba(52,199,89,.18); }
+  .sx-tdot.prep { background: #ffb020; box-shadow: 0 0 0 5px rgba(255,176,32,.18); } .sx-tdot.wait { background: #ff6b5a; box-shadow: 0 0 0 5px rgba(255,107,90,.18); }
+  .sx-tbar, .sx-tband { position: relative; display: block; height: 10px; border-radius: 5px; background: rgba(255,255,255,.12); margin: 6px 0 4px; }
+  .sx-tbar i { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: #2448f5; }
+  .sx-tbar em, .sx-tband em { position: absolute; top: -4px; width: 3px; height: 18px; margin-left: -1.5px; border-radius: 2px; background: #fff; }
+  .sx-tband i { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: rgba(255,255,255,.22); box-shadow: 0 0 0 1px #000; }
+  .sx-tband i.on { background: #2448f5; }
+  .sx-tsvg { width: 100%; height: 46px; display: block; overflow: visible; }
+  .sx-tsvg rect { fill: rgba(255,255,255,.3); } .sx-tsvg rect.ov { fill: #ff6b5a; }
+  .sx-tsvg polyline { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; } .sx-tsvg .c { stroke: rgba(255,255,255,.45); } .sx-tsvg .g { stroke: #34c759; }
+  .sx-tsvg .be { stroke: #fff; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .sx-twait { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 2px; } .sx-twait i { flex: 1; border-radius: 2px; background: linear-gradient(#ff6b5a, rgba(255,107,90,.35)); }
+  .sx-show-f { margin: 12px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+  @media (max-width: 1180px) { .sx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 760px) {
+    .sx-show { margin-inline: 0; padding-inline: 0; }
+    .sx-show-h, .sx-show-f { padding-inline: 20px; }
+    .sx-tiles { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 0; background: none; box-shadow: none; padding: 0 20px 6px; scrollbar-width: none; }
+    .sx-tiles::-webkit-scrollbar { display: none; }
+    .sx-tile { flex: 0 0 68%; scroll-snap-align: start; border-radius: 22px; min-height: 186px; }
+  }
+  @media (max-width: 640px) { .sx-hero { padding-block: 28px 20px !important; } .sx-lead { display: none; } }
+  .sx-hero { padding-block: 56px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
   .sx-k { margin: 0; font-size: 17px; font-weight: 600; color: var(--muted); }
-  .sx-title { margin: 0; max-width: 15em; font-size: clamp(38px, 5.6vw, 76px); line-height: 1.04; letter-spacing: -0.05em; }
-  .sx-lead { margin: 4px 0 0; max-width: 36em; font-size: clamp(18px, 1.8vw, 22px); line-height: 1.4; color: var(--muted); letter-spacing: -0.015em; }
+  .sx-title { margin: 0; max-width: 15em; font-size: clamp(34px, 4.6vw, 64px); line-height: 1.04; letter-spacing: -0.05em; }
+  .sx-lead { margin: 2px 0 0; max-width: 46em; font-size: clamp(16px, 1.45vw, 19px); line-height: 1.4; color: var(--muted); letter-spacing: -0.015em; }
 
   .sx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 24px; align-items: start; padding-bottom: 72px; }
   @media (max-width: 980px) { .sx-grid { grid-template-columns: 1fr; } }
