@@ -91,42 +91,42 @@ const H = model.horizon;
         <p>Exemple réel calculé par le simulateur pour {EX.ex}. <a href="#estimation" class="sx-show-go">Faire ma simulation</a></p>
       </div>
       <div class="sx-tiles">
-        <a class="sx-tile" href="#verdict">
+        <a class="sx-tile" style="--i: 0" href="#verdict">
           <span class="sx-tk">Verdict</span>
           <span class={`sx-tdot ${EX.verdict.level}`} aria-hidden="true"></span>
           <b class="sx-tv sm">{EX.verdict.title}</b>
           <span class="sx-ts">Rentabilisé dans {EX.pWithin}&#8239;% des 1&#8239;000 scénarios simulés</span>
         </a>
-        <a class="sx-tile" href="#estimation">
+        <a class="sx-tile" style="--i: 1" href="#estimation">
           <span class="sx-tk">Budget probable</span>
           <b class="sx-tv">{EX.budget}</b>
           <span class="sx-tbar" aria-hidden="true"><i style={`left: ${EX.bl}%; width: ${EX.bw}%`}></i><em style={`left: ${EX.bc}%`}></em></span>
           <span class="sx-ts">8 chances sur 10, poste par poste. Central : {EX.central}</span>
         </a>
-        <a class="sx-tile" href="#risque">
+        <a class="sx-tile" style="--i: 2" href="#risque">
           <span class="sx-tk">Risque de dépassement</span>
           <b class="sx-tv">{EX.over} %</b>
-          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true">{EX.hist.map((h) => <rect x={h.x} y={EX.Hh - h.h} width={EX.W / EX.hist.length - 1} height={h.h} rx="1" class={h.over ? 'ov' : ''} />)}</svg>
+          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true">{EX.hist.map((h, k) => <rect x={h.x} y={EX.Hh - h.h} width={EX.W / EX.hist.length - 1} height={h.h} rx="1" class={h.over ? 'ov' : ''} style={`--k: ${k}`} />)}</svg>
           <span class="sx-ts">Des 1&#8239;000 tirages dépassent le budget central. Pour être couvert 9 fois sur 10 : {EX.p90}</span>
         </a>
-        <a class="sx-tile" href="#estimation">
+        <a class="sx-tile" style="--i: 3" href="#estimation">
           <span class="sx-tk">Retour sur investissement</span>
           <b class="sx-tv">{EX.be ? `${EX.be} mois` : 'Non atteint'}</b>
-          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true"><polyline points={EX.costLine} class="c" /><polyline points={EX.gainLine} class="g" />{EX.beX && <line x1={EX.beX} x2={EX.beX} y1="0" y2={EX.Hh} class="be" />}</svg>
+          <svg class="sx-tsvg" viewBox={`0 0 ${EX.W} ${EX.Hh}`} preserveAspectRatio="none" aria-hidden="true"><polyline points={EX.costLine} class="c" pathLength="1" /><polyline points={EX.gainLine} class="g" pathLength="1" />{EX.beX && <line x1={EX.beX} x2={EX.beX} y1="0" y2={EX.Hh} class="be" />}</svg>
           <span class="sx-ts">Point mort après le lancement. Valeur nette à {H} ans : {EX.net}</span>
         </a>
         {EX.mkt && (
-          <a class="sx-tile" href="#marche">
+          <a class="sx-tile" style="--i: 4" href="#marche">
             <span class="sx-tk">Face au marché</span>
             <b class="sx-tv">{EX.mkt.val}</b>
             <span class="sx-tband" aria-hidden="true">{EX.mkt.bands.map((x) => <i class={x.on ? 'on' : ''} style={`left: ${x.l}%; width: ${x.w}%`}></i>)}<em style={`left: ${EX.mkt.dot}%`}></em></span>
             <span class="sx-ts">{EX.mkt.label}, segment « {EX.mkt.mine} », sources citées</span>
           </a>
         )}
-        <a class="sx-tile" href="#verdict">
+        <a class="sx-tile" style="--i: 5" href="#verdict">
           <span class="sx-tk">Coût de l’attente</span>
           <b class="sx-tv">{EX.wait}</b>
-          <span class="sx-twait" aria-hidden="true">{EX.waitBars.map((v) => <i style={`height: ${Math.round(v * 100)}%`}></i>)}</span>
+          <span class="sx-twait" aria-hidden="true">{EX.waitBars.map((v, k) => <i style={`height: ${Math.round(v * 100)}%; --k: ${k}`}></i>)}</span>
           <span class="sx-ts">Perdus chaque mois de report, {EX.waitYear} sur un an</span>
         </a>
       </div>
@@ -455,6 +455,7 @@ const H = model.horizon;
   const root = document.querySelector<HTMLElement>('.simx')!;
   const model = SIMS[root.dataset.slug!];
   const nf = new Intl.NumberFormat('fr-FR');
+  const tw = (id: string, t: string) => { const el = document.getElementById(id); const f = (window as any).mlhTween; if (el) { if (f) f(el, t); else el.textContent = t; } };
   const $ = (id: string) => document.getElementById(id)!;
   const fields = model.fields;
 
@@ -530,35 +531,35 @@ const H = model.horizon;
     const vd = V3 ? verdict(model, i, r, null) : null;
     $('r-tier').textContent = r.tier.name;
     $('r-tierdesc').textContent = r.tier.desc;
-    $('r-budget').textContent = `${money(r.low)} à ${money(r.high)}`;
+    tw('r-budget', `${money(r.low)} à ${money(r.high)}`);
     $('r-central').textContent = V3 ? `8 chances sur 10 dans cette fourchette. Scénario central : ${money(r.initial)}` : `Scénario central : ${money(r.initial)}`;
     $('r-bar').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<span style="width:${((p[1] / r.initial) * 100).toFixed(2)}%;background:${COLORS[n % COLORS.length]}"></span>`).join('');
     $('r-legend').innerHTML = r.parts.filter((p: any) => p[1] > 0).map((p: any, n: number) => `<dt><i style="background:${COLORS[n % COLORS.length]}"></i>${p[0]}</dt><dd>${money(p[1])}</dd>`).join('');
-    $('r-rec').textContent = r.recurring > 0 ? `${money(r.recurring)} par an` : 'Aucun';
+    tw('r-rec', r.recurring > 0 ? `${money(r.recurring)} par an` : 'Aucun');
     $('r-recs').textContent = r.recurringNote;
     $('r-totk').textContent = `Coût total sur ${r.horizon} ans`;
-    $('r-tot').textContent = money(r.total);
-    $('r-delay').textContent = V3 ? `${r.mc.months.p10} à ${r.mc.months.p90} mois` : `${months(r.months[0])} à ${months(r.months[1])}`;
-    $('r-gain').textContent = `${money(r.gainsTotal)} par an`;
+    tw('r-tot', money(r.total));
+    tw('r-delay', V3 ? `${r.mc.months.p10} à ${r.mc.months.p90} mois` : `${months(r.months[0])} à ${months(r.months[1])}`);
+    tw('r-gain', `${money(r.gainsTotal)} par an`);
     $('r-gains').textContent = r.gains.map((g: any) => `${g[0]} : ${money(g[1])}`).join(' ; ');
     const x = $('r-x'); if (r.kpi) { x.hidden = false; $('r-xk').textContent = r.kpi[0]; $('r-xv').textContent = r.kpi[1]; $('r-xs').textContent = r.kpi[2]; } else x.hidden = true;
     const o = $('r-o'); if (r.oneOff && r.oneOff[1] > 0) { o.hidden = false; $('r-ok').textContent = r.oneOff[0]; $('r-ov').textContent = money(r.oneOff[1]); } else o.hidden = true;
     const pill = $('r-pill');
     if (V3) {
       const be = r.mc.breakEven.p50;
-      $('r-pay').textContent = Number.isFinite(be) ? `Rentabilisé ${be} mois après le lancement` : `Non rentabilisé en ${HZ} ans dans la plupart des simulations`;
+      tw('r-pay', Number.isFinite(be) ? `Rentabilisé ${be} mois après le lancement` : `Non rentabilisé en ${HZ} ans dans la plupart des simulations`);
       pill.textContent = `${pc(r.mc.pWithin)} de chances d’être rentabilisé en ${HZ} ans`;
       pill.className = `sx-pill ${vd.level === 'go' ? 'ok' : vd.level === 'prep' ? 'mid' : 'ko'}`;
       const box = $('r-vd'); box.dataset.level = vd.level;
       $('r-vlab').textContent = LV[vd.level]; $('r-vtitle').textContent = vd.title;
-      $('r-dip').textContent = r.dip ? money(r.dip[1]) : 'Aucun';
-      $('r-net').textContent = sMoney(r.mc.net.p50);
+      tw('r-dip', r.dip ? money(r.dip[1]) : 'Aucun');
+      tw('r-net', sMoney(r.mc.net.p50));
     } else if (r.breakEven) {
-      $('r-pay').textContent = `Rentabilisé ${r.breakEven} mois après le lancement`;
+      tw('r-pay', `Rentabilisé ${r.breakEven} mois après le lancement`);
       pill.textContent = `${r.roi >= 0 ? '+' : ''}${Math.round(r.roi * 100)} % sur ${r.horizon} ans, soit ${r.breakEven - r.goLive} mois après la mise en service`;
       pill.className = `sx-pill ${r.breakEven <= r.horizon * 12 * 0.6 ? 'ok' : 'mid'}`;
     } else {
-      $('r-pay').textContent = r.netAnnual > 0 ? `Au-delà de ${r.horizon} ans` : 'Non rentable sur les seuls gains mesurables';
+      tw('r-pay', r.netAnnual > 0 ? `Au-delà de ${r.horizon} ans` : 'Non rentable sur les seuls gains mesurables');
       pill.textContent = `${Math.round(r.roi * 100)} % sur ${r.horizon} ans`;
       pill.className = 'sx-pill ko';
     }
@@ -663,17 +664,17 @@ const H = model.horizon;
     $('v-blab').textContent = LV[v.level]; $('t-verdict').textContent = v.title;
     $('v-reasons').innerHTML = v.reasons.map((x: string) => `<li>${esc(x)}</li>`).join('');
     if (w.monthly > 0) {
-      $('w-month').textContent = money(w.monthly); $('w-year').textContent = money(w.year);
+      tw('w-month', money(w.monthly)); tw('w-year', money(w.year));
       $('w-note').textContent = `Chaque mois de retard du projet lui-même coûte autant.${r.growth > 0 ? ` L’écart grandit avec vos volumes, ${Math.round(r.growth * 100)} % par an.` : ''}`;
     } else {
-      $('w-month').textContent = '0 €'; $('w-year').textContent = '0 €';
+      tw('w-month', '0 €'); tw('w-year', '0 €');
       $('w-note').textContent = 'Avec ces hypothèses, attendre ne coûte rien de mesurable : les gains ne couvrent pas les coûts annuels.';
     }
     const mc = r.mc;
-    $('s-p50').textContent = money(mc.budget.p50); $('s-p50s').textContent = `Médiane des simulations, contre ${money(r.initial)} au scénario central`;
-    $('s-over').textContent = pc(mc.pOver);
-    $('s-within').textContent = pc(mc.pWithin); $('s-withins').textContent = Number.isFinite(mc.breakEven.p50) ? `Point mort médian : ${mc.breakEven.p50} mois après le lancement` : 'Point mort au-delà de l’horizon dans la plupart des cas';
-    $('s-net').textContent = sMoney(mc.net.p50); $('s-nets').textContent = `De ${sMoney(mc.net.p10)} à ${sMoney(mc.net.p90)}, 8 chances sur 10`;
+    tw('s-p50', money(mc.budget.p50)); $('s-p50s').textContent = `Médiane des simulations, contre ${money(r.initial)} au scénario central`;
+    tw('s-over', pc(mc.pOver));
+    tw('s-within', pc(mc.pWithin)); $('s-withins').textContent = Number.isFinite(mc.breakEven.p50) ? `Point mort médian : ${mc.breakEven.p50} mois après le lancement` : 'Point mort au-delà de l’horizon dans la plupart des cas';
+    tw('s-net', sMoney(mc.net.p50)); $('s-nets').textContent = `De ${sMoney(mc.net.p10)} à ${sMoney(mc.net.p90)}, 8 chances sur 10`;
     hist(r); tornado(sens, r.net);
     $('g-rtab').innerHTML = `<thead><tr><th></th><th>Favorable</th><th>Médian</th><th>Défavorable</th></tr></thead><tbody>
       <tr><th scope="row">Budget de mise en place</th><td>${money(mc.budget.p10)}</td><td>${money(mc.budget.p50)}</td><td>${money(mc.budget.p90)}</td></tr>
@@ -690,7 +691,7 @@ const H = model.horizon;
     slow = { sens, v, w, bl, list };
     // Aperçu du dossier, alimenté par la simulation en cours
     $('mp-v').dataset.level = v.level; $('mp-vt').textContent = v.title;
-    $('mp-p90').textContent = money(mc.budget.p90); $('mp-net').textContent = sMoney(mc.net.p50);
+    tw('mp-p90', money(mc.budget.p90)); tw('mp-net', sMoney(mc.net.p50));
     const pp = r.parts.filter((x: any) => x[1] > 0);
     $('mp-bar').innerHTML = pp.map((x: any, k: number) => `<span style="width:${(x[1] / r.initial) * 100}%;background:${COLORS[k % COLORS.length]}"></span>`).join('');
     $('mp-rows').innerHTML = pp.slice(0, 6).map((x: any) => `<div><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join('');
@@ -1015,6 +1016,18 @@ const H = model.horizon;
   .sx-tsvg polyline { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; } .sx-tsvg .c { stroke: rgba(255,255,255,.45); } .sx-tsvg .g { stroke: #34c759; }
   .sx-tsvg .be { stroke: #fff; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
   .sx-twait { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 2px; } .sx-twait i { flex: 1; border-radius: 2px; background: linear-gradient(#ff6b5a, rgba(255,107,90,.35)); }
+  @media (prefers-reduced-motion: no-preference) {
+    .sx-tile { animation: tile-in .8s var(--ease) both; animation-delay: calc(.35s + var(--i, 0) * 90ms); }
+    .sx-tsvg rect { transform-box: fill-box; transform-origin: 50% 100%; animation: bar-up .6s var(--ease) both; animation-delay: calc(.9s + var(--k, 0) * 22ms); }
+    .sx-tsvg polyline { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.6s var(--ease) 1.1s forwards; }
+    .sx-tsvg .be { opacity: 0; animation: tile-in .5s var(--ease) 2.3s forwards; }
+    .sx-tbar i, .sx-tband i { transform-origin: 0 50%; animation: grow 1s var(--ease) both; animation-delay: 1s; }
+    .sx-tbar em, .sx-tband em { animation: pop .5s var(--ease) both; animation-delay: 1.7s; }
+    .sx-twait i { transform-origin: 50% 100%; animation: bar-up .5s var(--ease) both; animation-delay: calc(1.2s + var(--k, 0) * 60ms); }
+    .sx-tdot { animation: pop .5s var(--ease) .9s both, ring 2.6s ease-out 1.6s infinite; }
+    .sx-tdot.prep { --ring: rgba(255,176,32,.5); } .sx-tdot.wait { --ring: rgba(255,107,90,.5); }
+    .sx-tile:hover .sx-tv { transform: translateX(2px); } .sx-tv { transition: transform .3s var(--ease); }
+  }
   .sx-show-f { margin: 12px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
   @media (max-width: 1180px) { .sx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) {

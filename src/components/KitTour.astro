@@ -211,15 +211,35 @@ const vs = [
       tabs.forEach((t, j) => { const on = j === i; t.classList.toggle('on', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
       panels.forEach((p, j) => { p.hidden = j !== i; });
       if (focus) tabs[i].focus();
-      if (matchMedia('(max-width: 900px)').matches) tabs[i].scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      if (matchMedia('(max-width: 900px)').matches) { const box = root.querySelector('.kt-steps'); if (box) box.scrollTo({ left: tabs[i].offsetLeft - 20, behavior: 'smooth' }); }
     };
+    // Lecture automatique tant que le visiteur n'a pas cliqué : une étape toutes les 6,5 secondes
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cur = 0, timer = 0, stopped = reduce, visible = false;
+    const grid = root.querySelector('.kt-grid');
+    const arm = () => {
+      clearTimeout(timer); tabs.forEach((t) => t.classList.remove('run'));
+      if (stopped || !visible) return;
+      void tabs[cur].offsetWidth; tabs[cur].classList.add('run');
+      timer = setTimeout(() => { cur = (cur + 1) % tabs.length; showAuto(cur); }, 6500);
+    };
+    const showAuto = (i) => {
+      tabs.forEach((t, j) => { const on = j === i; t.classList.toggle('on', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
+      panels.forEach((p, j) => { p.hidden = j !== i; });
+      if (matchMedia('(max-width: 900px)').matches) { const box = root.querySelector('.kt-steps'); if (box) box.scrollTo({ left: tabs[i].offsetLeft - 20, behavior: 'smooth' }); }
+      arm();
+    };
+    const stop = () => { stopped = true; arm(); };
+    if ('IntersectionObserver' in window && grid) new IntersectionObserver((en) => { visible = en[0].isIntersecting; arm(); }, { threshold: 0.45 }).observe(grid);
+    root.querySelector('.kt-view')?.addEventListener('mouseenter', () => { clearTimeout(timer); tabs[cur].classList.add('paused'); });
+    root.querySelector('.kt-view')?.addEventListener('mouseleave', () => { tabs[cur].classList.remove('paused'); arm(); });
     tabs.forEach((t, i) => {
-      t.addEventListener('click', () => show(i, false));
+      t.addEventListener('click', () => { stop(); cur = i; show(i, false); });
       t.addEventListener('keydown', (e) => {
         const k = e.key; let n = -1;
         if (k === 'ArrowDown' || k === 'ArrowRight') n = (i + 1) % tabs.length;
         if (k === 'ArrowUp' || k === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
-        if (n >= 0) { e.preventDefault(); show(n, true); }
+        if (n >= 0) { e.preventDefault(); stop(); cur = n; show(n, true); }
       });
     });
   }
@@ -236,6 +256,26 @@ const vs = [
   .kt-step.on { background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
   .kt-n { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: #e3e3e8; color: var(--muted); transition: background .25s, color .25s; }
   .kt-step.on .kt-n { background: #000; color: #fff; }
+  .kt-step { position: relative; overflow: hidden; }
+  .kt-step::after { content: ''; position: absolute; left: 18px; right: 18px; bottom: 8px; height: 2px; border-radius: 2px; background: #2448f5; transform: scaleX(0); transform-origin: 0 50%; opacity: 0; }
+  .kt-step.run::after { opacity: 1; animation: kt-prog 6.5s linear forwards; }
+  .kt-step.run.paused::after { animation-play-state: paused; }
+  @keyframes kt-prog { to { transform: scaleX(1); } }
+  @media (prefers-reduced-motion: no-preference) {
+    .kt-panel .kt-tb tbody tr, .kt-panel .kt-check li, .kt-panel .kt-scen li, .kt-panel .kt-crit > div, .kt-panel .kt-flags li, .kt-panel .kt-tip, .kt-panel .kt-rate em { animation: kt-row .55s var(--ease) both; }
+    .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(1) { animation-delay: .12s; } .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(2) { animation-delay: .2s; }
+    .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(3) { animation-delay: .28s; } .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(4) { animation-delay: .36s; }
+    .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(5) { animation-delay: .44s; } .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(6) { animation-delay: .52s; }
+    .kt-panel :is(tr, li, .kt-crit > div, em):nth-child(7) { animation-delay: .6s; }
+    .kt-panel .kt-tip { animation-delay: .7s; }
+    .kt-crit i { transform-origin: 0 50%; animation: grow .9s var(--ease) both; animation-delay: .35s; }
+    .kt-box { animation: pop .45s var(--ease) both; animation-delay: inherit; }
+    .kt-tot .win { animation: pop .6s var(--ease) .75s both; }
+    .kt-rate em.on { animation: pop .5s var(--ease) .7s both; }
+    .kt-trap { animation: kt-row .6s var(--ease) .5s both; }
+    .kt-tri { animation: ring 2.4s ease-out 1.2s infinite; --ring: rgba(255,107,90,.55); }
+  }
+  @keyframes kt-row { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .kt-st { display: flex; flex-direction: column; gap: 3px; } .kt-st b { font-size: 16.5px; letter-spacing: -0.01em; } .kt-st span { font-size: 13.5px; line-height: 1.4; color: var(--muted); }
   .kt-panel { display: grid; gap: 14px; animation: kt-in .45s var(--ease) both; }
   .kt-panel[hidden] { display: none; }

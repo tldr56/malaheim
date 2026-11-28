@@ -205,6 +205,27 @@ a.card { color: var(--text); text-decoration: none; }
 .io .track-fill { transform: scaleX(0); transition: transform 1.4s var(--ease) .2s; }
 .io .track-fill.in { transform: scaleX(1); }
 
+/* Mouvement fluide : transitions entre les pages, halo des cartes, en-tête, boutons */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root) { animation: vt-out .28s cubic-bezier(.4, 0, 1, 1) both; }
+  ::view-transition-new(root) { animation: vt-in .55s cubic-bezier(.16, 1, .3, 1) both; }
+  .topbar { view-transition-name: topbar; }
+}
+@keyframes vt-out { to { opacity: 0; transform: translateY(-10px); filter: blur(6px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(18px); filter: blur(8px); } }
+.topbar { transition: box-shadow .35s var(--ease), background-color .35s var(--ease); }
+.topbar.scrolled { box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 10px 30px -12px rgba(0,0,0,.12); }
+.glow.glow.glow { background-image: radial-gradient(420px circle at var(--mx, -500px) var(--my, -500px), rgba(110, 135, 255, .16), transparent 60%); }
+.btn, .sx-btn, .kb-go, .decide-go, .cd-go, .sx-lkb { transition: transform .25s var(--ease), box-shadow .25s var(--ease), background-color .25s, color .25s; }
+.btn:hover, .sx-btn:hover { transform: translateY(-1px); }
+.btn:active, .sx-btn:active, .kb-go:active, .decide-go:active, .cd-go:active, .sx-lkb:active { transform: scale(.97); }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes bar-up { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 var(--ring, rgba(52,199,89,.5)); } 70% { box-shadow: 0 0 0 12px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
+@keyframes tile-in { from { opacity: 0; transform: translateY(26px) scale(.98); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
